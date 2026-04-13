@@ -2155,3 +2155,58 @@ final class RecordButtonStateTests: XCTestCase {
         XCTAssertNotEqual(RecordButtonState.countdown, .ready)
     }
 }
+
+// MARK: - FMModeSelector mapping tests
+final class FMModeSelectorTests: XCTestCase {
+    typealias PM  = FMModeSelector.PrimaryMode
+    typealias ORI = FMModeSelector.Orientation
+
+    // compose: PrimaryMode + Orientation → RecordingPreset
+
+    func test_compose_cameraHorizontal() {
+        XCTAssertEqual(FMModeSelector.compose(primaryMode: .camera, orientation: .horizontal), .horizontalCamera)
+    }
+    func test_compose_cameraVertical() {
+        XCTAssertEqual(FMModeSelector.compose(primaryMode: .camera, orientation: .vertical), .verticalCamera)
+    }
+    func test_compose_screenHorizontal() {
+        XCTAssertEqual(FMModeSelector.compose(primaryMode: .screen, orientation: .horizontal), .horizontalScreen)
+    }
+    func test_compose_screenVertical() {
+        XCTAssertEqual(FMModeSelector.compose(primaryMode: .screen, orientation: .vertical), .verticalScreen)
+    }
+    func test_compose_screenCamera_alwaysHorizontalScreen() {
+        XCTAssertEqual(FMModeSelector.compose(primaryMode: .screenCamera, orientation: .horizontal), .horizontalScreen)
+        XCTAssertEqual(FMModeSelector.compose(primaryMode: .screenCamera, orientation: .vertical),   .horizontalScreen)
+    }
+    func test_compose_audio() {
+        XCTAssertEqual(FMModeSelector.compose(primaryMode: .audio, orientation: .horizontal), .audioOnly)
+    }
+
+    // decompose: RecordingPreset + overlayEnabled → (PrimaryMode, Orientation)
+
+    func test_decompose_horizontalCamera() {
+        let (pm, ori) = FMModeSelector.decompose(preset: .horizontalCamera, overlayEnabled: false)
+        XCTAssertEqual(pm, .camera); XCTAssertEqual(ori, .horizontal)
+    }
+    func test_decompose_verticalCamera() {
+        let (pm, ori) = FMModeSelector.decompose(preset: .verticalCamera, overlayEnabled: false)
+        XCTAssertEqual(pm, .camera); XCTAssertEqual(ori, .vertical)
+    }
+    func test_decompose_horizontalScreen_noOverlay() {
+        let (pm, ori) = FMModeSelector.decompose(preset: .horizontalScreen, overlayEnabled: false)
+        XCTAssertEqual(pm, .screen); XCTAssertEqual(ori, .horizontal)
+    }
+    func test_decompose_horizontalScreen_withOverlay() {
+        let (pm, ori) = FMModeSelector.decompose(preset: .horizontalScreen, overlayEnabled: true)
+        XCTAssertEqual(pm, .screenCamera); XCTAssertEqual(ori, .horizontal)
+    }
+    func test_decompose_verticalScreen() {
+        let (pm, ori) = FMModeSelector.decompose(preset: .verticalScreen, overlayEnabled: false)
+        XCTAssertEqual(pm, .screen); XCTAssertEqual(ori, .vertical)
+    }
+    func test_decompose_audioOnly() {
+        let (pm, ori) = FMModeSelector.decompose(preset: .audioOnly, overlayEnabled: false)
+        XCTAssertEqual(pm, .audio); XCTAssertEqual(ori, .horizontal)
+    }
+}
