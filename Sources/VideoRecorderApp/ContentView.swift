@@ -210,6 +210,15 @@ struct ContentView: View {
                     .accessibilityHint(String(localized: "Mac'te calan uygulama ve sistem seslerini kayda ekler."))
             }
 
+            // Screen recording permission banner (system audio capture requires screen recording).
+            // Only shown here in audio-only mode — screen modes already surface this via sourceCard.
+            if viewModel.isSystemAudioEnabled
+                && !viewModel.showsScreenControls
+                && !viewModel.showsScreenOverlayControls
+                && viewModel.screenRecordingPermissionStatus == .denied {
+                screenPermissionBanner
+            }
+
             // Microphone volume
             if viewModel.showsMicrophoneVolumeControl {
                 VStack(alignment: .leading, spacing: 6) {
@@ -435,12 +444,32 @@ struct ContentView: View {
 
     @ViewBuilder
     private var screenPermissionBanner: some View {
-        permissionBanner(
-            message: String(localized: "Ekran kaydı izni gerekli"),
-            buttonTitle: String(localized: "Ayarları Aç"),
-            buttonHint: String(localized: "Sistem Ayarları içinde Ekran Kaydı gizlilik ekranını açar."),
-            action: { viewModel.openScreenRecordingSettings() }
-        )
+        if viewModel.screenPermissionNeedsRestart {
+            // Permission was just granted — restart required for it to take effect
+            permissionBanner(
+                message: String(localized: "İzin verildi — değişikliği görmek için uygulamayı yeniden başlat"),
+                buttonTitle: String(localized: "Ayarları Gör"),
+                buttonHint: String(localized: "İzin durumunu Sistem Ayarları'nda doğrulamak için açar."),
+                action: { viewModel.openScreenRecordingSettings() }
+            )
+        } else {
+            VStack(spacing: 6) {
+                // Primary: request permission for the first time
+                permissionBanner(
+                    message: String(localized: "Ekran kaydı izni gerekli"),
+                    buttonTitle: String(localized: "İzin İste"),
+                    buttonHint: String(localized: "Sistem izin penceresini açar. İzin verdikten sonra uygulamayı yeniden başlatman gerekebilir."),
+                    action: { viewModel.requestScreenRecordingPermission() }
+                )
+                // Secondary: open settings if permission was previously denied
+                permissionBanner(
+                    message: String(localized: "Daha önce reddettiysen"),
+                    buttonTitle: String(localized: "Ayarları Aç"),
+                    buttonHint: String(localized: "Sistem Ayarları içinde Ekran Kaydı gizlilik ekranını açar."),
+                    action: { viewModel.openScreenRecordingSettings() }
+                )
+            }
+        }
     }
 
     private func permissionBanner(
