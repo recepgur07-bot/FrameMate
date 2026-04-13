@@ -14,6 +14,7 @@
 		00FC9927B1F91CC7A0EF1DE9 /* MainWindowPresentationPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F54A3B85F0A27181CDDB9065 /* MainWindowPresentationPolicyTests.swift */; };
 		0191F5A4E907D6ABCD19C227 /* MenuBarControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E1496EE021F361F75D73BA3 /* MenuBarControllerTests.swift */; };
 		02CF4E9D36D44D3FB2956E4D /* FrameCoachingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7EDA1BCD320BEE436F9A95 /* FrameCoachingProfile.swift */; };
+		03A40790BBC384E9A741DD52 /* RecordButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1DF9C0DAA793EEA24B1F9956 /* RecordButton.swift */; };
 		043D349A7580255B475ACFD1 /* ScreenRecordingCompositionPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28552F79DAF360EF7EFD133B /* ScreenRecordingCompositionPreview.swift */; };
 		0A74A4B1C400FCCC20FD4D92 /* RecordingSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20D6A861F00E9933EFE8D532 /* RecordingSource.swift */; };
 		0C2811171992FA8C93FC7608 /* RecordingFileNamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFC2DE1A903B40C84D7B5A6 /* RecordingFileNamer.swift */; };
@@ -32,6 +33,7 @@
 		348C09CE7679E75806BF5913 /* AutoReframeCrop.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E010B636983F5620AB764F6 /* AutoReframeCrop.swift */; };
 		3BE5D6330B01B3D045F5D02C /* KeyboardShortcutTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2380DDB63649E3693B01B7E1 /* KeyboardShortcutTimeline.swift */; };
 		3D816C5802511E3D49E55C46 /* ScreenCaptureSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89EE4BBF2C45782CF98E7B9E /* ScreenCaptureSource.swift */; };
+		429974DAF93E10E3D68EB801 /* FMCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67465CBE687C5A13E09C6385 /* FMCard.swift */; };
 		44B6EBF186E74E21A532EFBE /* ScreenRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D640EF51EE60851D353C5E /* ScreenRecorderTests.swift */; };
 		49379AB5C0ED5B6B6D52404C /* StatusPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18853E84CE11D7915C79B42 /* StatusPill.swift */; };
 		4BC588C20D15A99470BD1874 /* AppAccessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D6AAFD5671A9413C5E9EAC /* AppAccessManager.swift */; };
@@ -53,6 +55,7 @@
 		75C2EB6EE7E7321977BA25F9 /* ScreenCameraOverlayPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F49D6AF5042BC7D77AB81EB /* ScreenCameraOverlayPosition.swift */; };
 		770C56A2D0F4A629A381EC16 /* RecordingModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7065951C1694B145EE150258 /* RecordingModeTests.swift */; };
 		79D096D91FB4B18E7C79893A /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CC3850B0A049070C42D181 /* MenuBarController.swift */; };
+		7CF1310726EDE67B2D98CFA7 /* FMModeSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CEB2AFD9DF1C5E28C0D11563 /* FMModeSelector.swift */; };
 		8355F87FE87A6DFBD4AA67D7 /* ScreenCameraOverlaySize.swift in Sources */ = {isa = PBXBuildFile; fileRef = B533458F9E7C33CA0FFBD44B /* ScreenCameraOverlaySize.swift */; };
 		851A3606646E039AEE71D0EB /* SoundEffectPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F46C69822B8A4BE5D03FE9D5 /* SoundEffectPlayer.swift */; };
 		93931F4CF246C0E101026639 /* SystemAudioRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = C456EA98E1DEEB1F5D77D9AD /* SystemAudioRecorder.swift */; };
@@ -116,6 +119,7 @@
 		167A3E84E02B38AAE85A6195 /* FrameLightingAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameLightingAnalyzer.swift; sourceTree = "<group>"; };
 		17800447671910879AFC1376 /* CursorHighlightRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHighlightRecorder.swift; sourceTree = "<group>"; };
 		1C01FAE70D4B69B65EBE30F2 /* ara.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ara.wav; sourceTree = "<group>"; };
+		1DF9C0DAA793EEA24B1F9956 /* RecordButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordButton.swift; sourceTree = "<group>"; };
 		1E010B636983F5620AB764F6 /* AutoReframeCrop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoReframeCrop.swift; sourceTree = "<group>"; };
 		1EA3A3B248D1201AFB0952BC /* AutoReframeTimelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoReframeTimelineTests.swift; sourceTree = "<group>"; };
 		20D6A861F00E9933EFE8D532 /* RecordingSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingSource.swift; sourceTree = "<group>"; };
@@ -139,6 +143,7 @@
 		602B514B870DE51A1FB8E216 /* VideoRecorderAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = VideoRecorderAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		60627CB0646F2C7480F4D0BE /* RecordingAudioMixBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingAudioMixBuilderTests.swift; sourceTree = "<group>"; };
 		60DDC2EBA03572B84E525F1B /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		67465CBE687C5A13E09C6385 /* FMCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FMCard.swift; sourceTree = "<group>"; };
 		68A11E453278FF1EAD623443 /* TestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
 		6E1496EE021F361F75D73BA3 /* MenuBarControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarControllerTests.swift; sourceTree = "<group>"; };
 		7065951C1694B145EE150258 /* RecordingModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingModeTests.swift; sourceTree = "<group>"; };
@@ -176,6 +181,7 @@
 		C6DC2E9856E96D194EE04008 /* RecordingPresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingPresetTests.swift; sourceTree = "<group>"; };
 		CA354858AA041056F9F6DD0A /* FrameAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameAnalysisService.swift; sourceTree = "<group>"; };
 		CC4CA8A309E7D091B9F77125 /* CaptureCoachingEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureCoachingEngineTests.swift; sourceTree = "<group>"; };
+		CEB2AFD9DF1C5E28C0D11563 /* FMModeSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FMModeSelector.swift; sourceTree = "<group>"; };
 		DA52A7BC68075D3AADE54E86 /* RecordingMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingMode.swift; sourceTree = "<group>"; };
 		DBF2C86A04E076B902883029 /* VideoRecorderApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoRecorderApp.swift; sourceTree = "<group>"; };
 		DE7BAA137D4D7D0507732CD1 /* MicrophoneAudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneAudioRecorder.swift; sourceTree = "<group>"; };
@@ -257,6 +263,8 @@
 				60DDC2EBA03572B84E525F1B /* ContentView.swift */,
 				17800447671910879AFC1376 /* CursorHighlightRecorder.swift */,
 				B3C20F167D5CB1785261365F /* CursorHighlightTimeline.swift */,
+				67465CBE687C5A13E09C6385 /* FMCard.swift */,
+				CEB2AFD9DF1C5E28C0D11563 /* FMModeSelector.swift */,
 				70D1BA0C37FFA3D832609BF2 /* FrameMateColors.swift */,
 				B413F2D223267FA0A32CFF83 /* GlobalHotkeyMonitor.swift */,
 				B77A6F90716EE30079C49119 /* KeyboardShortcutRecorder.swift */,
@@ -265,6 +273,7 @@
 				F75423679EDA5582C63E20FF /* MainWindowPresentation.swift */,
 				B6CC3850B0A049070C42D181 /* MenuBarController.swift */,
 				DE7BAA137D4D7D0507732CD1 /* MicrophoneAudioRecorder.swift */,
+				1DF9C0DAA793EEA24B1F9956 /* RecordButton.swift */,
 				8C58262F591AC851051CE0F3 /* RecorderViewModel.swift */,
 				E37BB423E8B231AD8B32B652 /* RecordingAudioMixBuilder.swift */,
 				0FFC2DE1A903B40C84D7B5A6 /* RecordingFileNamer.swift */,
@@ -506,6 +515,8 @@
 				95EBBAE40F94151275E8A67B /* ContentView.swift in Sources */,
 				F4CBE7E6B75A7E9CA4912FA1 /* CursorHighlightRecorder.swift in Sources */,
 				A7B4F13D7EA7363625E26A7A /* CursorHighlightTimeline.swift in Sources */,
+				429974DAF93E10E3D68EB801 /* FMCard.swift in Sources */,
+				7CF1310726EDE67B2D98CFA7 /* FMModeSelector.swift in Sources */,
 				640201AA0A1D4AE2642EA078 /* FrameAnalysis.swift in Sources */,
 				B69422AEA88B60BA8CF8A02D /* FrameAnalysisService.swift in Sources */,
 				A6BC200A459BF3E28248D122 /* FrameCoachingEngine.swift in Sources */,
@@ -518,6 +529,7 @@
 				00907E694C1678450A833DF4 /* MainWindowPresentation.swift in Sources */,
 				79D096D91FB4B18E7C79893A /* MenuBarController.swift in Sources */,
 				EEE9A9126FE64D81ACCC0A0D /* MicrophoneAudioRecorder.swift in Sources */,
+				03A40790BBC384E9A741DD52 /* RecordButton.swift in Sources */,
 				F86E8CC14089D997635E8DF0 /* RecorderViewModel.swift in Sources */,
 				A7FCE7362D545FC00464BA4D /* RecordingAudioMixBuilder.swift in Sources */,
 				0C2811171992FA8C93FC7608 /* RecordingFileNamer.swift in Sources */,
@@ -699,7 +711,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.recepgur.VideoRecorder;
 				PRODUCT_MODULE_NAME = VideoRecorderApp;
-				PRODUCT_NAME = VideoRecorder;
+				PRODUCT_NAME = FrameMate;
 				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.recepgur.VideoRecorder";
 				SDKROOT = macosx;
 			};
@@ -730,7 +742,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.recepgur.VideoRecorder;
 				PRODUCT_MODULE_NAME = VideoRecorderApp;
-				PRODUCT_NAME = VideoRecorder;
+				PRODUCT_NAME = FrameMate;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
 			};
