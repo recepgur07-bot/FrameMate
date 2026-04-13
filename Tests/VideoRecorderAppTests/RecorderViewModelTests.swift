@@ -2138,3 +2138,20 @@ final class RecordingStatusTests: XCTestCase {
         XCTAssertNotEqual(recordColor, pauseColor)
     }
 }
+
+// MARK: - RecordButtonState tests
+final class RecordButtonStateTests: XCTestCase {
+    func test_states_are_distinct() {
+        XCTAssertNotEqual(RecordButtonState.ready,     .recording)
+        XCTAssertNotEqual(RecordButtonState.ready,     .paused)
+        XCTAssertNotEqual(RecordButtonState.ready,     .preparing)
+        XCTAssertNotEqual(RecordButtonState.recording, .paused)
+        XCTAssertNotEqual(RecordButtonState.recording, .preparing)
+        XCTAssertNotEqual(RecordButtonState.paused,    .preparing)
+    }
+
+    func test_countdown_equality() {
+        XCTAssertEqual(RecordButtonState.countdown, .countdown)
+        XCTAssertNotEqual(RecordButtonState.countdown, .ready)
+    }
+}
