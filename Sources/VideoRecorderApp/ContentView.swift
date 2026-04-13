@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -93,6 +94,37 @@ struct ContentView: View {
             guard newPhase == .active else { return }
             viewModel.refreshDeviceState()
             Task { await viewModel.refreshAppAccess() }
+        }
+        // VoiceOver announcements — proactively read state changes aloud so the user
+        // doesn't have to navigate to the status elements to hear what happened.
+        .onChange(of: currentStatus) { _, newStatus in
+            let message: String
+            switch newStatus {
+            case .recording:  message = String(localized: "Kayıt başladı")
+            case .paused:     message = String(localized: "Kayıt duraklatıldı")
+            case .preparing:  message = String(localized: "Kayıt hazırlanıyor")
+            case .ready:      message = String(localized: "Kayıt durduruldu")
+            }
+            NSAccessibility.post(
+                element: NSApp.mainWindow as Any,
+                notification: .announcementRequested,
+                userInfo: [
+                    NSAccessibility.NotificationUserInfoKey.announcement: message,
+                    NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                ]
+            )
+        }
+        .onChange(of: viewModel.errorText) { _, newError in
+            guard let error = newError else { return }
+            NSAccessibility.post(
+                element: NSApp.mainWindow as Any,
+                notification: .announcementRequested,
+                userInfo: [
+                    NSAccessibility.NotificationUserInfoKey.announcement:
+                        String(localized: "Hata: \(error)"),
+                    NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                ]
+            )
         }
     }
 

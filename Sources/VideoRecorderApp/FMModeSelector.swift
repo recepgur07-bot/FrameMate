@@ -54,6 +54,14 @@ struct FMModeSelector: View {
 
     var body: some View {
         VStack(spacing: 8) {
+            // Accessibility heading — read by VoiceOver before navigating the segments.
+            // Visually subtle so it doesn't clutter the layout.
+            Text(String(localized: "Kayıt Modu"))
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Color.secondary.opacity(0.7))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader)
+
             // Primary mode segments
             HStack(spacing: 4) {
                 modeSegment(mode: .camera,
@@ -72,10 +80,16 @@ struct FMModeSelector: View {
             .padding(4)
             .background(Color.fmCardBg)
             .clipShape(RoundedRectangle(cornerRadius: 10))
-            .accessibilityLabel(String(localized: "Kayıt modu seçimi"))
 
             // Orientation toggle — hidden for Ekran+Kamera and Ses
             if primaryMode == .camera || primaryMode == .screen {
+                // Accessibility heading for the orientation group
+                Text(String(localized: "Yönlendirme"))
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(Color.secondary.opacity(0.7))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityAddTraits(.isHeader)
+
                 HStack(spacing: 4) {
                     orientationButton(
                         orientation: .horizontal,
@@ -88,7 +102,6 @@ struct FMModeSelector: View {
                         label: String(localized: "Dikey")
                     )
                 }
-                .accessibilityLabel(String(localized: "Yönlendirme seçimi"))
             }
         }
         .onChange(of: selectedPreset) { _, newPreset in
@@ -127,7 +140,9 @@ struct FMModeSelector: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
-        .accessibilityHint(String(localized: "Bu kayıt modunu seçer"))
+        .accessibilityHint(modeAccessibilityHint(for: mode))
+        // Announces "seçili" to VoiceOver when this mode is active
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     @ViewBuilder
@@ -153,7 +168,33 @@ struct FMModeSelector: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
-        .accessibilityHint(String(localized: "Bu yönlendirmeyi seçer"))
+        .accessibilityHint(orientationAccessibilityHint(for: orientation))
+        // Announces "seçili" to VoiceOver when this orientation is active
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    // MARK: - Accessibility helpers
+
+    private func modeAccessibilityHint(for mode: PrimaryMode) -> String {
+        switch mode {
+        case .camera:
+            return String(localized: "Sadece kamera görüntüsünü kaydeder. Seçimden sonra yönlendirme seçilebilir.")
+        case .screen:
+            return String(localized: "Sadece ekran görüntüsünü kaydeder. Seçimden sonra yönlendirme seçilebilir.")
+        case .screenCamera:
+            return String(localized: "Ekranı kaydeder ve kamera görüntüsünü küçük pencere olarak ekler.")
+        case .audio:
+            return String(localized: "Yalnızca ses kaydeder, video içermez.")
+        }
+    }
+
+    private func orientationAccessibilityHint(for orientation: Orientation) -> String {
+        switch orientation {
+        case .horizontal:
+            return String(localized: "Kayıt 16:9 yatay formatta yapılır.")
+        case .vertical:
+            return String(localized: "Kayıt 9:16 dikey formatta yapılır.")
+        }
     }
 
     // MARK: - Preset mapping (static — unit-testable)
