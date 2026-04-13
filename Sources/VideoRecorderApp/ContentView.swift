@@ -3,8 +3,6 @@ import SwiftUI
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Bindable var viewModel: RecorderViewModel
-    @State private var isDebugPanelExpanded = false
-
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Video Kaydedici")
@@ -285,7 +283,6 @@ struct ContentView: View {
                     .textSelection(.enabled)
             }
 
-            debugPanel
         }
         .padding()
         .frame(minWidth: 560, minHeight: 560)
@@ -397,29 +394,6 @@ struct ContentView: View {
         viewModel.showsScreenControls ? String(localized: "Mikrofon (isteğe bağlı)") : String(localized: "Mikrofon")
     }
 
-    @ViewBuilder
-    private var debugPanel: some View {
-        DisclosureGroup("Otomatik Kadraj Tanılama", isExpanded: $isDebugPanelExpanded) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(String(localized: "Strateji: \(viewModel.lastAutoReframeStrategy)"))
-                Text(String(localized: "Ana kare sayısı: \(viewModel.lastAutoReframeKeyframeCount)"))
-                Text(String(localized: "Kompozisyon kullanıldı: \(viewModel.lastAutoReframeUsedVideoComposition ? "evet" : "hayır")"))
-                Text(String(localized: "Yedek dışa aktarım: \(viewModel.lastAutoReframeUsedFallbackExport ? "evet" : "hayır")"))
-                Text(
-                    String(
-                        format: "Aktif crop: x %.2f y %.2f gen %.2f yuk %.2f",
-                        viewModel.currentAutoReframeCrop.originX,
-                        viewModel.currentAutoReframeCrop.originY,
-                        viewModel.currentAutoReframeCrop.width,
-                        viewModel.currentAutoReframeCrop.height
-                    )
-                )
-                .textSelection(.enabled)
-            }
-            .padding(.top, 6)
-        }
-        .padding(.top, 8)
-    }
 }
 
 struct SettingsView: View {
@@ -504,6 +478,30 @@ struct SettingsView: View {
                     }
                 }
             }
+
+            #if DEBUG
+            Section("Tanılama") {
+                DisclosureGroup("Otomatik Kadraj Tanılama") {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(String(localized: "Strateji: \(viewModel.lastAutoReframeStrategy)"))
+                        Text(String(localized: "Ana kare sayısı: \(viewModel.lastAutoReframeKeyframeCount)"))
+                        Text(String(localized: "Kompozisyon kullanıldı: \(viewModel.lastAutoReframeUsedVideoComposition ? "evet" : "hayır")"))
+                        Text(String(localized: "Yedek dışa aktarım: \(viewModel.lastAutoReframeUsedFallbackExport ? "evet" : "hayır")"))
+                        Text(
+                            String(
+                                format: "Aktif crop: x %.2f y %.2f gen %.2f yuk %.2f",
+                                viewModel.currentAutoReframeCrop.originX,
+                                viewModel.currentAutoReframeCrop.originY,
+                                viewModel.currentAutoReframeCrop.width,
+                                viewModel.currentAutoReframeCrop.height
+                            )
+                        )
+                        .textSelection(.enabled)
+                    }
+                    .padding(.top, 6)
+                }
+            }
+            #endif
         }
         .formStyle(.grouped)
         .padding(20)
