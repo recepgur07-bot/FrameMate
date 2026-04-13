@@ -33,6 +33,7 @@
 		3BE5D6330B01B3D045F5D02C /* KeyboardShortcutTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2380DDB63649E3693B01B7E1 /* KeyboardShortcutTimeline.swift */; };
 		3D816C5802511E3D49E55C46 /* ScreenCaptureSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89EE4BBF2C45782CF98E7B9E /* ScreenCaptureSource.swift */; };
 		44B6EBF186E74E21A532EFBE /* ScreenRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3D640EF51EE60851D353C5E /* ScreenRecorderTests.swift */; };
+		49379AB5C0ED5B6B6D52404C /* StatusPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = C18853E84CE11D7915C79B42 /* StatusPill.swift */; };
 		4BC588C20D15A99470BD1874 /* AppAccessManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7D6AAFD5671A9413C5E9EAC /* AppAccessManager.swift */; };
 		4C18FC03BE667A6257558EF6 /* ScreenRecording.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DC7179E943FE1E7545AF93C /* ScreenRecording.swift */; };
 		4F9BDF78D55980EB3A9C5B90 /* ScreenCameraOverlayCompositionBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D96D1084EB6F2943E8D1AA /* ScreenCameraOverlayCompositionBuilderTests.swift */; };
@@ -59,6 +60,7 @@
 		95E1EB82576F432703B8D141 /* AutoReframeSmoother.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAE53F1C7B29FFFBB9E8AF92 /* AutoReframeSmoother.swift */; };
 		95EBBAE40F94151275E8A67B /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60DDC2EBA03572B84E525F1B /* ContentView.swift */; };
 		96CDEE5EEBA398EBD21030F5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 11D9C245A5B32E5CA7B70EE6 /* Assets.xcassets */; };
+		9930E1142C6223F8B1469869 /* FrameMateColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70D1BA0C37FFA3D832609BF2 /* FrameMateColors.swift */; };
 		9C0A267C1DA6E6D230B4D764 /* RecorderViewModelCountdownTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEA4E00CCCAA399A5C56236F /* RecorderViewModelCountdownTests.swift */; };
 		9FB7B6AEBAB78C9E6FE355EA /* SpeechCuePlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887EC5FFA4C53F9822CA00C9 /* SpeechCuePlayer.swift */; };
 		A6A5E0294BA7A0A8C739901D /* FrameLightingAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 167A3E84E02B38AAE85A6195 /* FrameLightingAnalyzer.swift */; };
@@ -140,6 +142,7 @@
 		68A11E453278FF1EAD623443 /* TestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestSupport.swift; sourceTree = "<group>"; };
 		6E1496EE021F361F75D73BA3 /* MenuBarControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarControllerTests.swift; sourceTree = "<group>"; };
 		7065951C1694B145EE150258 /* RecordingModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingModeTests.swift; sourceTree = "<group>"; };
+		70D1BA0C37FFA3D832609BF2 /* FrameMateColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameMateColors.swift; sourceTree = "<group>"; };
 		7F49D6AF5042BC7D77AB81EB /* ScreenCameraOverlayPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCameraOverlayPosition.swift; sourceTree = "<group>"; };
 		887EC5FFA4C53F9822CA00C9 /* SpeechCuePlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechCuePlayer.swift; sourceTree = "<group>"; };
 		89EE4BBF2C45782CF98E7B9E /* ScreenCaptureSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureSource.swift; sourceTree = "<group>"; };
@@ -168,6 +171,7 @@
 		B791F8BEA905CA54DC936506 /* bitis.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = bitis.wav; sourceTree = "<group>"; };
 		BECE9288FACCD400388879C5 /* RecordingFileNamerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingFileNamerTests.swift; sourceTree = "<group>"; };
 		C0338B60DC8C961D933971FA /* SpeechCuePlayerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechCuePlayerTests.swift; sourceTree = "<group>"; };
+		C18853E84CE11D7915C79B42 /* StatusPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusPill.swift; sourceTree = "<group>"; };
 		C456EA98E1DEEB1F5D77D9AD /* SystemAudioRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemAudioRecorder.swift; sourceTree = "<group>"; };
 		C6DC2E9856E96D194EE04008 /* RecordingPresetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingPresetTests.swift; sourceTree = "<group>"; };
 		CA354858AA041056F9F6DD0A /* FrameAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameAnalysisService.swift; sourceTree = "<group>"; };
@@ -253,6 +257,7 @@
 				60DDC2EBA03572B84E525F1B /* ContentView.swift */,
 				17800447671910879AFC1376 /* CursorHighlightRecorder.swift */,
 				B3C20F167D5CB1785261365F /* CursorHighlightTimeline.swift */,
+				70D1BA0C37FFA3D832609BF2 /* FrameMateColors.swift */,
 				B413F2D223267FA0A32CFF83 /* GlobalHotkeyMonitor.swift */,
 				B77A6F90716EE30079C49119 /* KeyboardShortcutRecorder.swift */,
 				2380DDB63649E3693B01B7E1 /* KeyboardShortcutTimeline.swift */,
@@ -277,6 +282,7 @@
 				084BD3F93C154D8302AFE156 /* SessionConfigurationRunner.swift */,
 				085C43E4F5E5346EBD9A6A6D /* SleepPreventer.swift */,
 				F46C69822B8A4BE5D03FE9D5 /* SoundEffectPlayer.swift */,
+				C18853E84CE11D7915C79B42 /* StatusPill.swift */,
 				C456EA98E1DEEB1F5D77D9AD /* SystemAudioRecorder.swift */,
 				F2BC5CA5934DD55E4950F6AE /* VideoPreviewView.swift */,
 				DBF2C86A04E076B902883029 /* VideoRecorderApp.swift */,
@@ -505,6 +511,7 @@
 				A6BC200A459BF3E28248D122 /* FrameCoachingEngine.swift in Sources */,
 				02CF4E9D36D44D3FB2956E4D /* FrameCoachingProfile.swift in Sources */,
 				A6A5E0294BA7A0A8C739901D /* FrameLightingAnalyzer.swift in Sources */,
+				9930E1142C6223F8B1469869 /* FrameMateColors.swift in Sources */,
 				0FD677592E2260EDCA822E72 /* GlobalHotkeyMonitor.swift in Sources */,
 				5011E0EE57A8ED1E422D033E /* KeyboardShortcutRecorder.swift in Sources */,
 				3BE5D6330B01B3D045F5D02C /* KeyboardShortcutTimeline.swift in Sources */,
@@ -529,6 +536,7 @@
 				B4BCF22D5AF6C9F2396B78B0 /* SleepPreventer.swift in Sources */,
 				851A3606646E039AEE71D0EB /* SoundEffectPlayer.swift in Sources */,
 				9FB7B6AEBAB78C9E6FE355EA /* SpeechCuePlayer.swift in Sources */,
+				49379AB5C0ED5B6B6D52404C /* StatusPill.swift in Sources */,
 				93931F4CF246C0E101026639 /* SystemAudioRecorder.swift in Sources */,
 				6C18BEB8C3BDA3F87B2C8CB0 /* VideoPreviewView.swift in Sources */,
 				739EB9D43F6C0BF6580CCE9A /* VideoRecorderApp.swift in Sources */,

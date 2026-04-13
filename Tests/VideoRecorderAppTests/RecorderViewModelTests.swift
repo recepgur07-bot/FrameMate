@@ -2109,3 +2109,32 @@ private struct RecorderPermissionsStub: MediaPermissionProviding {
         statuses[mediaType] == .authorized
     }
 }
+
+// MARK: - RecordingStatus tests
+final class RecordingStatusTests: XCTestCase {
+    func test_ready_label() {
+        XCTAssertEqual(RecordingStatus.ready.label, "Hazır")
+    }
+
+    func test_recording_label() {
+        XCTAssertEqual(RecordingStatus.recording.label, "Kayıt")
+    }
+
+    func test_paused_label() {
+        XCTAssertEqual(RecordingStatus.paused.label, "Duraklatıldı")
+    }
+
+    func test_preparing_label() {
+        XCTAssertEqual(RecordingStatus.preparing.label, "Hazırlanıyor")
+    }
+
+    func test_dotColors_are_distinct() {
+        // All three active-state colors should be distinct objects
+        let readyColor  = RecordingStatus.ready.dotColor
+        let recordColor = RecordingStatus.recording.dotColor
+        let pauseColor  = RecordingStatus.paused.dotColor
+        XCTAssertNotEqual(readyColor, recordColor)
+        XCTAssertNotEqual(readyColor, pauseColor)
+        XCTAssertNotEqual(recordColor, pauseColor)
+    }
+}
