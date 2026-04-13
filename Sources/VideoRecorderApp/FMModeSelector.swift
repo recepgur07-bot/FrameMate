@@ -5,16 +5,17 @@ import SwiftUI
 /// Maps primary-mode + orientation choices onto a `RecordingPreset` and
 /// propagates changes via callbacks (no direct ViewModel dependency keeps
 /// the component testable in isolation).
+///
+/// VoiceOver design: the 4 mode buttons are collapsed into ONE adjustable
+/// element ("Kayıt modu, Kamera") and the 2 orientation buttons into another
+/// ("Yönlendirme, Yatay"). Users change them with arrow keys — no need to
+/// tab through every individual button.
 struct FMModeSelector: View {
     // MARK: - Input
 
-    /// The preset currently active in the ViewModel.
     let selectedPreset: RecordingPreset
-    /// Whether the screen-camera overlay is currently enabled in the ViewModel.
     let isOverlayEnabled: Bool
-    /// Called when the user selects a new preset.
     let onPresetSelected: (RecordingPreset) -> Void
-    /// Called when Ekran+Kamera is selected and overlay is not yet enabled.
     let onEnableOverlay: () -> Void
 
     // MARK: - Local state
@@ -26,10 +27,26 @@ struct FMModeSelector: View {
 
     enum PrimaryMode: Equatable {
         case camera, screen, screenCamera, audio
+
+        var label: String {
+            switch self {
+            case .camera:       return String(localized: "Kamera")
+            case .screen:       return String(localized: "Ekran")
+            case .screenCamera: return String(localized: "Ekran+Kamera")
+            case .audio:        return String(localized: "Ses")
+            }
+        }
     }
 
     enum Orientation: Equatable {
         case horizontal, vertical
+
+        var label: String {
+            switch self {
+            case .horizontal: return String(localized: "Yatay")
+            case .vertical:   return String(localized: "Dikey")
+            }
+        }
     }
 
     // MARK: - Init
@@ -54,53 +71,72 @@ struct FMModeSelector: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            // Accessibility heading — read by VoiceOver before navigating the segments.
-            // Visually subtle so it doesn't clutter the layout.
-            Text(String(localized: "Kayıt Modu"))
-                .font(.caption2.weight(.semibold))
-                .foregroundStyle(Color.secondary.opacity(0.7))
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityAddTraits(.isHeader)
-
-            // Primary mode segments
+            // ── Primary mode row ─────────────────────────────────────────
+            // Visual: 4 clickable segment buttons.
+            // VoiceOver: collapsed into ONE adjustable element.
+            //   Reads: "Kayıt modu, Kamera"  →  arrow up/down to cycle.
             HStack(spacing: 4) {
                 modeSegment(mode: .camera,
                             icon: "camera.fill",
-                            label: String(localized: "Kamera"))
+                            label: PrimaryMode.camera.label)
                 modeSegment(mode: .screen,
                             icon: "desktopcomputer",
-                            label: String(localized: "Ekran"))
+                            label: PrimaryMode.screen.label)
                 modeSegment(mode: .screenCamera,
                             icon: "rectangle.inset.filled.on.rectangle",
-                            label: String(localized: "Ekran+Kamera"))
+                            label: PrimaryMode.screenCamera.label)
                 modeSegment(mode: .audio,
                             icon: "waveform.circle.fill",
-                            label: String(localized: "Ses"))
+                            label: PrimaryMode.audio.label)
             }
             .padding(4)
             .background(Color.fmCardBg)
             .clipShape(RoundedRectangle(cornerRadius: 10))
+            // VoiceOver collapses all 4 buttons into one adjustable control
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(String(localized: "Kayıt modu"))
+            .accessibilityValue(primaryMode.label)
+            .accessibilityHint(String(localized: "Değiştirmek için ok tuşlarını kullan"))
+            .accessibilityAdjustableAction { direction in
+                let modes: [PrimaryMode] = [.camera, .screen, .screenCamera, .audio]
+                guard let idx = modes.firstIndex(of: primaryMode) else { return }
+                let next: PrimaryMode?
+                switch direction {
+                case .increment: next = idx + 1 < modes.count ? modes[idx + 1] : nil
+                case .decrement: next = idx > 0               ? modes[idx - 1] : nil
+                @unknown default: next = nil
+                }
+                if let mode = next {
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                        primaryMode = mode
+                    }
+                    propagate()
+                    if mode == .screenCamera && !isOverlayEnabled { onEnableOverlay() }
+                }
+            }
 
-            // Orientation toggle — hidden for Ekran+Kamera and Ses
+            // ── Orientation row ──────────────────────────────────────────
+            // Only shown for Kamera and Ekran modes.
+            // VoiceOver: collapsed into ONE adjustable element.
+            //   Reads: "Yönlendirme, Yatay"  →  arrow up/down to toggle.
             if primaryMode == .camera || primaryMode == .screen {
-                // Accessibility heading for the orientation group
-                Text(String(localized: "Yönlendirme"))
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(Color.secondary.opacity(0.7))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityAddTraits(.isHeader)
-
                 HStack(spacing: 4) {
-                    orientationButton(
-                        orientation: .horizontal,
-                        icon: "rectangle.fill",
-                        label: String(localized: "Yatay")
-                    )
-                    orientationButton(
-                        orientation: .vertical,
-                        icon: "rectangle.portrait.fill",
-                        label: String(localized: "Dikey")
-                    )
+                    orientationButton(orientation: .horizontal,
+                                      icon: "rectangle.fill",
+                                      label: Orientation.horizontal.label)
+                    orientationButton(orientation: .vertical,
+                                      icon: "rectangle.portrait.fill",
+                                      label: Orientation.vertical.label)
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(String(localized: "Yönlendirme"))
+                .accessibilityValue(orientation.label)
+                .accessibilityHint(String(localized: "Değiştirmek için ok tuşlarını kullan"))
+                .accessibilityAdjustableAction { _ in
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                        orientation = orientation == .horizontal ? .vertical : .horizontal
+                    }
+                    propagate()
                 }
             }
         }
@@ -112,6 +148,8 @@ struct FMModeSelector: View {
     }
 
     // MARK: - Segment builders
+    // These are purely visual — VoiceOver does not navigate into them
+    // (the parent HStack carries .accessibilityElement(children: .ignore)).
 
     @ViewBuilder
     private func modeSegment(mode: PrimaryMode, icon: String, label: String) -> some View {
@@ -121,9 +159,7 @@ struct FMModeSelector: View {
                 primaryMode = mode
             }
             propagate()
-            if mode == .screenCamera && !isOverlayEnabled {
-                onEnableOverlay()
-            }
+            if mode == .screenCamera && !isOverlayEnabled { onEnableOverlay() }
         } label: {
             HStack(spacing: 5) {
                 Image(systemName: icon)
@@ -139,10 +175,6 @@ struct FMModeSelector: View {
             .clipShape(RoundedRectangle(cornerRadius: 8))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(label)
-        .accessibilityHint(modeAccessibilityHint(for: mode))
-        // Announces "seçili" to VoiceOver when this mode is active
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     @ViewBuilder
@@ -167,34 +199,6 @@ struct FMModeSelector: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(label)
-        .accessibilityHint(orientationAccessibilityHint(for: orientation))
-        // Announces "seçili" to VoiceOver when this orientation is active
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-
-    // MARK: - Accessibility helpers
-
-    private func modeAccessibilityHint(for mode: PrimaryMode) -> String {
-        switch mode {
-        case .camera:
-            return String(localized: "Sadece kamera görüntüsünü kaydeder. Seçimden sonra yönlendirme seçilebilir.")
-        case .screen:
-            return String(localized: "Sadece ekran görüntüsünü kaydeder. Seçimden sonra yönlendirme seçilebilir.")
-        case .screenCamera:
-            return String(localized: "Ekranı kaydeder ve kamera görüntüsünü küçük pencere olarak ekler.")
-        case .audio:
-            return String(localized: "Yalnızca ses kaydeder, video içermez.")
-        }
-    }
-
-    private func orientationAccessibilityHint(for orientation: Orientation) -> String {
-        switch orientation {
-        case .horizontal:
-            return String(localized: "Kayıt 16:9 yatay formatta yapılır.")
-        case .vertical:
-            return String(localized: "Kayıt 9:16 dikey formatta yapılır.")
-        }
     }
 
     // MARK: - Preset mapping (static — unit-testable)
@@ -203,7 +207,6 @@ struct FMModeSelector: View {
         onPresetSelected(Self.compose(primaryMode: primaryMode, orientation: orientation))
     }
 
-    /// primaryMode + orientation → RecordingPreset
     static func compose(primaryMode: PrimaryMode, orientation: Orientation) -> RecordingPreset {
         switch primaryMode {
         case .camera:
@@ -211,13 +214,12 @@ struct FMModeSelector: View {
         case .screen:
             return orientation == .horizontal ? .horizontalScreen : .verticalScreen
         case .screenCamera:
-            return .horizontalScreen   // overlay toggled separately via onEnableOverlay
+            return .horizontalScreen
         case .audio:
             return .audioOnly
         }
     }
 
-    /// RecordingPreset + overlayEnabled → (PrimaryMode, Orientation)
     static func decompose(preset: RecordingPreset, overlayEnabled: Bool) -> (PrimaryMode, Orientation) {
         switch preset {
         case .horizontalCamera: return (.camera,                               .horizontal)
