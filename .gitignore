@@ -1,0 +1,6 @@
+.env
+fastlane/keys/
+build/
+*.xcarchive
+tmp/
+.DS_Store

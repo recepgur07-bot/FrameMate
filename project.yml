@@ -1,0 +1,105 @@
+name: VideoRecorder
+localizations: [tr, en]
+options:
+  minimumXcodeGenVersion: 2.42.0
+
+  deploymentTarget:
+    macOS: "14.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+targets:
+  VideoRecorderApp:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Sources/VideoRecorderApp
+      - path: Resources/Assets.xcassets
+        buildPhase: resources
+      - path: Resources/Sounds/baslama.wav
+        buildPhase: resources
+      - path: Resources/Sounds/bitis.wav
+        buildPhase: resources
+      - path: Resources/Sounds/ara.wav
+        buildPhase: resources
+      - path: Resources/Sounds/yeni-ses.wav
+        buildPhase: resources
+    dependencies:
+      - framework: IOKit.framework
+        embed: false
+    settings:
+      base:
+        PRODUCT_NAME: VideoRecorder
+        PRODUCT_MODULE_NAME: VideoRecorderApp
+        PRODUCT_BUNDLE_IDENTIFIER: com.recepgur.VideoRecorder
+        INFOPLIST_FILE: Resources/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "Apple Distribution"
+        CODE_SIGN_ENTITLEMENTS: VideoRecorder.entitlements
+        DEVELOPMENT_TEAM: 9MA297YYN2
+        ENABLE_HARDENED_RUNTIME: YES
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: 1
+        ASSETCATALOG_COMPILER_APPICON_NAME: "AppIcon"
+        PROVISIONING_PROFILE_SPECIFIER: "match AppStore com.recepgur.VideoRecorder"
+      configs:
+        Debug:
+          CODE_SIGN_IDENTITY: "Apple Development"
+          CODE_SIGN_STYLE: Automatic
+          PROVISIONING_PROFILE_SPECIFIER: ""
+    info:
+      path: Resources/Info.plist
+      properties:
+        NSCameraUsageDescription: "Kadraj yönlendirmesi ve video kaydı için kameraya erişim gerekiyor."
+        NSMicrophoneUsageDescription: "Videoları sesli kaydetmek için mikrofona erişim gerekiyor."
+        NSScreenCaptureUsageDescription: "Ekranı kaydetmek için ekran yakalama iznine ihtiyaç var."
+        NSHumanReadableCopyright: "Copyright © 2026 Recep Gür. All rights reserved."
+        LSMinimumSystemVersion: "14.0"
+        LSApplicationCategoryType: "public.app-category.video"
+        CFBundleIconFile: "AppIcon"
+        NSSpeechUsageDescription: "Kadraj koçluğu talimatlarını sesli olarak iletmek için ses sentezi kullanılır."
+    scheme:
+      testTargets:
+        - VideoRecorderAppTests
+      postActions:
+        - name: Resign Debug App For Stable Privacy Permissions
+          settingsTarget: VideoRecorderApp
+          script: |
+            if [ "${CONFIGURATION}" != "Debug" ]; then
+              exit 0
+            fi
+
+            APP_PATH="${TARGET_BUILD_DIR}/${FULL_PRODUCT_NAME}"
+            IDENTITY="$(security find-identity -v -p codesigning | awk -F '\"' '/Apple Development:/ { print $2; exit }')"
+
+            if [ -z "${IDENTITY}" ]; then
+              echo "warning: Apple Development sertifikasi bulunamadi; yerel imza korunuyor."
+              exit 0
+            fi
+
+            /usr/bin/codesign \
+              --force \
+              --deep \
+              --sign "${IDENTITY}" \
+              --preserve-metadata=entitlements,requirements,flags \
+              "${APP_PATH}"
+            echo "VideoRecorder yeniden imzalandi: ${IDENTITY}"
+  VideoRecorderAppTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests/VideoRecorderAppTests
+    dependencies:
+      - target: VideoRecorderApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.recepgur.VideoRecorderTests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/VideoRecorder.app/Contents/MacOS/VideoRecorder"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"

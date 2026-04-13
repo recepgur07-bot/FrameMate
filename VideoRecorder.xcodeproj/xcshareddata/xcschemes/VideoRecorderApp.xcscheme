@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1430"
+   version = "1.7">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <PostActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Resign Debug App For Stable Privacy Permissions"
+               scriptText = "if [ &quot;${CONFIGURATION}&quot; != &quot;Debug&quot; ]; then&#10;  exit 0&#10;fi&#10;&#10;APP_PATH=&quot;${TARGET_BUILD_DIR}/${FULL_PRODUCT_NAME}&quot;&#10;IDENTITY=&quot;$(security find-identity -v -p codesigning | awk -F &apos;\&quot;&apos; &apos;/Apple Development:/ { print $2; exit }&apos;)&quot;&#10;&#10;if [ -z &quot;${IDENTITY}&quot; ]; then&#10;  echo &quot;warning: Apple Development sertifikasi bulunamadi; yerel imza korunuyor.&quot;&#10;  exit 0&#10;fi&#10;&#10;/usr/bin/codesign \&#10;  --force \&#10;  --deep \&#10;  --sign &quot;${IDENTITY}&quot; \&#10;  --preserve-metadata=entitlements,requirements,flags \&#10;  &quot;${APP_PATH}&quot;&#10;echo &quot;VideoRecorder yeniden imzalandi: ${IDENTITY}&quot;&#10;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
+                     BuildableName = "VideoRecorder.app"
+                     BlueprintName = "VideoRecorderApp"
+                     ReferencedContainer = "container:VideoRecorder.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PostActions>
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
+               BuildableName = "VideoRecorder.app"
+               BlueprintName = "VideoRecorderApp"
+               ReferencedContainer = "container:VideoRecorder.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
+            BuildableName = "VideoRecorder.app"
+            BlueprintName = "VideoRecorderApp"
+            ReferencedContainer = "container:VideoRecorder.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F240A6170620F7128E7E8FD4"
+               BuildableName = "VideoRecorderAppTests.xctest"
+               BlueprintName = "VideoRecorderAppTests"
+               ReferencedContainer = "container:VideoRecorder.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
+            BuildableName = "VideoRecorder.app"
+            BlueprintName = "VideoRecorderApp"
+            ReferencedContainer = "container:VideoRecorder.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
+            BuildableName = "VideoRecorder.app"
+            BlueprintName = "VideoRecorderApp"
+            ReferencedContainer = "container:VideoRecorder.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

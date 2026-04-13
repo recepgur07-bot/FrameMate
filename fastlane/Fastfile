@@ -1,0 +1,104 @@
+ENV["LC_ALL"] = "en_US.UTF-8"
+ENV["LANG"] = "en_US.UTF-8"
+
+fastlane_version "2.227.0"
+default_platform(:mac)
+
+platform :mac do
+  def required_env!(key)
+    value = ENV[key]
+    UI.user_error!("Eksik ortam degiskeni: #{key}") if value.to_s.strip.empty?
+    value
+  end
+
+  def get_api_key
+    app_store_connect_api_key(
+      key_id: required_env!("ASC_KEY_ID"),
+      issuer_id: required_env!("ASC_ISSUER_ID"),
+      key_filepath: required_env!("ASC_KEY_FILEPATH"),
+      in_house: false
+    )
+  end
+
+  desc "Fastlane ortam kontrolu"
+  lane :doctor do
+    required_keys = %w[
+      APP_IDENTIFIER
+      ASC_KEY_ID
+      ASC_ISSUER_ID
+      ASC_KEY_FILEPATH
+      FASTLANE_USER
+      MATCH_GIT_URL
+      MATCH_PASSWORD
+    ]
+
+    missing = required_keys.select { |key| ENV[key].to_s.strip.empty? }
+    UI.user_error!("Eksik degiskenler: #{missing.join(', ')}") unless missing.empty?
+    UI.user_error!("ASC key dosyasi bulunamadi: #{ENV['ASC_KEY_FILEPATH']}") unless File.exist?(ENV["ASC_KEY_FILEPATH"])
+
+    UI.success("Fastlane ortam kontrolu gecti")
+  end
+
+  desc "App Store sertifika/provision profile cek"
+  lane :certificates do |options|
+    match(
+      type: "appstore",
+      readonly: options[:readonly].nil? ? true : options[:readonly],
+      app_identifier: required_env!("APP_IDENTIFIER"),
+      api_key: get_api_key
+    )
+  end
+
+  desc "Ilk kurulum: yeni appstore certificate/profile olustur"
+  lane :setup_certificates do
+    doctor
+    certificates(readonly: false)
+  end
+
+  desc "Mac icin internal TestFlight build yukle"
+  lane :beta do |options|
+    doctor
+    certificates unless options[:skip_certificates]
+
+    api_key = get_api_key
+    build_number = options[:build_number] || Time.now.strftime("%Y%m%d%H%M")
+    version = get_info_plist_value(
+      path: "Resources/Info.plist",
+      key: "CFBundleShortVersionString"
+    )
+
+    set_info_plist_value(
+      path: "Resources/Info.plist",
+      key: "CFBundleVersion",
+      value: build_number
+    )
+
+    build_mac_app(
+      project: "VideoRecorder.xcodeproj",
+      scheme: "VideoRecorderApp",
+      configuration: "Release",
+      clean: true,
+      xcodebuild_formatter: "",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          required_env!("APP_IDENTIFIER") => "match AppStore #{required_env!("APP_IDENTIFIER")}"
+        }
+      },
+      output_directory: "build",
+      skip_package_pkg: false
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      app_identifier: required_env!("APP_IDENTIFIER"),
+      pkg: Actions.lane_context[SharedValues::PKG_OUTPUT_PATH],
+      skip_waiting_for_build_processing: options[:skip_waiting] != false,
+      distribute_external: false,
+      notify_external_testers: false,
+      changelog: options[:changelog] || "Internal macOS beta build"
+    )
+
+    UI.success("TestFlight yuku tamamlandi: v#{version} (#{build_number})")
+  end
+end
