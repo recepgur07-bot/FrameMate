@@ -3,289 +3,60 @@ import SwiftUI
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Bindable var viewModel: RecorderViewModel
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Video Kaydedici")
-                .font(.title)
-                .accessibilityAddTraits(.isHeader)
+        VStack(spacing: 0) {
+            // ── HEADER ZONE ──────────────────────────────────────────────
+            headerZone
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+                .padding(.bottom, 12)
 
-            Picker("Kayıt modu", selection: Binding(
-                get: { viewModel.selectedPreset },
-                set: { viewModel.selectPreset($0) }
-            )) {
-                ForEach(RecordingPreset.allCases) { preset in
-                    Text(preset.label).tag(preset)
-                }
-            }
-            .pickerStyle(.segmented)
-            .accessibilityLabel(String(localized: "Kayıt modu seçimi"))
+            Divider()
 
-            if viewModel.showsCameraControls {
-                VideoPreviewView(
-                    session: viewModel.previewSession,
-                    crop: viewModel.currentAutoReframeCrop
-                )
-                .frame(minHeight: 240)
-                .accessibilityHidden(true)
-
-                Picker("Kamera", selection: $viewModel.selectedCameraID) {
-                    if viewModel.cameraPermissionStatus != .authorized {
-                        Text("Kamera izni gerekli").tag("")
-                    } else if viewModel.cameras.isEmpty {
-                        Text("Kamera bulunamadı").tag("")
-                    } else {
-                        ForEach(viewModel.cameras) { camera in
-                            Text(camera.name).tag(camera.id)
-                        }
+            // ── MODE ZONE ────────────────────────────────────────────────
+            FMModeSelector(
+                selectedPreset: viewModel.selectedPreset,
+                isOverlayEnabled: viewModel.isScreenCameraOverlayEnabled,
+                onPresetSelected: { viewModel.selectPreset($0) },
+                onEnableOverlay: {
+                    if !viewModel.isScreenCameraOverlayEnabled {
+                        viewModel.toggleScreenCameraOverlay()
                     }
                 }
-                .disabled(!viewModel.canChooseCamera)
-                .accessibilityLabel(String(localized: "Kamera seçimi"))
-                .onChange(of: viewModel.selectedCameraID) {
-                    viewModel.applySelectedInputs()
-                }
-            }
+            )
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
 
-            if viewModel.showsScreenControls {
-                ScreenRecordingCompositionPreview(
-                    session: viewModel.screenOverlayPreviewSession,
-                    mode: viewModel.selectedMode,
-                    isOverlayEnabled: viewModel.showsScreenOverlayConfiguration,
-                    position: viewModel.selectedScreenCameraOverlayPosition,
-                    overlaySize: viewModel.selectedScreenCameraOverlaySize
-                )
-                .accessibilityHidden(true)
-            }
+            Divider()
 
-            if viewModel.showsScreenOverlayConfiguration {
-                Picker("Kamera", selection: $viewModel.selectedCameraID) {
-                    if viewModel.cameraPermissionStatus != .authorized {
-                        Text("Kamera izni gerekli").tag("")
-                    } else if viewModel.cameras.isEmpty {
-                        Text("Kamera bulunamadı").tag("")
-                    } else {
-                        ForEach(viewModel.cameras) { camera in
-                            Text(camera.name).tag(camera.id)
-                        }
+            // ── CONTENT ZONE (scrollable) ─────────────────────────────────
+            ScrollView {
+                VStack(spacing: 12) {
+                    previewCard
+                    audioCard
+                    if viewModel.showsScreenControls || viewModel.showsScreenOverlayControls {
+                        sourceCard
+                    }
+                    if viewModel.showsScreenControls {
+                        visualCard
+                    }
+                    if viewModel.showsScreenOverlayControls {
+                        cameraBoxCard
                     }
                 }
-                .disabled(!viewModel.canChooseCamera)
-                .accessibilityLabel("Kamera seçimi")
-                .onChange(of: viewModel.selectedCameraID) {
-                    viewModel.refreshDeviceState()
-                }
+                .padding(16)
             }
 
-            if viewModel.showsScreenSourceSection {
-                GroupBox("Kaynak") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        if viewModel.showsScreenSourcePicker {
-                            Picker("Ekran kaynağı", selection: Binding(
-                                get: { viewModel.selectedScreenCaptureSource },
-                                set: { viewModel.selectScreenCaptureSource($0) }
-                            )) {
-                                ForEach(ScreenCaptureSource.allCases) { source in
-                                    Text(source.label).tag(source)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .accessibilityLabel(String(localized: "Ekran kaynağı seçimi"))
-                        }
+            Divider()
 
-                        if viewModel.showsScreenPicker {
-                            Picker("Ekran", selection: $viewModel.selectedDisplayID) {
-                                if viewModel.availableDisplays.isEmpty {
-                                    Text("Ekran bulunamadı").tag("")
-                                } else {
-                                    ForEach(viewModel.availableDisplays) { display in
-                                        Text(display.name).tag(display.id)
-                                    }
-                                }
-                            }
-                            .accessibilityLabel(String(localized: "Ekran seçimi"))
-                            .onChange(of: viewModel.selectedDisplayID) {
-                                Task {
-                                    await viewModel.refreshScreenRecordingOptions()
-                                }
-                            }
-                        }
-
-                        if viewModel.showsWindowPicker {
-                            Picker("Pencere", selection: $viewModel.selectedWindowID) {
-                                if viewModel.availableWindows.isEmpty {
-                                    Text("Pencere bulunamadı").tag("")
-                                } else {
-                                    ForEach(viewModel.availableWindows) { window in
-                                        Text(window.name).tag(window.id)
-                                    }
-                                }
-                            }
-                            .accessibilityLabel(String(localized: "Pencere seçimi"))
-                            .onChange(of: viewModel.selectedWindowID) {
-                                Task {
-                                    await viewModel.refreshScreenRecordingOptions()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if viewModel.showsScreenControls {
-                GroupBox("Görüntü") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Toggle("İmleci vurgula", isOn: $viewModel.isCursorHighlightEnabled)
-                            .accessibilityHint(String(localized: "Kayıt dışa aktarılırken imlecin etrafında yumuşak bir vurgu ve tıklama halkası gösterir."))
-
-                        Toggle("Klavye kısayollarını göster", isOn: $viewModel.isKeyboardShortcutOverlayEnabled)
-                            .accessibilityHint(String(localized: "Komut, kontrol ve option gibi anlamlı kısayolları videoda kısa süre gösterir."))
-                    }
-                }
-            }
-
-            GroupBox("Ses") {
-                VStack(alignment: .leading, spacing: 12) {
-                    if viewModel.showsMicrophonePicker {
-                        Picker(microphonePickerTitle, selection: $viewModel.selectedMicrophoneID) {
-                            if viewModel.microphonePermissionStatus != .authorized {
-                                Text("Mikrofon izni gerekli").tag("")
-                            } else if viewModel.microphones.isEmpty {
-                                Text("Mikrofon bulunamadı").tag("")
-                            } else {
-                                if viewModel.showsScreenControls {
-                                    Text("Mikrofon kapalı").tag("")
-                                }
-
-                                ForEach(viewModel.microphones) { microphone in
-                                    Text(microphone.name).tag(microphone.id)
-                                }
-                            }
-                        }
-                        .disabled(viewModel.microphonePermissionStatus != .authorized || viewModel.microphones.isEmpty)
-                        .accessibilityLabel(microphonePickerTitle)
-                        .onChange(of: viewModel.selectedMicrophoneID) {
-                            viewModel.applySelectedInputs()
-                        }
-                    }
-
-                    Toggle("Sistem sesini dahil et", isOn: $viewModel.isSystemAudioEnabled)
-                        .accessibilityHint(String(localized: "Mac'te calan uygulama ve sistem seslerini kayda ekler."))
-
-                    if viewModel.showsMicrophoneVolumeControl {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Mikrofon seviyesi: \(Int(viewModel.microphoneVolume * 100))%")
-                            Slider(value: $viewModel.microphoneVolume, in: 0...1.5)
-                                .accessibilityLabel(String(localized: "Mikrofon seviyesi"))
-                                .accessibilityValue(String(localized: "\(Int(viewModel.microphoneVolume * 100)) yüzde"))
-                        }
-                    }
-
-                    if viewModel.showsSystemAudioVolumeControl {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Sistem sesi seviyesi: \(Int(viewModel.systemAudioVolume * 100))%")
-                            Slider(value: $viewModel.systemAudioVolume, in: 0...1.5)
-                                .accessibilityLabel(String(localized: "Sistem sesi seviyesi"))
-                                .accessibilityValue(String(localized: "\(Int(viewModel.systemAudioVolume * 100)) yüzde"))
-                        }
-                    }
-                }
-            }
-
-            if viewModel.showsScreenOverlayControls {
-                GroupBox("Kamera Kutusu") {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Toggle(
-                            "Kamera kutusunu göster",
-                            isOn: Binding(
-                                get: { viewModel.isScreenCameraOverlayEnabled },
-                                set: { _ in viewModel.toggleScreenCameraOverlay() }
-                            )
-                        )
-                        .accessibilityHint(String(localized: "Ekran kaydının üstüne kamera görüntünü ekler."))
-
-                        if viewModel.showsScreenOverlayConfiguration {
-                            Picker("Kamera kutusu konumu", selection: $viewModel.selectedScreenCameraOverlayPosition) {
-                                ForEach(ScreenCameraOverlayPosition.allCases) { position in
-                                    Text(position.label).tag(position)
-                                }
-                            }
-                            .accessibilityLabel(String(localized: "Kamera kutusu konumu"))
-
-                            Picker("Kamera kutusu boyutu", selection: $viewModel.selectedScreenCameraOverlaySize) {
-                                ForEach(ScreenCameraOverlaySize.allCases) { size in
-                                    Text(size.label).tag(size)
-                                }
-                            }
-                            .accessibilityLabel(String(localized: "Kamera kutusu boyutu"))
-                        }
-                    }
-                }
-            }
-
-            Text(viewModel.permissionStatusText)
-                .textSelection(.enabled)
-                .accessibilityLabel(viewModel.permissionStatusText)
-
-            permissionButtons
-
-            if viewModel.showsFrameCoachControls && viewModel.showsFrameCoachTextOnScreen {
-                Text(frameCoachStatusText)
-                    .textSelection(.enabled)
-                    .accessibilityLabel(frameCoachStatusText)
-            }
-
-            if viewModel.showsFrameCoachControls {
-                Toggle(
-                    "Otomatik yeniden kadrajlama",
-                    isOn: Binding(
-                        get: { viewModel.isAutoReframeEnabled },
-                        set: { _ in viewModel.toggleAutoReframe() }
-                    )
-                )
-                .accessibilityHint(String(localized: "Tek kişilik çekimde görüntüyü yazılımsal olarak daha dengeli kadrajlar."))
-            }
-
-            if viewModel.isCountingDown {
-                Text("Kayıt \(viewModel.countdownRemaining) saniye sonra başlıyor…")
-                    .foregroundStyle(.orange)
-                    .accessibilityLabel(String(localized: "Geri sayım: \(viewModel.countdownRemaining) saniye"))
-            }
-
-            HStack {
-                Button(recordingButtonTitle) {
-                    viewModel.toggleRecording()
-                }
-                .disabled(!viewModel.canStartRecording && !viewModel.isRecording && !viewModel.isCountingDown)
-                .accessibilityLabel(recordingButtonTitle)
-                .accessibilityHint(String(localized: "\(GlobalHotkeyMonitor.recordingToggleDisplay) son seçili modu başlatır veya durdurur. Ses kaydı için \(GlobalHotkeyMonitor.audioRecordingToggleDisplay) kısayolu uygulamanın içinden ve dışından çalışır."))
-
-                Button(viewModel.pauseResumeButtonTitle) {
-                    viewModel.togglePauseResume()
-                }
-                .disabled(!viewModel.canPauseRecording)
-                .accessibilityLabel(viewModel.pauseResumeButtonTitle)
-                .accessibilityHint(String(localized: "\(GlobalHotkeyMonitor.pauseResumeToggleDisplay) aktif kaydı duraklatır veya devam ettirir."))
-            }
-
-            Text(String(localized: "Durum: \(viewModel.statusText)"))
-                .textSelection(.enabled)
-                .accessibilityLabel(String(localized: "Durum \(viewModel.statusText)"))
-
-            if let lastSavedURL = viewModel.lastSavedURL {
-                Text(String(localized: "Son kayıt: \(lastSavedURL.path)"))
-                    .textSelection(.enabled)
-                    .accessibilityLabel(String(localized: "Son kayıt dosyası \(lastSavedURL.path)"))
-            }
-
-            if let errorText = viewModel.errorText {
-                Text(String(localized: "Hata: \(errorText)"))
-                    .foregroundStyle(.red)
-                    .textSelection(.enabled)
-            }
-
+            // ── ACTION ZONE ───────────────────────────────────────────────
+            actionZone
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
         }
-        .padding()
-        .frame(minWidth: 560, minHeight: 560)
+        .background(Color.fmSurface)
+        .frame(minWidth: 620, minHeight: 640)
         .task {
             await viewModel.setup()
         }
@@ -293,9 +64,7 @@ struct ContentView: View {
             isPresented: Binding(
                 get: { viewModel.isPaywallPresented },
                 set: { isPresented in
-                    if !isPresented {
-                        viewModel.dismissPaywall()
-                    }
+                    if !isPresented { viewModel.dismissPaywall() }
                 }
             )
         ) {
@@ -305,9 +74,7 @@ struct ContentView: View {
             isPresented: Binding(
                 get: { viewModel.completedRecording != nil },
                 set: { isPresented in
-                    if !isPresented {
-                        viewModel.dismissCompletedRecordingSummary()
-                    }
+                    if !isPresented { viewModel.dismissCompletedRecordingSummary() }
                 }
             )
         ) {
@@ -325,57 +92,471 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
             viewModel.refreshDeviceState()
-            Task {
-                await viewModel.refreshAppAccess()
+            Task { await viewModel.refreshAppAccess() }
+        }
+    }
+
+    // MARK: - Header Zone
+
+    private var headerZone: some View {
+        HStack(alignment: .center) {
+            Image(systemName: "record.circle.fill")
+                .font(.system(size: 28))
+                .foregroundStyle(Color.fmAccent)
+                .accessibilityHidden(true)
+
+            Text("FrameMate")
+                .font(.largeTitle.bold())
+                .foregroundStyle(Color.fmAccent)
+                .accessibilityAddTraits(.isHeader)
+
+            Spacer()
+
+            StatusPill(status: currentStatus)
+        }
+    }
+
+    private var currentStatus: RecordingStatus {
+        if viewModel.isPreparingRecording || viewModel.isCountingDown { return .preparing }
+        if viewModel.isRecording && viewModel.isPaused { return .paused }
+        if viewModel.isRecording { return .recording }
+        return .ready
+    }
+
+    // MARK: - Preview Card
+
+    @ViewBuilder
+    private var previewCard: some View {
+        if viewModel.showsCameraControls {
+            VideoPreviewView(
+                session: viewModel.previewSession,
+                crop: viewModel.currentAutoReframeCrop
+            )
+            .frame(minHeight: 240)
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+            )
+            .accessibilityHidden(true)
+        } else if viewModel.showsScreenControls {
+            ScreenRecordingCompositionPreview(
+                session: viewModel.screenOverlayPreviewSession,
+                mode: viewModel.selectedMode,
+                isOverlayEnabled: viewModel.showsScreenOverlayConfiguration,
+                position: viewModel.selectedScreenCameraOverlayPosition,
+                overlaySize: viewModel.selectedScreenCameraOverlaySize
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+            )
+            .accessibilityHidden(true)
+        }
+    }
+
+    // MARK: - Audio Card
+
+    private var audioCard: some View {
+        FMCard(icon: "mic.fill", title: String(localized: "Ses"), isCollapsible: true) {
+            // Camera permission banner (top of Ses card)
+            if viewModel.showsCameraControls || viewModel.showsScreenOverlayConfiguration {
+                cameraPermissionBanner
             }
+
+            // Frame coach row
+            if viewModel.showsFrameCoachControls && viewModel.showsFrameCoachTextOnScreen {
+                HStack(spacing: 8) {
+                    Image(systemName: "figure.stand")
+                        .foregroundStyle(Color.fmAccent)
+                        .accessibilityHidden(true)
+                    Text(frameCoachStatusText)
+                        .textSelection(.enabled)
+                        .accessibilityLabel(frameCoachStatusText)
+                }
+            }
+
+            // Microphone picker
+            if viewModel.showsMicrophonePicker {
+                Picker(microphonePickerTitle, selection: $viewModel.selectedMicrophoneID) {
+                    if viewModel.microphonePermissionStatus != .authorized {
+                        Text(String(localized: "Mikrofon izni gerekli")).tag("")
+                    } else if viewModel.microphones.isEmpty {
+                        Text(String(localized: "Mikrofon bulunamadı")).tag("")
+                    } else {
+                        if viewModel.showsScreenControls {
+                            Text(String(localized: "Mikrofon kapalı")).tag("")
+                        }
+                        ForEach(viewModel.microphones) { microphone in
+                            Text(microphone.name).tag(microphone.id)
+                        }
+                    }
+                }
+                .disabled(viewModel.microphonePermissionStatus != .authorized || viewModel.microphones.isEmpty)
+                .accessibilityLabel(microphonePickerTitle)
+                .onChange(of: viewModel.selectedMicrophoneID) {
+                    viewModel.applySelectedInputs()
+                }
+            }
+
+            // System audio toggle
+            HStack(spacing: 8) {
+                Image(systemName: "speaker.wave.2.fill")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20)
+                    .accessibilityHidden(true)
+                Toggle(String(localized: "Sistem sesini dahil et"), isOn: $viewModel.isSystemAudioEnabled)
+                    .accessibilityHint(String(localized: "Mac'te calan uygulama ve sistem seslerini kayda ekler."))
+            }
+
+            // Microphone volume
+            if viewModel.showsMicrophoneVolumeControl {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(String(localized: "Mikrofon seviyesi: \(Int(viewModel.microphoneVolume * 100))%"))
+                    Slider(value: $viewModel.microphoneVolume, in: 0...1.5)
+                        .accessibilityLabel(String(localized: "Mikrofon seviyesi"))
+                        .accessibilityValue(String(localized: "\(Int(viewModel.microphoneVolume * 100)) yüzde"))
+                }
+            }
+
+            // System audio volume
+            if viewModel.showsSystemAudioVolumeControl {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(String(localized: "Sistem sesi seviyesi: \(Int(viewModel.systemAudioVolume * 100))%"))
+                    Slider(value: $viewModel.systemAudioVolume, in: 0...1.5)
+                        .accessibilityLabel(String(localized: "Sistem sesi seviyesi"))
+                        .accessibilityValue(String(localized: "\(Int(viewModel.systemAudioVolume * 100)) yüzde"))
+                }
+            }
+
+            // Microphone permission banner (bottom of Ses card)
+            microphonePermissionBanner
+
+            // Auto-reframe toggle
+            if viewModel.showsFrameCoachControls {
+                HStack(spacing: 8) {
+                    Image(systemName: "viewfinder")
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20)
+                        .accessibilityHidden(true)
+                    Toggle(
+                        String(localized: "Otomatik yeniden kadrajlama"),
+                        isOn: Binding(
+                            get: { viewModel.isAutoReframeEnabled },
+                            set: { _ in viewModel.toggleAutoReframe() }
+                        )
+                    )
+                    .accessibilityHint(String(localized: "Tek kişilik çekimde görüntüyü yazılımsal olarak daha dengeli kadrajlar."))
+                }
+            }
+        }
+    }
+
+    // MARK: - Source Card
+
+    private var sourceCard: some View {
+        // showsScreenSourcePicker — inner guard for the segmented source picker widget
+        // showsScreenControls / showsScreenOverlayControls — outer visibility (card shown)
+        FMCard(icon: "desktopcomputer", title: String(localized: "Kaynak"), isCollapsible: true) {
+            // Screen recording permission banner (top of Kaynak card)
+            if (viewModel.showsScreenControls || viewModel.isSystemAudioEnabled)
+                && viewModel.screenRecordingPermissionStatus == .denied {
+                screenPermissionBanner
+            }
+
+            if viewModel.showsScreenSourcePicker {
+                Picker(String(localized: "Ekran kaynağı"), selection: Binding(
+                    get: { viewModel.selectedScreenCaptureSource },
+                    set: { viewModel.selectScreenCaptureSource($0) }
+                )) {
+                    ForEach(ScreenCaptureSource.allCases) { source in
+                        Text(source.label).tag(source)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityLabel(String(localized: "Ekran kaynağı seçimi"))
+            }
+
+            if viewModel.showsScreenPicker {
+                Picker(String(localized: "Ekran"), selection: $viewModel.selectedDisplayID) {
+                    if viewModel.availableDisplays.isEmpty {
+                        Text(String(localized: "Ekran bulunamadı")).tag("")
+                    } else {
+                        ForEach(viewModel.availableDisplays) { display in
+                            Text(display.name).tag(display.id)
+                        }
+                    }
+                }
+                .accessibilityLabel(String(localized: "Ekran seçimi"))
+                .onChange(of: viewModel.selectedDisplayID) {
+                    Task { await viewModel.refreshScreenRecordingOptions() }
+                }
+            }
+
+            if viewModel.showsWindowPicker {
+                Picker(String(localized: "Pencere"), selection: $viewModel.selectedWindowID) {
+                    if viewModel.availableWindows.isEmpty {
+                        Text(String(localized: "Pencere bulunamadı")).tag("")
+                    } else {
+                        ForEach(viewModel.availableWindows) { window in
+                            Text(window.name).tag(window.id)
+                        }
+                    }
+                }
+                .accessibilityLabel(String(localized: "Pencere seçimi"))
+                .onChange(of: viewModel.selectedWindowID) {
+                    Task { await viewModel.refreshScreenRecordingOptions() }
+                }
+            }
+        }
+    }
+
+    // MARK: - Visual Card
+
+    private var visualCard: some View {
+        FMCard(icon: "eye.fill", title: String(localized: "Görüntü"), isCollapsible: true) {
+            HStack(spacing: 8) {
+                Image(systemName: "cursorarrow.rays")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20)
+                    .accessibilityHidden(true)
+                Toggle(String(localized: "İmleci vurgula"), isOn: $viewModel.isCursorHighlightEnabled)
+                    .accessibilityHint(String(localized: "Kayıt dışa aktarılırken imlecin etrafında yumuşak bir vurgu ve tıklama halkası gösterir."))
+            }
+
+            HStack(spacing: 8) {
+                Image(systemName: "keyboard")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20)
+                    .accessibilityHidden(true)
+                Toggle(String(localized: "Klavye kısayollarını göster"), isOn: $viewModel.isKeyboardShortcutOverlayEnabled)
+                    .accessibilityHint(String(localized: "Komut, kontrol ve option gibi anlamlı kısayolları videoda kısa süre gösterir."))
+            }
+        }
+    }
+
+    // MARK: - Camera Box Card
+
+    private var cameraBoxCard: some View {
+        FMCard(icon: "rectangle.inset.filled.on.rectangle", title: String(localized: "Kamera Kutusu"), isCollapsible: true) {
+            HStack(spacing: 8) {
+                Image(systemName: "rectangle.inset.filled.on.rectangle")
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20)
+                    .accessibilityHidden(true)
+                Toggle(
+                    String(localized: "Kamera kutusunu göster"),
+                    isOn: Binding(
+                        get: { viewModel.isScreenCameraOverlayEnabled },
+                        set: { _ in viewModel.toggleScreenCameraOverlay() }
+                    )
+                )
+                .accessibilityHint(String(localized: "Ekran kaydının üstüne kamera görüntünü ekler."))
+            }
+
+            if viewModel.showsScreenOverlayConfiguration {
+                // Camera picker for overlay
+                Picker(String(localized: "Kamera"), selection: $viewModel.selectedCameraID) {
+                    if viewModel.cameraPermissionStatus != .authorized {
+                        Text(String(localized: "Kamera izni gerekli")).tag("")
+                    } else if viewModel.cameras.isEmpty {
+                        Text(String(localized: "Kamera bulunamadı")).tag("")
+                    } else {
+                        ForEach(viewModel.cameras) { camera in
+                            Text(camera.name).tag(camera.id)
+                        }
+                    }
+                }
+                .disabled(!viewModel.canChooseCamera)
+                .accessibilityLabel(String(localized: "Kamera seçimi"))
+                .onChange(of: viewModel.selectedCameraID) {
+                    viewModel.refreshDeviceState()
+                }
+
+                Picker(String(localized: "Kamera kutusu konumu"), selection: $viewModel.selectedScreenCameraOverlayPosition) {
+                    ForEach(ScreenCameraOverlayPosition.allCases) { position in
+                        Text(position.label).tag(position)
+                    }
+                }
+                .accessibilityLabel(String(localized: "Kamera kutusu konumu"))
+
+                Picker(String(localized: "Kamera kutusu boyutu"), selection: $viewModel.selectedScreenCameraOverlaySize) {
+                    ForEach(ScreenCameraOverlaySize.allCases) { size in
+                        Text(size.label).tag(size)
+                    }
+                }
+                .accessibilityLabel(String(localized: "Kamera kutusu boyutu"))
+            }
+        }
+    }
+
+    // MARK: - Permission Banners
+
+    @ViewBuilder
+    private var cameraPermissionBanner: some View {
+        let camStatus = viewModel.cameraPermissionStatus
+        if camStatus == .notDetermined {
+            permissionBanner(
+                message: String(localized: "Kamera izni gerekli"),
+                buttonTitle: String(localized: "İzin Ver"),
+                buttonHint: String(localized: "Sistem izin penceresini açar. İzin Ver veya Reddet seçin."),
+                action: { viewModel.requestCameraPermission() }
+            )
+        } else if camStatus == .denied {
+            permissionBanner(
+                message: String(localized: "Kamera izni reddedildi"),
+                buttonTitle: String(localized: "Ayarları Aç"),
+                buttonHint: String(localized: "Kamera izni daha önce reddedildi. Sistem Ayarları Gizlilik ekranını açar."),
+                action: { viewModel.openPrivacySettings(for: .video) }
+            )
         }
     }
 
     @ViewBuilder
-    private var permissionButtons: some View {
-        let camStatus = viewModel.cameraPermissionStatus
+    private var microphonePermissionBanner: some View {
         let micStatus = viewModel.microphonePermissionStatus
-        let screenStatus = viewModel.screenRecordingPermissionStatus
-
-        if viewModel.showsCameraControls || viewModel.showsScreenOverlayConfiguration {
-            if camStatus == .notDetermined {
-                Button("Kamera iznine izin ver") {
-                    viewModel.requestCameraPermission()
-                }
-                .accessibilityHint(String(localized: "Sistem izin penceresini açar. İzin Ver veya Reddet seçin."))
-            } else if camStatus == .denied {
-                Button("Kamera izni reddedildi — Sistem Ayarları'nı aç") {
-                    viewModel.openPrivacySettings(for: .video)
-                }
-                .accessibilityHint(String(localized: "Kamera izni daha önce reddedildi. Sistem Ayarları Gizlilik ekranını açar."))
-            }
-        }
-
         if micStatus == .notDetermined {
-            Button("Mikrofon iznine izin ver") {
-                viewModel.requestMicrophonePermission()
-            }
-            .accessibilityHint(String(localized: "Sistem izin penceresini açar. İzin Ver veya Reddet seçin."))
+            permissionBanner(
+                message: String(localized: "Mikrofon izni gerekli"),
+                buttonTitle: String(localized: "İzin Ver"),
+                buttonHint: String(localized: "Sistem izin penceresini açar. İzin Ver veya Reddet seçin."),
+                action: { viewModel.requestMicrophonePermission() }
+            )
         } else if micStatus == .denied {
-            Button("Mikrofon izni reddedildi — Sistem Ayarları'nı aç") {
-                viewModel.openPrivacySettings(for: .audio)
-            }
-            .accessibilityHint(String(localized: "Mikrofon izni daha önce reddedildi. Sistem Ayarları Gizlilik ekranını açar."))
-        }
-
-        if (viewModel.showsScreenControls || viewModel.isSystemAudioEnabled) && screenStatus == .denied {
-            Button("Ekran kaydı iznini iste") {
-                viewModel.requestScreenRecordingPermission()
-            }
-            .accessibilityHint(String(localized: "macOS ekran kaydı izin akışını başlatmayı dener. Gerekirse uygulamayı kapatıp yeniden açmak gerekir."))
-
-            Button("Ekran Kaydı Ayarları'nı aç") {
-                viewModel.openScreenRecordingSettings()
-            }
-            .accessibilityHint(String(localized: "Sistem Ayarları içinde Ekran Kaydı gizlilik ekranını açar."))
+            permissionBanner(
+                message: String(localized: "Mikrofon izni reddedildi"),
+                buttonTitle: String(localized: "Ayarları Aç"),
+                buttonHint: String(localized: "Mikrofon izni daha önce reddedildi. Sistem Ayarları Gizlilik ekranını açar."),
+                action: { viewModel.openPrivacySettings(for: .audio) }
+            )
         }
     }
 
+    @ViewBuilder
+    private var screenPermissionBanner: some View {
+        permissionBanner(
+            message: String(localized: "Ekran kaydı izni gerekli"),
+            buttonTitle: String(localized: "Ayarları Aç"),
+            buttonHint: String(localized: "Sistem Ayarları içinde Ekran Kaydı gizlilik ekranını açar."),
+            action: { viewModel.openScreenRecordingSettings() }
+        )
+    }
+
+    private func permissionBanner(
+        message: String,
+        buttonTitle: String,
+        buttonHint: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(.orange)
+                .accessibilityHidden(true)
+            Text(message)
+                .font(.caption)
+                .foregroundStyle(.primary)
+            Spacer()
+            Button(buttonTitle, action: action)
+                .font(.caption)
+                .accessibilityHint(buttonHint)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(Color.orange.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    // MARK: - Action Zone
+
+    private var actionZone: some View {
+        VStack(spacing: 10) {
+            // Error banner
+            if let errorText = viewModel.errorText {
+                HStack(spacing: 8) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.red)
+                        .accessibilityHidden(true)
+                    Text(errorText)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .textSelection(.enabled)
+                    Spacer()
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color.red.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+
+            // Record + Pause buttons
+            HStack(spacing: 16) {
+                Spacer()
+
+                // Pause button — only when recording
+                if viewModel.isRecording {
+                    Button {
+                        viewModel.togglePauseResume()
+                    } label: {
+                        Image(systemName: viewModel.isPaused ? "play.fill" : "pause.fill")
+                            .font(.system(size: 18))
+                            .frame(width: 44, height: 44)
+                            .background(Color.fmCardBg)
+                            .clipShape(Circle())
+                            .overlay(Circle().stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!viewModel.canPauseRecording)
+                    .accessibilityLabel(viewModel.pauseResumeButtonTitle)
+                    .accessibilityHint(String(localized: "\(GlobalHotkeyMonitor.pauseResumeToggleDisplay) aktif kaydı duraklatır veya devam ettirir."))
+                }
+
+                RecordButton(
+                    state: recordButtonState,
+                    countdownRemaining: viewModel.countdownRemaining,
+                    accessibilityLabel: recordingButtonTitle,
+                    action: { viewModel.toggleRecording() }
+                )
+                .disabled(!viewModel.canStartRecording && !viewModel.isRecording && !viewModel.isCountingDown)
+
+                Spacer()
+            }
+
+            // Status row
+            HStack {
+                Text(String(localized: "Durum: \(viewModel.statusText)"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+                    .accessibilityLabel(String(localized: "Durum \(viewModel.statusText)"))
+
+                Spacer()
+
+                if let lastSavedURL = viewModel.lastSavedURL {
+                    Text(lastSavedURL.lastPathComponent)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .textSelection(.enabled)
+                        .accessibilityLabel(String(localized: "Son kayıt dosyası \(lastSavedURL.path)"))
+                }
+            }
+        }
+    }
+
+    // MARK: - Helpers
+
+    private var recordButtonState: RecordButtonState {
+        if viewModel.isPreparingRecording { return .preparing }
+        if viewModel.isCountingDown       { return .countdown }
+        if viewModel.isRecording && viewModel.isPaused { return .paused }
+        if viewModel.isRecording          { return .recording }
+        return .ready
+    }
+
+    /// Mirrors the original ContentView logic exactly — passed into RecordButton
+    /// so the accessibility label stays in sync with the visual state.
     private var recordingButtonTitle: String {
         if viewModel.isPreparingRecording { return String(localized: "Kayıt hazırlanıyor…") }
         if viewModel.isCountingDown { return String(localized: "İptal Et (\(viewModel.countdownRemaining))") }
@@ -386,14 +567,16 @@ struct ContentView: View {
         if let instruction = viewModel.currentFrameCoachInstruction {
             return String(localized: "Kadraj koçu: \(instruction)")
         }
-
-        return viewModel.isFrameCoachEnabled ? String(localized: "Kadraj koçu: açık") : String(localized: "Kadraj koçu: kapalı")
+        return viewModel.isFrameCoachEnabled
+            ? String(localized: "Kadraj koçu: açık")
+            : String(localized: "Kadraj koçu: kapalı")
     }
 
     private var microphonePickerTitle: String {
-        viewModel.showsScreenControls ? String(localized: "Mikrofon (isteğe bağlı)") : String(localized: "Mikrofon")
+        viewModel.showsScreenControls
+            ? String(localized: "Mikrofon (isteğe bağlı)")
+            : String(localized: "Mikrofon")
     }
-
 }
 
 struct SettingsView: View {
