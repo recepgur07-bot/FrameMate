@@ -81,11 +81,11 @@ struct VideoRecorderApp: App {
                 .sheet(
                     isPresented: Binding(
                         get: { !onboardingCompleted },
-                        set: { if !$0 { onboardingCompleted = true } }
+                        set: { _ in }  // Kapatma yalnızca onDismiss callback'i üzerinden olur
                     )
                 ) {
                     OnboardingView(
-                        onboardingCompleted: $onboardingCompleted,
+                        onDismiss: { onboardingCompleted = true },
                         viewModel: viewModel
                     )
                     .interactiveDismissDisabled(!onboardingCompleted)

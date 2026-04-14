@@ -4,7 +4,7 @@ import AppKit
 // MARK: - OnboardingView
 
 struct OnboardingView: View {
-    @Binding var onboardingCompleted: Bool
+    var onDismiss: () -> Void
     var viewModel: RecorderViewModel
 
     @State private var currentStep = 0
@@ -86,7 +86,7 @@ struct OnboardingView: View {
                 .keyboardShortcut(.return, modifiers: [])
             } else {
                 Button("Başla") {
-                    onboardingCompleted = true
+                    onDismiss()
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(Color.fmAccent)
