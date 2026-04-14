@@ -160,7 +160,7 @@ private struct OnboardingModesPage: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("Nasıl Kayıt Yapabilirsin?")
                 .font(.title2)
                 .fontWeight(.bold)
