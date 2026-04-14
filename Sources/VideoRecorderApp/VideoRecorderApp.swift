@@ -32,6 +32,7 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
 @main
 struct VideoRecorderApp: App {
     @NSApplicationDelegateAdaptor(VideoRecorderAppDelegate.self) private var appDelegate
+    @AppStorage("onboarding.completed") private var onboardingCompleted = false
     @State private var viewModel: RecorderViewModel
     private let hotkeyMonitor: GlobalHotkeyMonitor
     @MainActor private let menuBarController = MenuBarController()
@@ -76,6 +77,18 @@ struct VideoRecorderApp: App {
                 }
                 .onChange(of: viewModel.isPaused) { _, _ in
                     updateMenuBarState()
+                }
+                .sheet(
+                    isPresented: Binding(
+                        get: { !onboardingCompleted },
+                        set: { if !$0 { onboardingCompleted = true } }
+                    )
+                ) {
+                    OnboardingView(
+                        onboardingCompleted: $onboardingCompleted,
+                        viewModel: viewModel
+                    )
+                    .interactiveDismissDisabled(!onboardingCompleted)
                 }
         }
         .defaultSize(width: 720, height: 680)
