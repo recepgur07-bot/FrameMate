@@ -91,16 +91,27 @@ struct OnboardingView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(Color.fmAccent)
                 .disabled(!canProceed)
-                .accessibilityHint(canProceed ? "" : "Ekran kaydı ve mikrofon izni gerekli")
+                .accessibilityHint(canProceed ? "" : startHint)
                 .keyboardShortcut(.return, modifiers: [])
             }
         }
     }
 
+    private var startHint: String {
+        let screenOk = viewModel.screenRecordingPermissionStatus == .authorized || viewModel.screenPermissionNeedsRestart
+        let micOk = viewModel.microphonePermissionStatus == .authorized
+        if !screenOk && !micOk { return "Ekran kaydı ve mikrofon izni gerekli" }
+        if !screenOk { return "Ekran kaydı izni gerekli" }
+        if !micOk { return "Mikrofon izni gerekli" }
+        return ""
+    }
+
     private var canProceed: Bool {
-        viewModel.screenRecordingPermissionStatus == .authorized &&
-        !viewModel.screenPermissionNeedsRestart &&
-        viewModel.microphonePermissionStatus == .authorized
+        // macOS'ta ekran kaydı izni verince restart gerekir; needsRestart da "izin verildi" anlamına gelir.
+        let screenOk = viewModel.screenRecordingPermissionStatus == .authorized ||
+                       viewModel.screenPermissionNeedsRestart
+        let micOk = viewModel.microphonePermissionStatus == .authorized
+        return screenOk && micOk
     }
 }
 
@@ -231,7 +242,8 @@ private struct OnboardingPermissionsPage: View {
     private var screenRecordingRowState: PermissionRowState {
         if viewModel.screenRecordingPermissionStatus == .authorized && !viewModel.screenPermissionNeedsRestart {
             return .granted
-        } else if viewModel.screenRecordingPermissionStatus == .authorized && viewModel.screenPermissionNeedsRestart {
+        } else if viewModel.screenPermissionNeedsRestart {
+            // İzin verildi ama restart gerekiyor (macOS'ta ekran kaydı hep böyle çalışır)
             return .needsRestart
         } else {
             return .notGranted

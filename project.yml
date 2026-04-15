@@ -47,8 +47,8 @@ targets:
         PROVISIONING_PROFILE_SPECIFIER: "match AppStore com.recepgur.VideoRecorder"
       configs:
         Debug:
-          CODE_SIGN_IDENTITY: "Apple Development"
-          CODE_SIGN_STYLE: Automatic
+          CODE_SIGN_IDENTITY: "-"
+          CODE_SIGN_STYLE: Manual
           PROVISIONING_PROFILE_SPECIFIER: ""
     info:
       path: Resources/Info.plist
