@@ -199,6 +199,8 @@ private struct OnboardingPermissionsPage: View {
                 .font(.title2)
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityLabel("Adım 3 / 3: Birkaç İzne İhtiyacımız Var")
+                .accessibilityAddTraits(.isHeader)
 
             screenRecordingRow
             microphoneRow
@@ -209,8 +211,6 @@ private struct OnboardingPermissionsPage: View {
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 32)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Adım 3 / 3, İzinler. Ekran kaydı izni gerekli. Mikrofon izni gerekli. Kamera izni opsiyonel.")
     }
 
     private var screenRecordingRow: some View {
