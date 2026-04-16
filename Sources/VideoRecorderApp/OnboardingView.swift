@@ -98,20 +98,17 @@ struct OnboardingView: View {
     }
 
     private var startHint: String {
-        let screenOk = viewModel.screenRecordingPermissionStatus == .authorized || viewModel.screenPermissionNeedsRestart
-        let micOk = viewModel.microphonePermissionStatus == .authorized
-        if !screenOk && !micOk { return "Ekran kaydı ve mikrofon izni gerekli" }
-        if !screenOk { return "Ekran kaydı izni gerekli" }
-        if !micOk { return "Mikrofon izni gerekli" }
+        let missingTitles = viewModel.requiredPermissionItems
+            .filter { !$0.isSatisfied }
+            .map(\.title)
+        if missingTitles.isEmpty { return "" }
+        if missingTitles.count == 1 { return "\(missingTitles[0]) izni gerekli" }
+        if missingTitles.count == 2 { return "\(missingTitles[0]) ve \(missingTitles[1]) izni gerekli" }
         return ""
     }
 
     private var canProceed: Bool {
-        // macOS'ta ekran kaydı izni verince restart gerekir; needsRestart da "izin verildi" anlamına gelir.
-        let screenOk = viewModel.screenRecordingPermissionStatus == .authorized ||
-                       viewModel.screenPermissionNeedsRestart
-        let micOk = viewModel.microphonePermissionStatus == .authorized
-        return screenOk && micOk
+        viewModel.canProceedPastOnboarding
     }
 }
 
@@ -213,87 +210,19 @@ private struct OnboardingPermissionsPage: View {
                 .accessibilityLabel("Adım 3 / 3: Birkaç İzne İhtiyacımız Var")
                 .accessibilityAddTraits(.isHeader)
 
-            screenRecordingRow
-            microphoneRow
-            cameraRow
+            ForEach(viewModel.permissionHubItems) { item in
+                PermissionRow(item: item, onPrimaryAction: {
+                    viewModel.performPrimaryPermissionAction(for: item.id)
+                }, onSecondaryAction: {
+                    viewModel.performSecondaryPermissionAction(for: item.id)
+                })
+            }
 
             Text("Kamera izni yalnızca Ekran + Kamera modunda gereklidir.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 32)
-    }
-
-    private var screenRecordingRow: some View {
-        PermissionRow(
-            symbol: "lock.rectangle",
-            title: "Ekran Kaydı",
-            isOptional: false,
-            state: screenRecordingRowState,
-            onGrant: { viewModel.requestScreenRecordingPermission() },
-            onOpenSettings: {
-                NSWorkspace.shared.open(
-                    URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")!
-                )
-            }
-        )
-    }
-
-    private var screenRecordingRowState: PermissionRowState {
-        if viewModel.screenRecordingPermissionStatus == .authorized && !viewModel.screenPermissionNeedsRestart {
-            return .granted
-        } else if viewModel.screenPermissionNeedsRestart {
-            // İzin verildi ama restart gerekiyor (macOS'ta ekran kaydı hep böyle çalışır)
-            return .needsRestart
-        } else {
-            return .notGranted
-        }
-    }
-
-    private var microphoneRow: some View {
-        PermissionRow(
-            symbol: "mic",
-            title: "Mikrofon",
-            isOptional: false,
-            state: microphoneRowState,
-            onGrant: { viewModel.requestMicrophonePermission() },
-            onOpenSettings: {
-                NSWorkspace.shared.open(
-                    URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone")!
-                )
-            }
-        )
-    }
-
-    private var microphoneRowState: PermissionRowState {
-        switch viewModel.microphonePermissionStatus {
-        case .authorized: return .granted
-        case .denied, .restricted: return .denied
-        default: return .notGranted
-        }
-    }
-
-    private var cameraRow: some View {
-        PermissionRow(
-            symbol: "camera",
-            title: "Kamera",
-            isOptional: true,
-            state: cameraRowState,
-            onGrant: { viewModel.requestCameraPermission() },
-            onOpenSettings: {
-                NSWorkspace.shared.open(
-                    URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Camera")!
-                )
-            }
-        )
-    }
-
-    private var cameraRowState: PermissionRowState {
-        switch viewModel.cameraPermissionStatus {
-        case .authorized: return .granted
-        case .denied, .restricted: return .denied
-        default: return .notGranted
-        }
     }
 }
 
@@ -307,16 +236,22 @@ private enum PermissionRowState {
 }
 
 private struct PermissionRow: View {
-    let symbol: String
-    let title: String
-    let isOptional: Bool
-    let state: PermissionRowState
-    let onGrant: () -> Void
-    let onOpenSettings: (() -> Void)?
+    let item: PermissionHubItem
+    let onPrimaryAction: () -> Void
+    let onSecondaryAction: (() -> Void)?
+
+    // MARK: - VoiceOver: her satır TEK bir eleman
+    // macOS VoiceOver'da sağ/sol ok ile satırlar arasında tek adımda geçiş sağlar.
+    // Durum ve eylem accessibilityLabel + accessibilityAction ile iletilir.
+
+    private var rowAccessibilityLabel: String {
+        let suffix = item.isRequired ? "" : String(localized: ", opsiyonel")
+        return String(localized: "\(item.title)\(suffix), \(item.statusLabel)")
+    }
 
     var body: some View {
         HStack(spacing: 14) {
-            Image(systemName: symbol)
+            Image(systemName: item.symbolName)
                 .font(.system(size: 20))
                 .foregroundStyle(Color.fmAccent)
                 .frame(width: 26)
@@ -324,14 +259,17 @@ private struct PermissionRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
-                    Text(title)
+                    Text(item.title)
                         .fontWeight(.semibold)
-                    if isOptional {
+                    if !item.isRequired {
                         Text("(opsiyonel)")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
+                Text(item.detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
                 stateLabel
             }
 
@@ -339,50 +277,61 @@ private struct PermissionRow: View {
 
             stateButton
         }
+        // Tüm satırı tek VoiceOver elemanına dönüştür
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(rowAccessibilityLabel)
+        // Eylem varsa accessibilityAction ekle
+        .modifier(PermissionRowActions(item: item, onPrimaryAction: onPrimaryAction, onSecondaryAction: onSecondaryAction))
     }
 
     @ViewBuilder
     private var stateLabel: some View {
-        switch state {
-        case .notGranted:
-            EmptyView()
-        case .granted:
-            EmptyView()
-        case .denied:
-            Text("Erişim reddedildi")
-                .font(.caption)
-                .foregroundStyle(.red)
-        case .needsRestart:
-            Text("Uygulamayı yeniden başlatın")
-                .font(.caption)
-                .foregroundStyle(.orange)
-        }
+        Text(item.statusLabel)
+            .font(.caption)
+            .foregroundStyle(item.isSatisfied ? .green : .orange)
     }
 
     @ViewBuilder
     private var stateButton: some View {
-        switch state {
-        case .notGranted:
-            Button("İzin Ver") { onGrant() }
-                .buttonStyle(.bordered)
-                .accessibilityLabel("\(title) izni ver")
-
-        case .granted:
+        if let buttonTitle = item.primaryAction.buttonTitle {
+            VStack(alignment: .trailing, spacing: 6) {
+                Button(buttonTitle) { onPrimaryAction() }
+                    .buttonStyle(.bordered)
+                if let secondaryAction = item.secondaryAction,
+                   let secondaryTitle = secondaryAction.buttonTitle,
+                   let onSecondaryAction {
+                    Button(secondaryTitle) { onSecondaryAction() }
+                        .buttonStyle(.plain)
+                        .font(.caption)
+                }
+            }
+        } else {
             Label("Verildi", systemImage: "checkmark.circle.fill")
                 .foregroundStyle(.green)
-                .accessibilityLabel("Verildi")
+        }
+    }
+}
 
-        case .denied:
-            if let onOpenSettings {
-                Button("Ayarları Aç") { onOpenSettings() }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel("\(title) için sistem ayarlarını aç")
-            }
+// MARK: - PermissionRow Accessibility Actions
 
-        case .needsRestart:
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(.orange)
-                .accessibilityLabel("\(title) izni uygulamayı yeniden başlatmayı gerektiriyor")
+/// Adds the correct accessibilityAction(s) to a PermissionRow based on its state.
+/// Separated into a ViewModifier so the conditional logic stays outside body.
+private struct PermissionRowActions: ViewModifier {
+    let item: PermissionHubItem
+    let onPrimaryAction: () -> Void
+    let onSecondaryAction: (() -> Void)?
+
+    func body(content: Content) -> some View {
+        if let primaryTitle = item.primaryAction.buttonTitle {
+            content
+                .accessibilityAction(named: primaryTitle) {
+                    onPrimaryAction()
+                }
+                .accessibilityAction(named: item.secondaryAction?.buttonTitle ?? "") {
+                    onSecondaryAction?()
+                }
+        } else {
+            content
         }
     }
 }

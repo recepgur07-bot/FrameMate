@@ -49,6 +49,7 @@
 		640201AA0A1D4AE2642EA078 /* FrameAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0B4C29E3CF3E24B8425A29 /* FrameAnalysis.swift */; };
 		68FE173D31FF8044BC74D3A3 /* bitis.wav in Resources */ = {isa = PBXBuildFile; fileRef = B791F8BEA905CA54DC936506 /* bitis.wav */; };
 		6C18BEB8C3BDA3F87B2C8CB0 /* VideoPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BC5CA5934DD55E4950F6AE /* VideoPreviewView.swift */; };
+		6CCB598012DBAE13C1AD6578 /* FMToastOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFEF838B030E6C4E51D8B699 /* FMToastOverlay.swift */; };
 		6D1EE726224F6464375048DA /* CaptureCoachingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = F903CAF3F55C66433129F58D /* CaptureCoachingEngine.swift */; };
 		6E6B1DC96971ACF3B3147744 /* RecordingMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA52A7BC68075D3AADE54E86 /* RecordingMode.swift */; };
 		739EB9D43F6C0BF6580CCE9A /* VideoRecorderApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF2C86A04E076B902883029 /* VideoRecorderApp.swift */; };
@@ -190,6 +191,7 @@
 		E15FC47626C59D18EAC6D5C5 /* VideoRecorderApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoRecorderApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E37BB423E8B231AD8B32B652 /* RecordingAudioMixBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingAudioMixBuilder.swift; sourceTree = "<group>"; };
 		E529062356BC613201458B3F /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		EFEF838B030E6C4E51D8B699 /* FMToastOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FMToastOverlay.swift; sourceTree = "<group>"; };
 		F2BC5CA5934DD55E4950F6AE /* VideoPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreviewView.swift; sourceTree = "<group>"; };
 		F46C69822B8A4BE5D03FE9D5 /* SoundEffectPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoundEffectPlayer.swift; sourceTree = "<group>"; };
 		F54A3B85F0A27181CDDB9065 /* MainWindowPresentationPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowPresentationPolicyTests.swift; sourceTree = "<group>"; };
@@ -267,6 +269,7 @@
 				B3C20F167D5CB1785261365F /* CursorHighlightTimeline.swift */,
 				67465CBE687C5A13E09C6385 /* FMCard.swift */,
 				CEB2AFD9DF1C5E28C0D11563 /* FMModeSelector.swift */,
+				EFEF838B030E6C4E51D8B699 /* FMToastOverlay.swift */,
 				70D1BA0C37FFA3D832609BF2 /* FrameMateColors.swift */,
 				B413F2D223267FA0A32CFF83 /* GlobalHotkeyMonitor.swift */,
 				B77A6F90716EE30079C49119 /* KeyboardShortcutRecorder.swift */,
@@ -521,6 +524,7 @@
 				A7B4F13D7EA7363625E26A7A /* CursorHighlightTimeline.swift in Sources */,
 				429974DAF93E10E3D68EB801 /* FMCard.swift in Sources */,
 				7CF1310726EDE67B2D98CFA7 /* FMModeSelector.swift in Sources */,
+				6CCB598012DBAE13C1AD6578 /* FMToastOverlay.swift in Sources */,
 				640201AA0A1D4AE2642EA078 /* FrameAnalysis.swift in Sources */,
 				B69422AEA88B60BA8CF8A02D /* FrameAnalysisService.swift in Sources */,
 				A6BC200A459BF3E28248D122 /* FrameCoachingEngine.swift in Sources */,
@@ -769,7 +773,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.recepgur.VideoRecorderTests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VideoRecorder.app/Contents/MacOS/VideoRecorder";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FrameMate.app/Contents/MacOS/FrameMate";
 			};
 			name = Debug;
 		};
@@ -789,7 +793,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.recepgur.VideoRecorderTests;
 				SDKROOT = macosx;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/VideoRecorder.app/Contents/MacOS/VideoRecorder";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FrameMate.app/Contents/MacOS/FrameMate";
 			};
 			name = Release;
 		};

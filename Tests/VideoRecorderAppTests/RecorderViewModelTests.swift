@@ -1985,6 +1985,98 @@ final class RecorderViewModelTests: XCTestCase {
 
         XCTAssertEqual(events.values.prefix(2), ["start-sound", "system-audio-start"])
     }
+
+    func testPermissionHubShowsRequestActionForUndeterminedMicrophone() async throws {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized])
+        )
+
+        await viewModel.setup()
+
+        let microphoneItem = try XCTUnwrap(viewModel.permissionHubItems.first(where: { $0.id == .microphone }))
+        XCTAssertEqual(microphoneItem.primaryAction, .request)
+        XCTAssertFalse(microphoneItem.isSatisfied)
+        XCTAssertTrue(microphoneItem.isRequired)
+    }
+
+    func testPermissionHubShowsSettingsActionForDeniedCamera() async throws {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .denied, .audio: .authorized])
+        )
+
+        await viewModel.setup()
+
+        let cameraItem = try XCTUnwrap(viewModel.permissionHubItems.first(where: { $0.id == .camera }))
+        XCTAssertEqual(cameraItem.primaryAction, .openSettings)
+        XCTAssertFalse(cameraItem.isSatisfied)
+        XCTAssertFalse(cameraItem.isRequired)
+    }
+
+    func testPermissionHubShowsRestartActionWhenScreenPermissionNeedsRestart() async throws {
+        let permissions = RecorderPermissionsStub(
+            statuses: [.video: .authorized, .audio: .authorized]
+        )
+        let screenProvider = MockScreenRecordingProvider(status: .denied)
+        screenProvider.requestResult = .grantedButRequiresRestart
+
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: screenProvider,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        viewModel.requestScreenRecordingPermission()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        let screenItem = try XCTUnwrap(viewModel.permissionHubItems.first(where: { $0.id == .screenRecording }))
+        XCTAssertEqual(screenItem.primaryAction, .restartApp)
+        XCTAssertEqual(screenItem.secondaryAction, .openSettings)
+        XCTAssertTrue(screenItem.isSatisfied)
+        XCTAssertTrue(viewModel.canProceedPastOnboarding)
+    }
+
+    func testPermissionHubScreenDetailMentionsSystemAudioWhenEnabled() async throws {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(status: .denied),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.audioOnly)
+        viewModel.isSystemAudioEnabled = true
+
+        let screenItem = try XCTUnwrap(viewModel.permissionHubItems.first(where: { $0.id == .screenRecording }))
+        XCTAssertTrue(screenItem.detail.localizedCaseInsensitiveContains("sistem sesi"))
+    }
+
+    func testCanProceedPastOnboardingAllowsMissingOptionalCamera() async {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.audio: .authorized])
+        )
+
+        await viewModel.setup()
+
+        XCTAssertTrue(viewModel.canProceedPastOnboarding)
+        XCTAssertFalse(viewModel.hasBlockingPermissionIssue)
+    }
 }
 
 private final class RecordingStartEventLog {

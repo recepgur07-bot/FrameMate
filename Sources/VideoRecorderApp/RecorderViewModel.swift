@@ -227,6 +227,59 @@ enum MaxRecordingDuration: Int, CaseIterable, Identifiable {
     }
 }
 
+enum PermissionKind: String, CaseIterable, Identifiable {
+    case camera
+    case microphone
+    case screenRecording
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .camera: return String(localized: "Kamera")
+        case .microphone: return String(localized: "Mikrofon")
+        case .screenRecording: return String(localized: "Ekran Kaydı")
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .camera: return "camera"
+        case .microphone: return "mic"
+        case .screenRecording: return "lock.rectangle"
+        }
+    }
+}
+
+enum PermissionAction: Equatable {
+    case request
+    case openSettings
+    case restartApp
+    case none
+
+    var buttonTitle: String? {
+        switch self {
+        case .request: return String(localized: "İzin Ver")
+        case .openSettings: return String(localized: "Ayarları Aç")
+        case .restartApp: return String(localized: "Yeniden Aç")
+        case .none: return nil
+        }
+    }
+}
+
+struct PermissionHubItem: Identifiable, Equatable {
+    let id: PermissionKind
+    let title: String
+    let detail: String
+    let statusLabel: String
+    let isRequired: Bool
+    let isSatisfied: Bool
+    let primaryAction: PermissionAction
+    let secondaryAction: PermissionAction?
+
+    var symbolName: String { id.symbolName }
+}
+
 protocol FrameCoachSettingsStoring: AnyObject {
     var speechMode: FrameCoachSpeechMode { get set }
     var feedbackFrequency: FrameCoachFeedbackFrequency { get set }
@@ -482,6 +535,30 @@ final class RecorderViewModel {
             return .authorized
         }
         return screenRecordingProvider.authorizationStatus()
+    }
+
+    var permissionHubItems: [PermissionHubItem] {
+        [
+            makeCameraPermissionItem(),
+            makeMicrophonePermissionItem(),
+            makeScreenRecordingPermissionItem()
+        ]
+    }
+
+    var requiredPermissionItems: [PermissionHubItem] {
+        permissionHubItems.filter(\.isRequired)
+    }
+
+    var hasBlockingPermissionIssue: Bool {
+        requiredPermissionItems.contains(where: { !$0.isSatisfied })
+    }
+
+    var canProceedPastOnboarding: Bool {
+        !hasBlockingPermissionIssue
+    }
+
+    var shouldShowPermissionHub: Bool {
+        true
     }
 
     var shouldShowPrivacySettingsButton: Bool {
@@ -2524,8 +2601,206 @@ final class RecorderViewModel {
         openURL(url)
     }
 
+    func performPrimaryPermissionAction(for kind: PermissionKind) {
+        switch kind {
+        case .camera:
+            switch makeCameraPermissionItem().primaryAction {
+            case .request: requestCameraPermission()
+            case .openSettings: openPrivacySettings(for: .video)
+            case .restartApp: NSApp.terminate(nil)
+            case .none: break
+            }
+        case .microphone:
+            switch makeMicrophonePermissionItem().primaryAction {
+            case .request: requestMicrophonePermission()
+            case .openSettings: openPrivacySettings(for: .audio)
+            case .restartApp: NSApp.terminate(nil)
+            case .none: break
+            }
+        case .screenRecording:
+            switch makeScreenRecordingPermissionItem().primaryAction {
+            case .request: requestScreenRecordingPermission()
+            case .openSettings: openScreenRecordingSettings()
+            case .restartApp: NSApp.terminate(nil)
+            case .none: break
+            }
+        }
+    }
+
+    func performSecondaryPermissionAction(for kind: PermissionKind) {
+        let action: PermissionAction?
+        switch kind {
+        case .camera:
+            action = makeCameraPermissionItem().secondaryAction
+        case .microphone:
+            action = makeMicrophonePermissionItem().secondaryAction
+        case .screenRecording:
+            action = makeScreenRecordingPermissionItem().secondaryAction
+        }
+
+        switch action {
+        case .request: performPrimaryPermissionAction(for: kind)
+        case .openSettings: kind == .screenRecording ? openScreenRecordingSettings() : openPrivacySettings(for: kind == .camera ? .video : .audio)
+        case .restartApp: NSApp.terminate(nil)
+        case .some(.none), nil: break
+        }
+    }
+
     private var hasRequiredPermissions: Bool {
         cameraPermissionStatus == .authorized && microphonePermissionStatus == .authorized
+    }
+
+    private func makeCameraPermissionItem() -> PermissionHubItem {
+        let isRequired = selectedRecordingSource == .camera || showsScreenOverlayConfiguration
+        let isAuthorized = cameraPermissionStatus == .authorized
+        let isSatisfied = isAuthorized || !isRequired
+        let detail = isRequired
+            ? String(localized: "Kamera kaydı veya kamera kutusu için gerekli")
+            : String(localized: "Yalnızca kamera içeren modlarda gerekli")
+
+        switch cameraPermissionStatus {
+        case .authorized:
+            return PermissionHubItem(
+                id: .camera,
+                title: PermissionKind.camera.title,
+                detail: detail,
+                statusLabel: String(localized: "Verildi"),
+                isRequired: isRequired,
+                isSatisfied: isSatisfied,
+                primaryAction: .none,
+                secondaryAction: nil
+            )
+        case .denied, .restricted:
+            return PermissionHubItem(
+                id: .camera,
+                title: PermissionKind.camera.title,
+                detail: detail,
+                statusLabel: String(localized: "Reddedildi"),
+                isRequired: isRequired,
+                isSatisfied: isSatisfied,
+                primaryAction: .openSettings,
+                secondaryAction: nil
+            )
+        case .notDetermined:
+            return PermissionHubItem(
+                id: .camera,
+                title: PermissionKind.camera.title,
+                detail: detail,
+                statusLabel: String(localized: "İzin bekleniyor"),
+                isRequired: isRequired,
+                isSatisfied: isSatisfied,
+                primaryAction: .request,
+                secondaryAction: nil
+            )
+        @unknown default:
+            return PermissionHubItem(
+                id: .camera,
+                title: PermissionKind.camera.title,
+                detail: detail,
+                statusLabel: String(localized: "Durum bilinmiyor"),
+                isRequired: isRequired,
+                isSatisfied: isSatisfied,
+                primaryAction: .openSettings,
+                secondaryAction: nil
+            )
+        }
+    }
+
+    private func makeMicrophonePermissionItem() -> PermissionHubItem {
+        let isRequired = true
+        let detail = String(localized: "Sesli kayıt akışları için gerekli")
+
+        switch microphonePermissionStatus {
+        case .authorized:
+            return PermissionHubItem(
+                id: .microphone,
+                title: PermissionKind.microphone.title,
+                detail: detail,
+                statusLabel: String(localized: "Verildi"),
+                isRequired: isRequired,
+                isSatisfied: true,
+                primaryAction: .none,
+                secondaryAction: nil
+            )
+        case .denied, .restricted:
+            return PermissionHubItem(
+                id: .microphone,
+                title: PermissionKind.microphone.title,
+                detail: detail,
+                statusLabel: String(localized: "Reddedildi"),
+                isRequired: isRequired,
+                isSatisfied: false,
+                primaryAction: .openSettings,
+                secondaryAction: nil
+            )
+        case .notDetermined:
+            return PermissionHubItem(
+                id: .microphone,
+                title: PermissionKind.microphone.title,
+                detail: detail,
+                statusLabel: String(localized: "İzin bekleniyor"),
+                isRequired: isRequired,
+                isSatisfied: false,
+                primaryAction: .request,
+                secondaryAction: nil
+            )
+        @unknown default:
+            return PermissionHubItem(
+                id: .microphone,
+                title: PermissionKind.microphone.title,
+                detail: detail,
+                statusLabel: String(localized: "Durum bilinmiyor"),
+                isRequired: isRequired,
+                isSatisfied: false,
+                primaryAction: .openSettings,
+                secondaryAction: nil
+            )
+        }
+    }
+
+    private func makeScreenRecordingPermissionItem() -> PermissionHubItem {
+        let isRequired = selectedRecordingSource == .screen || selectedRecordingSource == .window || isSystemAudioEnabled
+        let detail = isSystemAudioEnabled
+            ? String(localized: "Ekran ve sistem sesi kaydı için gerekli")
+            : String(localized: "Ekran veya pencere kaydı için gerekli")
+
+        if screenPermissionNeedsRestart {
+            return PermissionHubItem(
+                id: .screenRecording,
+                title: PermissionKind.screenRecording.title,
+                detail: detail,
+                statusLabel: String(localized: "Yeniden açılmalı"),
+                isRequired: isRequired,
+                isSatisfied: true,
+                primaryAction: .restartApp,
+                secondaryAction: .openSettings
+            )
+        }
+
+        switch screenRecordingPermissionStatus {
+        case .authorized:
+            return PermissionHubItem(
+                id: .screenRecording,
+                title: PermissionKind.screenRecording.title,
+                detail: detail,
+                statusLabel: String(localized: "Verildi"),
+                isRequired: isRequired,
+                isSatisfied: true,
+                primaryAction: .none,
+                secondaryAction: nil
+            )
+        case .denied:
+            return PermissionHubItem(
+                id: .screenRecording,
+                title: PermissionKind.screenRecording.title,
+                detail: detail,
+                statusLabel: String(localized: "Gerekli"),
+                isRequired: isRequired,
+                isSatisfied: !isRequired,
+                primaryAction: .openSettings,
+                secondaryAction: .request
+            )
+        }
     }
 
     private func refreshPermissionStatus() {

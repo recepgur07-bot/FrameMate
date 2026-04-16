@@ -21,7 +21,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         )
     }
 
-    func testUnitTestsUseBuiltVideoRecorderAppAsTestHost() throws {
+    func testUnitTestsUseBuiltFrameMateAppAsTestHost() throws {
         let projectFileURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -31,8 +31,8 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         let projectContents = try String(contentsOf: projectFileURL, encoding: .utf8)
 
         XCTAssertTrue(
-            projectContents.contains("TEST_HOST = \"$(BUILT_PRODUCTS_DIR)/VideoRecorder.app/Contents/MacOS/VideoRecorder\";"),
-            "Xcode unit tests should point to the built VideoRecorder app bundle."
+            projectContents.contains("TEST_HOST = \"$(BUILT_PRODUCTS_DIR)/FrameMate.app/Contents/MacOS/FrameMate\";"),
+            "Xcode unit tests should point to the built FrameMate app bundle."
         )
         XCTAssertFalse(
             projectContents.contains("TEST_HOST = \"$(BUILT_PRODUCTS_DIR)/VideoRecorderApp.app/Contents/MacOS/VideoRecorderApp\";"),

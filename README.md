@@ -23,13 +23,13 @@ bash scripts/package-app.sh
 The packaged app is created at:
 
 ```text
-build/VideoRecorder.app
+build/FrameMate.app
 ```
 
 Open it from Finder or with:
 
 ```bash
-open build/VideoRecorder.app
+open build/FrameMate.app
 ```
 
 macOS should ask for camera and microphone permission on first use.

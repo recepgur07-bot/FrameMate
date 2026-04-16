@@ -5,13 +5,22 @@ struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Bindable var viewModel: RecorderViewModel
 
+    @State private var toastQueue = ToastQueue()
+
     var body: some View {
         VStack(spacing: 0) {
             // ── HEADER ZONE ──────────────────────────────────────────────
             headerZone
                 .padding(.horizontal, 20)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
+                .padding(.top, 12)
+                .padding(.bottom, 10)
+
+            // ── TOAST ZONE ───────────────────────────────────────────────
+            // Header'ın hemen altında, mod seçicinin üstünde — hiçbir şeyi kapatmaz.
+            if !toastQueue.messages.isEmpty {
+                FMToastOverlay(queue: toastQueue)
+                    .padding(.bottom, 4)
+            }
 
             Divider()
 
@@ -34,7 +43,12 @@ struct ContentView: View {
             // ── CONTENT ZONE (scrollable) ─────────────────────────────────
             ScrollView {
                 VStack(spacing: 12) {
+                    permissionHubCard
                     previewCard
+                    // Camera-only mode: show camera device picker
+                    if viewModel.showsCameraControls {
+                        cameraCard
+                    }
                     audioCard
                     if viewModel.showsScreenControls || viewModel.showsScreenOverlayControls {
                         sourceCard
@@ -97,7 +111,7 @@ struct ContentView: View {
         }
         // VoiceOver announcements — proactively read state changes aloud so the user
         // doesn't have to navigate to the status elements to hear what happened.
-        .onChange(of: currentStatus) { _, newStatus in
+        .onChange(of: currentStatus) { oldStatus, newStatus in
             let message: String
             switch newStatus {
             case .recording:  message = String(localized: "Kayıt başladı")
@@ -113,6 +127,19 @@ struct ContentView: View {
                     NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
                 ]
             )
+            // Toast: show for meaningful state transitions
+            switch (oldStatus, newStatus) {
+            case (.paused, .recording):
+                toastQueue.post(message: String(localized: "Kayıt devam ediyor"), style: .success)
+            case (_, .recording):
+                toastQueue.post(message: String(localized: "Kayıt başladı"), style: .success)
+            case (.recording, .ready):
+                toastQueue.post(message: String(localized: "Kayıt durduruldu"), style: .info)
+            case (_, .paused):
+                toastQueue.post(message: String(localized: "Kayıt duraklatıldı"), style: .info)
+            default:
+                break
+            }
         }
         .onChange(of: viewModel.errorText) { _, newError in
             guard let error = newError else { return }
@@ -125,6 +152,49 @@ struct ContentView: View {
                     NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
                 ]
             )
+            toastQueue.post(message: String(localized: "Hata: \(error)"), style: .error)
+        }
+        // VoiceOver: Announce mode changes so the user knows which cards are now active.
+        .onChange(of: viewModel.selectedPreset) { _, newPreset in
+            NSAccessibility.post(
+                element: NSApp.mainWindow as Any,
+                notification: .announcementRequested,
+                userInfo: [
+                    NSAccessibility.NotificationUserInfoKey.announcement:
+                        String(localized: "Mod seçildi: \(newPreset.label)"),
+                    NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.medium.rawValue
+                ]
+            )
+        }
+        // Toast: microphone permission changes
+        .onChange(of: viewModel.microphonePermissionStatus) { _, newStatus in
+            switch newStatus {
+            case .authorized:
+                toastQueue.post(message: String(localized: "Mikrofon izni verildi"), style: .success)
+            case .denied, .restricted:
+                toastQueue.post(message: String(localized: "Mikrofon izni reddedildi — Sistem Ayarları'ndan etkinleştirebilirsin"), style: .error)
+            default:
+                break
+            }
+        }
+        // Toast: camera permission changes
+        .onChange(of: viewModel.cameraPermissionStatus) { _, newStatus in
+            switch newStatus {
+            case .authorized:
+                toastQueue.post(message: String(localized: "Kamera izni verildi"), style: .success)
+            case .denied, .restricted:
+                toastQueue.post(message: String(localized: "Kamera izni reddedildi — Sistem Ayarları'ndan etkinleştirebilirsin"), style: .error)
+            default:
+                break
+            }
+        }
+        // Toast: screen recording permission — always needs restart after grant
+        .onChange(of: viewModel.screenPermissionNeedsRestart) { _, needsRestart in
+            guard needsRestart else { return }
+            toastQueue.post(
+                message: String(localized: "Ekran kaydı izni verildi — değişikliğin geçerli olması için uygulamayı yeniden başlat"),
+                style: .warning
+            )
         }
     }
 
@@ -133,12 +203,12 @@ struct ContentView: View {
     private var headerZone: some View {
         HStack(alignment: .center) {
             Image(systemName: "record.circle.fill")
-                .font(.system(size: 28))
+                .font(.system(size: 22, weight: .semibold))
                 .foregroundStyle(Color.fmAccent)
                 .accessibilityHidden(true)
 
             Text("FrameMate")
-                .font(.largeTitle.bold())
+                .font(.title2.bold())
                 .foregroundStyle(Color.fmAccent)
                 .accessibilityAddTraits(.isHeader)
 
@@ -188,15 +258,43 @@ struct ContentView: View {
         }
     }
 
+    // MARK: - Camera Card (camera-only mode)
+
+    /// Shown only in pure Camera mode so the user can pick which camera to use.
+    /// In Screen+Camera mode the camera picker lives inside cameraBoxCard.
+    private var cameraCard: some View {
+        FMCard(icon: "camera.fill", title: String(localized: "Kamera")) {
+            if viewModel.cameraPermissionStatus == .authorized {
+                // Permission granted — show camera picker
+                Picker(String(localized: "Kamera"), selection: $viewModel.selectedCameraID) {
+                    if viewModel.cameras.isEmpty {
+                        Text(String(localized: "Kamera bulunamadı")).tag("")
+                    } else {
+                        ForEach(viewModel.cameras) { camera in
+                            Text(camera.name).tag(camera.id)
+                        }
+                    }
+                }
+                .disabled(!viewModel.canChooseCamera || viewModel.cameras.isEmpty)
+                .accessibilityLabel(String(localized: "Kamera seçimi"))
+                .onChange(of: viewModel.selectedCameraID) {
+                    viewModel.refreshDeviceState()
+                }
+            } else {
+                Text(String(localized: "Kamera seçimi Permission Hub içinden tamamlanır."))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
     // MARK: - Audio Card
 
     private var audioCard: some View {
         FMCard(icon: "mic.fill", title: String(localized: "Ses"), isCollapsible: true) {
-            // Camera permission banner (top of Ses card)
-            if viewModel.showsCameraControls || viewModel.showsScreenOverlayConfiguration {
-                cameraPermissionBanner
-            }
-
+            // Camera permission banner (top of Ses card):
+            // In camera-only mode cameraCard already shows this — only show here
+            // for Screen+Camera overlay configuration.
             // Frame coach row
             if viewModel.showsFrameCoachControls && viewModel.showsFrameCoachTextOnScreen {
                 HStack(spacing: 8) {
@@ -244,13 +342,6 @@ struct ContentView: View {
 
             // Screen recording permission banner (system audio capture requires screen recording).
             // Only shown here in audio-only mode — screen modes already surface this via sourceCard.
-            if viewModel.isSystemAudioEnabled
-                && !viewModel.showsScreenControls
-                && !viewModel.showsScreenOverlayControls
-                && viewModel.screenRecordingPermissionStatus == .denied {
-                screenPermissionBanner
-            }
-
             // Microphone volume
             if viewModel.showsMicrophoneVolumeControl {
                 VStack(alignment: .leading, spacing: 6) {
@@ -270,9 +361,6 @@ struct ContentView: View {
                         .accessibilityValue(String(localized: "\(Int(viewModel.systemAudioVolume * 100)) yüzde"))
                 }
             }
-
-            // Microphone permission banner (bottom of Ses card)
-            microphonePermissionBanner
 
             // Auto-reframe toggle
             if viewModel.showsFrameCoachControls {
@@ -300,12 +388,6 @@ struct ContentView: View {
         // showsScreenSourcePicker — inner guard for the segmented source picker widget
         // showsScreenControls / showsScreenOverlayControls — outer visibility (card shown)
         FMCard(icon: "desktopcomputer", title: String(localized: "Kaynak"), isCollapsible: true) {
-            // Screen recording permission banner (top of Kaynak card)
-            if (viewModel.showsScreenControls || viewModel.isSystemAudioEnabled)
-                && viewModel.screenRecordingPermissionStatus == .denied {
-                screenPermissionBanner
-            }
-
             if viewModel.showsScreenSourcePicker {
                 Picker(String(localized: "Ekran kaynağı"), selection: Binding(
                     get: { viewModel.selectedScreenCaptureSource },
@@ -434,74 +516,78 @@ struct ContentView: View {
 
     // MARK: - Permission Banners
 
-    @ViewBuilder
-    private var cameraPermissionBanner: some View {
-        let camStatus = viewModel.cameraPermissionStatus
-        if camStatus == .notDetermined {
-            permissionBanner(
-                message: String(localized: "Kamera izni gerekli"),
-                buttonTitle: String(localized: "İzin Ver"),
-                buttonHint: String(localized: "Sistem izin penceresini açar. İzin Ver veya Reddet seçin."),
-                action: { viewModel.requestCameraPermission() }
-            )
-        } else if camStatus == .denied {
-            permissionBanner(
-                message: String(localized: "Kamera izni reddedildi"),
-                buttonTitle: String(localized: "Ayarları Aç"),
-                buttonHint: String(localized: "Kamera izni daha önce reddedildi. Sistem Ayarları Gizlilik ekranını açar."),
-                action: { viewModel.openPrivacySettings(for: .video) }
-            )
-        }
-    }
-
-    @ViewBuilder
-    private var microphonePermissionBanner: some View {
-        let micStatus = viewModel.microphonePermissionStatus
-        if micStatus == .notDetermined {
-            permissionBanner(
-                message: String(localized: "Mikrofon izni gerekli"),
-                buttonTitle: String(localized: "İzin Ver"),
-                buttonHint: String(localized: "Sistem izin penceresini açar. İzin Ver veya Reddet seçin."),
-                action: { viewModel.requestMicrophonePermission() }
-            )
-        } else if micStatus == .denied {
-            permissionBanner(
-                message: String(localized: "Mikrofon izni reddedildi"),
-                buttonTitle: String(localized: "Ayarları Aç"),
-                buttonHint: String(localized: "Mikrofon izni daha önce reddedildi. Sistem Ayarları Gizlilik ekranını açar."),
-                action: { viewModel.openPrivacySettings(for: .audio) }
-            )
-        }
-    }
-
-    @ViewBuilder
-    private var screenPermissionBanner: some View {
-        if viewModel.screenPermissionNeedsRestart {
-            // Permission was just granted — restart required for it to take effect
-            permissionBanner(
-                message: String(localized: "İzin verildi — değişikliği görmek için uygulamayı yeniden başlat"),
-                buttonTitle: String(localized: "Ayarları Gör"),
-                buttonHint: String(localized: "İzin durumunu Sistem Ayarları'nda doğrulamak için açar."),
-                action: { viewModel.openScreenRecordingSettings() }
-            )
-        } else {
-            VStack(spacing: 6) {
-                // Primary: request permission for the first time
-                permissionBanner(
-                    message: String(localized: "Ekran kaydı izni gerekli"),
-                    buttonTitle: String(localized: "İzin İste"),
-                    buttonHint: String(localized: "Sistem izin penceresini açar. İzin verdikten sonra uygulamayı yeniden başlatman gerekebilir."),
-                    action: { viewModel.requestScreenRecordingPermission() }
-                )
-                // Secondary: open settings if permission was previously denied
-                permissionBanner(
-                    message: String(localized: "Daha önce reddettiysen"),
-                    buttonTitle: String(localized: "Ayarları Aç"),
-                    buttonHint: String(localized: "Sistem Ayarları içinde Ekran Kaydı gizlilik ekranını açar."),
-                    action: { viewModel.openScreenRecordingSettings() }
-                )
+    private var permissionHubCard: some View {
+        FMCard(icon: "hand.raised.fill", title: String(localized: "İzinler")) {
+            if viewModel.hasBlockingPermissionIssue || viewModel.permissionHubItems.contains(where: { $0.primaryAction != .none }) {
+                VStack(spacing: 10) {
+                    ForEach(viewModel.permissionHubItems) { item in
+                        permissionRow(item)
+                    }
+                }
+            } else {
+                HStack(spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(.green)
+                        .accessibilityHidden(true)
+                    Text(String(localized: "Gerekli izinler hazır."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                }
             }
         }
+    }
+
+    private func permissionRow(_ item: PermissionHubItem) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: item.symbolName)
+                .foregroundStyle(Color.fmAccent)
+                .frame(width: 20)
+                .accessibilityHidden(true)
+
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(item.title)
+                        .font(.subheadline.weight(.semibold))
+                    if !item.isRequired {
+                        Text(String(localized: "Opsiyonel"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Text(item.detail)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(item.statusLabel)
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(item.isSatisfied ? .green : .orange)
+            }
+
+            Spacer()
+
+            HStack(spacing: 6) {
+                if let secondaryTitle = item.secondaryAction?.buttonTitle {
+                    Button(secondaryTitle) {
+                        viewModel.performSecondaryPermissionAction(for: item.id)
+                    }
+                    .buttonStyle(.bordered)
+                    .font(.caption)
+                }
+
+                if let primaryTitle = item.primaryAction.buttonTitle {
+                    Button(primaryTitle) {
+                        viewModel.performPrimaryPermissionAction(for: item.id)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.fmAccent)
+                    .font(.caption)
+                }
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(item.isSatisfied ? Color.green.opacity(0.06) : Color.orange.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 
     private func permissionBanner(
@@ -583,11 +669,13 @@ struct ContentView: View {
                 Spacer()
             }
 
-            // Status row
+            // Status row — hata detayı toast'ta gösterildiği için burada kısa tutulur
             HStack {
-                Text(String(localized: "Durum: \(viewModel.statusText)"))
+                Text(String(localized: "Durum: \(viewModel.errorText != nil ? "Hata oluştu" : viewModel.statusText)"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                     .textSelection(.enabled)
                     .accessibilityLabel(String(localized: "Durum \(viewModel.statusText)"))
 
