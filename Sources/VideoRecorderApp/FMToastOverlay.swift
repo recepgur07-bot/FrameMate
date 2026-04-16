@@ -1,63 +1,133 @@
-import Observation
+// Sources/VideoRecorderApp/FMToastOverlay.swift
 import SwiftUI
 
-enum ToastStyle {
-    case success, info, error, warning
-}
+// MARK: - Toast Model
 
-@Observable
-@MainActor
-final class ToastQueue {
-    struct Message: Identifiable {
-        let id = UUID()
-        let text: String
-        let style: ToastStyle
+enum ToastStyle {
+    case success   // yeşil — 3 sn sonra otomatik kapanır
+    case info      // mavi  — 3 sn sonra otomatik kapanır
+    case warning   // turuncu — "Tamam" gerektirir
+    case error     // kırmızı — "Tamam" gerektirir
+
+    var autoDismiss: Bool {
+        switch self {
+        case .success, .info: return true
+        case .warning, .error: return false
+        }
     }
 
-    var messages: [Message] = []
+    var icon: String {
+        switch self {
+        case .success: return "checkmark.circle.fill"
+        case .info:    return "info.circle.fill"
+        case .warning: return "exclamationmark.triangle.fill"
+        case .error:   return "xmark.circle.fill"
+        }
+    }
 
-    func post(message: String, style: ToastStyle) {
-        let msg = Message(text: message, style: style)
-        messages.append(msg)
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(3))
-            messages.removeAll { $0.id == msg.id }
+    var color: Color {
+        switch self {
+        case .success: return .green
+        case .info:    return Color(red: 0.357, green: 0.298, blue: 0.961) // fmAccent
+        case .warning: return .orange
+        case .error:   return .red
         }
     }
 }
 
+struct ToastMessage: Identifiable, Equatable {
+    let id = UUID()
+    let message: String
+    let style: ToastStyle
+}
+
+// MARK: - Toast Queue
+
+@Observable
+final class ToastQueue {
+    var messages: [ToastMessage] = []
+
+    func post(message: String, style: ToastStyle) {
+        let toast = ToastMessage(message: message, style: style)
+        messages.append(toast)
+    }
+
+    func dismiss(id: UUID) {
+        messages.removeAll { $0.id == id }
+    }
+}
+
+// MARK: - Toast Overlay
+
+/// Place this as an `.overlay(alignment: .top)` on ContentView.
+/// Renders queued toasts stacked below the header, one per slot.
 struct FMToastOverlay: View {
     var queue: ToastQueue
 
     var body: some View {
-        VStack(spacing: 4) {
-            ForEach(queue.messages) { message in
-                ToastBanner(message: message)
+        VStack(spacing: 8) {
+            ForEach(queue.messages) { toast in
+                FMToastBanner(toast: toast, onDismiss: { queue.dismiss(id: toast.id) })
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .top).combined(with: .opacity),
+                            removal:   .move(edge: .top).combined(with: .opacity)
+                        )
+                    )
             }
         }
         .padding(.horizontal, 16)
-        .animation(.easeInOut(duration: 0.2), value: queue.messages.count)
+        .padding(.top, 8)
+        .animation(.spring(response: 0.35, dampingFraction: 0.75), value: queue.messages)
     }
 }
 
-private struct ToastBanner: View {
-    let message: ToastQueue.Message
+// MARK: - Single Banner
 
-    private var backgroundColor: Color {
-        switch message.style {
-        case .success: return Color.green.opacity(0.85)
-        case .info:    return Color.blue.opacity(0.85)
-        case .error:   return Color.red.opacity(0.85)
-        case .warning: return Color.orange.opacity(0.85)
-        }
-    }
+private struct FMToastBanner: View {
+    let toast: ToastMessage
+    let onDismiss: () -> Void
 
     var body: some View {
-        Text(message.text)
-            .font(.callout)
-            .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(backgroundColor, in: RoundedRectangle(cornerRadius: 8))
+        HStack(spacing: 10) {
+            Image(systemName: toast.style.icon)
+                .foregroundStyle(toast.style.color)
+                .font(.system(size: 16, weight: .medium))
+                .accessibilityHidden(true)
+
+            Text(toast.message)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            if !toast.style.autoDismiss {
+                Button("Tamam") { onDismiss() }
+                    .font(.subheadline.weight(.semibold))
+                    .buttonStyle(.plain)
+                    .foregroundStyle(toast.style.color)
+                    .accessibilityLabel(String(localized: "Bildirimi kapat"))
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 11)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.regularMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(toast.style.color.opacity(0.25), lineWidth: 1)
+                )
+                .shadow(color: Color.primary.opacity(0.10), radius: 6, x: 0, y: 3)
+        )
+        // VoiceOver: announce immediately when toast appears
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(toast.message)
+        .accessibilityAddTraits(.isStaticText)
+        .task {
+            guard toast.style.autoDismiss else { return }
+            try? await Task.sleep(for: .seconds(3))
+            onDismiss()
+        }
     }
 }
