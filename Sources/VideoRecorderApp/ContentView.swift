@@ -7,7 +7,10 @@ struct ContentView: View {
 
     @State private var toastQueue = ToastQueue()
 
-    var body: some View {
+    var body: some View { makeBody() }
+
+    @ViewBuilder
+    private func makeBody() -> some View {
         VStack(spacing: 0) {
             // ── HEADER ZONE ──────────────────────────────────────────────
             headerZone

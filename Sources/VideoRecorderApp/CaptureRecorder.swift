@@ -313,16 +313,13 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
     }
 
     private func applyOrientation(for mode: RecordingMode) {
-        let angle: CGFloat = mode == .vertical1080p ? 90 : 0
-
-        if let movieConnection = movieOutput.connection(with: .video),
-           movieConnection.isVideoRotationAngleSupported(angle) {
-            movieConnection.videoRotationAngle = angle
-        }
-
-        if let previewConnection = previewOutput.connection(with: .video),
-           previewConnection.isVideoRotationAngleSupported(angle) {
-            previewConnection.videoRotationAngle = angle
+        let angle: CGFloat = mode.captureRotationAngle  // always 0
+        let connections = [movieOutput.connection(with: .video),
+                           previewOutput.connection(with: .video)].compactMap { $0 }
+        for connection in connections {
+            if connection.isVideoRotationAngleSupported(angle) {
+                connection.videoRotationAngle = angle
+            }
         }
     }
 
