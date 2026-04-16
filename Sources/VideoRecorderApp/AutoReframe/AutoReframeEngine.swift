@@ -84,6 +84,18 @@ struct AutoReframeEngine {
         .clamped()
     }
 
+    /// Returns a portrait-mode crop for a landscape source (1920×1080 → 1080×1920).
+    /// Shifts the horizontal crop window to keep the face centered.
+    /// Falls back to center crop when analysis is nil or low-confidence.
+    func portraitCrop(for analysis: FrameAnalysis?) -> AutoReframeCrop {
+        guard let analysis, analysis.confidence >= 0.55,
+              analysis.subjectCount == .one,
+              let subject = analysis.subjects.first else {
+            return .portraitFullHeight(centerX: 0.5)
+        }
+        return .portraitFullHeight(centerX: subject.faceBox.centerX)
+    }
+
     private func equalizedRect(for face: NormalizedFaceBox, width: Double, height: Double) -> CGRect {
         CGRect(
             x: face.centerX - (width / 2),
