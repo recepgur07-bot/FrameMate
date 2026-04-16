@@ -126,4 +126,30 @@ final class AutoReframeEngineTests: XCTestCase {
         XCTAssertEqual(crop.width, AutoReframeCrop.portraitWidthRatio, accuracy: 0.001)
         XCTAssertEqual(crop.centerX, 0.5, accuracy: 0.001)
     }
+
+    // MARK: - Portrait composition builder tests
+
+    func testPortraitFillScaleConstantIsCorrect() {
+        // Fill scale: 1920(renderH) / 1080(sourceH)
+        XCTAssertEqual(AutoReframeCompositionBuilder.portraitFillScale, 1920.0 / 1080.0, accuracy: 0.001)
+    }
+
+    func testPortraitTransformForCenterCropMapsSourceCenterToRenderCenter() {
+        // Center crop (centerX=0.5): source center (960,540) must map to render center (540,960)
+        let crop = AutoReframeCrop.portraitFullHeight(centerX: 0.5)
+        let t = AutoReframeCompositionBuilder.portraitLayerTransform(for: crop)
+        let sourceCenter = CGPoint(x: 960, y: 540).applying(t)
+        XCTAssertEqual(sourceCenter.x, 540, accuracy: 1)
+        XCTAssertEqual(sourceCenter.y, 960, accuracy: 1)
+    }
+
+    func testPortraitTransformForLeftFaceShiftsWindowLeft() {
+        // Face at left (centerX=0.2): crop window starts at left, source left of frame maps to render x~0
+        let crop = AutoReframeCrop.portraitFullHeight(centerX: 0.2)
+        let t = AutoReframeCompositionBuilder.portraitLayerTransform(for: crop)
+        // Left edge of crop window in source: crop.originX * 1920
+        let cropLeftSourceX = crop.originX * 1920.0
+        let mappedLeft = CGPoint(x: cropLeftSourceX, y: 0).applying(t)
+        XCTAssertEqual(mappedLeft.x, 0, accuracy: 2)
+    }
 }
