@@ -38,4 +38,14 @@ enum RecordingMode: String, CaseIterable, Identifiable {
     var renderSize: CGSize {
         CGSize(width: Int(width), height: Int(height))
     }
+
+    /// Rotation angle to apply at capture layer.
+    /// Both modes use 0 — vertical mode's portrait crop is handled at export time.
+    /// Switch exhaustiveness ensures new modes are handled explicitly.
+    var captureRotationAngle: CGFloat {
+        switch self {
+        case .horizontal1080p: return 0
+        case .vertical1080p:   return 0
+        }
+    }
 }
