@@ -104,7 +104,14 @@ final class ScreenCameraOverlayCompositionBuilder {
 
         let renderSize = targetRenderSize(for: mode)
         let screenSourceSize = try await orientedSize(for: screenVideoTrack)
-        let screenFrame = fittedVideoFrame(contentSize: screenSourceSize, in: renderSize)
+        // Vertical screen: fill the portrait canvas by cropping the landscape source (no black bands).
+        // Horizontal screen: fit the content (no cropping — full screen visible).
+        let screenFrame: CGRect
+        if mode == .vertical1080p {
+            screenFrame = filledVideoFrame(contentSize: screenSourceSize, in: renderSize)
+        } else {
+            screenFrame = fittedVideoFrame(contentSize: screenSourceSize, in: renderSize)
+        }
         let normalizedScreenTransform = try await normalizedTransform(for: screenVideoTrack)
 
         let screenInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: screenCompositionTrack)
@@ -214,6 +221,24 @@ final class ScreenCameraOverlayCompositionBuilder {
             y: (renderSize.height - fittedHeight) / 2,
             width: fittedWidth,
             height: fittedHeight
+        )
+    }
+
+    /// Returns a frame that fills the render canvas using the maximum scale factor,
+    /// cropping content that extends beyond the canvas edges (center-aligned).
+    /// Use this for vertical screen recording where fit would create black bands.
+    func filledVideoFrame(contentSize: CGSize, in renderSize: CGSize) -> CGRect {
+        guard contentSize.width > 0, contentSize.height > 0 else {
+            return CGRect(origin: .zero, size: renderSize)
+        }
+        let scale = max(renderSize.width / contentSize.width, renderSize.height / contentSize.height)
+        let filledWidth = contentSize.width * scale
+        let filledHeight = contentSize.height * scale
+        return CGRect(
+            x: (renderSize.width - filledWidth) / 2,
+            y: (renderSize.height - filledHeight) / 2,
+            width: filledWidth,
+            height: filledHeight
         )
     }
 
