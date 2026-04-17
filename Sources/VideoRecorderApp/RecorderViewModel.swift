@@ -1851,6 +1851,7 @@ final class RecorderViewModel {
                         from: captureURL,
                         to: finalURL,
                         timeline: isAutoReframeEnabled ? autoReframeTimeline.shifted(by: pauseTimeline) : AutoReframeTimeline(),
+                        cameraMode: selectedMode,
                         systemAudioURL: systemAudioURL,
                         pauseTimeline: pauseTimeline
                     )
@@ -2113,6 +2114,7 @@ final class RecorderViewModel {
         from sourceURL: URL,
         to destinationURL: URL,
         timeline: AutoReframeTimeline,
+        cameraMode: RecordingMode = .horizontal1080p,
         systemAudioURL: URL? = nil,
         screenExportMode: RecordingMode? = nil,
         screenMicrophoneURL: URL? = nil,
@@ -2190,7 +2192,8 @@ final class RecorderViewModel {
 
         let composition = await autoReframeCompositionBuilder.makeVideoComposition(
             for: exportPackage.asset,
-            timeline: timeline
+            timeline: timeline,
+            mode: cameraMode
         )
 
         exportSession.outputURL = destinationURL
@@ -3142,7 +3145,12 @@ final class RecorderViewModel {
             return
         }
 
-        let targetCrop = autoReframeEngine.crop(for: analysis, mode: selectedMode)
+        let targetCrop: AutoReframeCrop
+        if selectedMode == .vertical1080p {
+            targetCrop = autoReframeEngine.portraitCrop(for: analysis)
+        } else {
+            targetCrop = autoReframeEngine.crop(for: analysis, mode: selectedMode)
+        }
         currentAutoReframeCrop = autoReframeSmoother.step(towards: targetCrop)
 
         if isRecording {
