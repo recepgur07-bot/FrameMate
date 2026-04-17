@@ -721,7 +721,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.recepgur.VideoRecorder;
 				PRODUCT_MODULE_NAME = VideoRecorderApp;
 				PRODUCT_NAME = FrameMate;
-				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.recepgur.VideoRecorder";
+				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.recepgur.VideoRecorder macos";
 				SDKROOT = macosx;
 			};
 			name = Release;

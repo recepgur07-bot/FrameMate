@@ -148,14 +148,14 @@ final class FrameCoachingEngine {
 
             switch profile {
             case .singleDeskSpeaker:
-                severeWidthThreshold = mode == .vertical1080p ? 0.265 : 0.29
-                severeHeightThreshold = mode == .vertical1080p ? 0.315 : 0.38
+                severeWidthThreshold = mode == .vertical1080p ? 0.225 : 0.29
+                severeHeightThreshold = mode == .vertical1080p ? 0.275 : 0.38
                 advisoryWidthThreshold = nil
                 advisoryHeightThreshold = nil
-                farThreshold = 0.08
+                farThreshold = 0.095
             case .verticalSocialVideo:
-                severeWidthThreshold = mode == .vertical1080p ? 0.30 : 0.29
-                severeHeightThreshold = mode == .vertical1080p ? 0.335 : 0.38
+                severeWidthThreshold = mode == .vertical1080p ? 0.265 : 0.29
+                severeHeightThreshold = mode == .vertical1080p ? 0.305 : 0.38
                 advisoryWidthThreshold = nil
                 advisoryHeightThreshold = nil
                 farThreshold = 0.075
@@ -175,18 +175,18 @@ final class FrameCoachingEngine {
 
             if severity == .severe,
                (averageFaceWidth > severeWidthThreshold || averageFaceHeight > severeHeightThreshold) {
-                return String(localized: "Çok yakınsın, biraz uzaklaş")
+                return String(localized: "kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün")
             }
 
             if severity == .advisory,
                let advisoryWidthThreshold,
                let advisoryHeightThreshold,
                (averageFaceWidth > advisoryWidthThreshold || averageFaceHeight > advisoryHeightThreshold) {
-                return String(localized: "Çok yakınsın, biraz uzaklaş")
+                return String(localized: "kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün")
             }
 
             if severity == .severe, averageFaceWidth < farThreshold {
-                return String(localized: "Çok uzaktasın, biraz yaklaş")
+                return String(localized: "kadraj çok uzak, biraz yaklaş")
             }
         case .two:
             let farThreshold: Double
@@ -215,21 +215,21 @@ final class FrameCoachingEngine {
     private func spacingInstruction(in analysis: FrameAnalysis, profile: FrameCoachingProfile) -> String? {
         if profile == .twoPersonPodcast,
            analysis.subjectCount == .two,
-           analysis.spacingMetric >= 0.52,
+           analysis.spacingMetric >= 0.44,
            abs(analysis.groupCenterX - 0.5) <= 0.06,
-           analysis.spacingMetric < 0.85 {
+           analysis.spacingMetric < 0.75 {
             return String(localized: "aranız biraz açık, birbirinize yaklaşın")
         }
 
         if profile == .verticalConversation,
            analysis.subjectCount == .two,
-           analysis.spacingMetric >= 0.48,
+           analysis.spacingMetric >= 0.40,
            abs(analysis.groupCenterX - 0.5) <= 0.07,
-           analysis.spacingMetric < 0.82 {
+           analysis.spacingMetric < 0.75 {
             return String(localized: "aranız biraz açık, birbirinize yaklaşın")
         }
 
-        guard analysis.spacingMetric >= 0.85 else { return nil }
+        guard analysis.spacingMetric >= 0.75 else { return nil }
 
         switch analysis.subjectCount {
         case .one:
@@ -250,15 +250,15 @@ final class FrameCoachingEngine {
 
         for subject in analysis.subjects {
             let delta = subject.faceBox.centerY - averageCenterY
-            if delta > 0.19 {
-                return String(localized: "\(subject.role.label) çok aşağıda, biraz yukarı gelsin")
+            if delta > 0.14 {
+                return String(localized: "\(subject.role.label) kadrajda çok aşağıda, biraz yukarı otursun")
             }
         }
 
         for subject in analysis.subjects {
             let delta = subject.faceBox.centerY - averageCenterY
-            if delta < -0.19 {
-                return String(localized: "\(subject.role.label) çok yukarıda, biraz aşağı gelsin")
+            if delta < -0.14 {
+                return String(localized: "\(subject.role.label) kadrajda çok yukarıda, biraz aşağı otursun")
             }
         }
 
@@ -275,8 +275,8 @@ final class FrameCoachingEngine {
 
         switch profile {
         case .singleDeskSpeaker, .twoPersonPodcast:
-            bottomThreshold = mode == .vertical1080p ? 0.62 : 0.55
-            topThreshold = mode == .vertical1080p ? 0.56 : 0.54
+            bottomThreshold = mode == .vertical1080p ? 0.62 : 0.45
+            topThreshold = mode == .vertical1080p ? 0.56 : 0.42
         case .verticalSocialVideo:
             bottomThreshold = mode == .vertical1080p ? 0.70 : 0.50
             topThreshold = mode == .vertical1080p ? 0.60 : 0.50
@@ -302,11 +302,11 @@ final class FrameCoachingEngine {
     private func groupVerticalInstruction(in analysis: FrameAnalysis) -> String? {
         guard let averageY = analysis.averageFaceCenterY else { return nil }
 
-        if averageY > 0.65 {
+        if averageY > 0.52 {
             return String(localized: "kamerayı biraz yukarı al")
         }
 
-        if averageY < 0.18 {
+        if averageY < 0.24 {
             return String(localized: "kamerayı biraz aşağı indir")
         }
 
@@ -314,7 +314,10 @@ final class FrameCoachingEngine {
     }
 
     private func groupHorizontalInstruction(in analysis: FrameAnalysis) -> String? {
-        if analysis.groupCenterX < 0.34 {
+        let leftThreshold = analysis.subjectCount == .one ? 0.34 : 0.42
+        let rightThreshold = analysis.subjectCount == .one ? 0.66 : 0.58
+
+        if analysis.groupCenterX < leftThreshold {
             switch analysis.subjectCount {
             case .one:
                 return String(localized: "biraz sağa geç")
@@ -323,7 +326,7 @@ final class FrameCoachingEngine {
             }
         }
 
-        if analysis.groupCenterX > 0.66 {
+        if analysis.groupCenterX > rightThreshold {
             switch analysis.subjectCount {
             case .one:
                 return String(localized: "biraz sola geç")

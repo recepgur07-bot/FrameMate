@@ -40,24 +40,13 @@ struct ContentView: View {
 
             Divider()
 
-            // ── CONTENT ZONE (scrollable) ─────────────────────────────────
+            // ── CONTENT ZONE ───────────────────────────────────────────────
             ScrollView {
                 VStack(spacing: 12) {
-                    permissionHubCard
                     previewCard
-                    // Camera-only mode: show camera device picker
-                    if viewModel.showsCameraControls {
-                        cameraCard
-                    }
-                    audioCard
-                    if viewModel.showsScreenControls || viewModel.showsScreenOverlayControls {
-                        sourceCard
-                    }
-                    if viewModel.showsScreenControls {
-                        visualCard
-                    }
-                    if viewModel.showsScreenOverlayControls {
-                        cameraBoxCard
+                    setupFlowCard
+                    if shouldShowPermissionHub {
+                        permissionHubCard
                     }
                 }
                 .padding(16)
@@ -230,35 +219,450 @@ struct ContentView: View {
     @ViewBuilder
     private var previewCard: some View {
         if viewModel.showsCameraControls {
-            VideoPreviewView(
-                session: viewModel.previewSession,
-                crop: viewModel.currentAutoReframeCrop
-            )
-            .frame(minHeight: 240)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
-            )
+            VStack(spacing: 0) {
+                VideoPreviewView(
+                    session: viewModel.previewSession,
+                    crop: viewModel.currentAutoReframeCrop
+                )
+                .aspectRatio(cameraPreviewAspectRatio, contentMode: .fit)
+                .frame(maxHeight: viewModel.selectedPreset == .verticalCamera ? 380 : nil)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+                )
+
+                HStack {
+                    Image(systemName: "info.circle")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    Text(String(localized: "Önizleme — kayıt \(viewModel.selectedMode.width)×\(viewModel.selectedMode.height) çözünürlükte yapılır"))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.top, 6)
+                .frame(maxWidth: .infinity, alignment: .center)
+            }
             .accessibilityHidden(true)
         } else if viewModel.showsScreenControls {
-            ScreenRecordingCompositionPreview(
-                session: viewModel.screenOverlayPreviewSession,
-                mode: viewModel.selectedMode,
-                isOverlayEnabled: viewModel.showsScreenOverlayConfiguration,
-                position: viewModel.selectedScreenCameraOverlayPosition,
-                overlaySize: viewModel.selectedScreenCameraOverlaySize
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
-            )
+            VStack(spacing: 0) {
+                ScreenRecordingCompositionPreview(
+                    session: viewModel.screenOverlayPreviewSession,
+                    mode: viewModel.selectedMode,
+                    isOverlayEnabled: viewModel.showsScreenOverlayConfiguration,
+                    position: viewModel.selectedScreenCameraOverlayPosition,
+                    overlaySize: viewModel.selectedScreenCameraOverlaySize
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
+                )
+
+                if viewModel.selectedPreset == .verticalScreen {
+                    HStack(alignment: .top, spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                        Text(String(localized: "Mac ekranı yatay olduğundan dikey (9:16) çıktıda üst ve alt siyah bant oluşur. Düzenleme uygulamasında kırpabilirsin."))
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.top, 6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
             .accessibilityHidden(true)
         }
     }
 
+    private var cameraPreviewAspectRatio: CGFloat {
+        CGFloat(viewModel.selectedMode.renderSize.width) / CGFloat(viewModel.selectedMode.renderSize.height)
+    }
+
+    private var shouldShowPermissionHub: Bool {
+        viewModel.hasBlockingPermissionIssue || viewModel.permissionHubItems.contains(where: { $0.primaryAction != .none })
+    }
+
     // MARK: - Camera Card (camera-only mode)
+
+    private var setupFlowCard: some View {
+        FMCard(icon: "slider.horizontal.3", title: String(localized: "Kayıt akışı")) {
+            VStack(alignment: .leading, spacing: 18) {
+                setupSummaryPanel
+
+                if viewModel.showsCameraControls {
+                    flowSection(title: String(localized: "Kamera")) {
+                        flowPickerRow(
+                            title: String(localized: "Kamera seçimi"),
+                            hint: viewModel.cameraPermissionStatus == .authorized
+                                ? String(localized: "Hangi kamerayla kayıt yapılacağını seçer.")
+                                : String(localized: "Önce üstteki izinler bölümünden kamera iznini tamamla.")
+                        ) {
+                            Picker(String(localized: "Kamera seçimi"), selection: $viewModel.selectedCameraID) {
+                                if viewModel.cameras.isEmpty {
+                                    Text(String(localized: "Kamera bulunamadı")).tag("")
+                                } else {
+                                    ForEach(viewModel.cameras) { camera in
+                                        Text(camera.name).tag(camera.id)
+                                    }
+                                }
+                            }
+                            .labelsHidden()
+                            .disabled(!viewModel.canChooseCamera || viewModel.cameras.isEmpty)
+                            .onChange(of: viewModel.selectedCameraID) {
+                                viewModel.refreshDeviceState()
+                            }
+                        }
+                    }
+                }
+
+                if viewModel.showsScreenControls || viewModel.showsScreenOverlayControls {
+                    flowSection(title: String(localized: "Ekran")) {
+                        if viewModel.showsScreenSourcePicker {
+                            flowPickerRow(
+                                title: String(localized: "Kayıt türü"),
+                                hint: String(localized: "Tam ekran mı pencere mi kaydedileceğini seçer.")
+                            ) {
+                                Picker(
+                                    String(localized: "Kayıt türü"),
+                                    selection: Binding(
+                                        get: { viewModel.selectedScreenCaptureSource },
+                                        set: { viewModel.selectScreenCaptureSource($0) }
+                                    )
+                                ) {
+                                    ForEach(ScreenCaptureSource.allCases) { source in
+                                        Text(source.label).tag(source)
+                                    }
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                            }
+                        }
+
+                        if viewModel.showsScreenPicker {
+                            flowPickerRow(
+                                title: String(localized: "Ekran seçimi"),
+                                hint: String(localized: "Kayda alınacak ekranı seçer.")
+                            ) {
+                                Picker(String(localized: "Ekran seçimi"), selection: $viewModel.selectedDisplayID) {
+                                    if viewModel.availableDisplays.isEmpty {
+                                        Text(String(localized: "Ekran bulunamadı")).tag("")
+                                    } else {
+                                        ForEach(viewModel.availableDisplays) { display in
+                                            Text(display.name).tag(display.id)
+                                        }
+                                    }
+                                }
+                                .labelsHidden()
+                                .onChange(of: viewModel.selectedDisplayID) {
+                                    Task { await viewModel.refreshScreenRecordingOptions() }
+                                }
+                            }
+                        }
+
+                        if viewModel.showsWindowPicker {
+                            flowPickerRow(
+                                title: String(localized: "Pencere seçimi"),
+                                hint: String(localized: "Kayda alınacak pencereyi seçer.")
+                            ) {
+                                Picker(String(localized: "Pencere seçimi"), selection: $viewModel.selectedWindowID) {
+                                    if viewModel.availableWindows.isEmpty {
+                                        Text(String(localized: "Pencere bulunamadı")).tag("")
+                                    } else {
+                                        ForEach(viewModel.availableWindows) { window in
+                                            Text(window.name).tag(window.id)
+                                        }
+                                    }
+                                }
+                                .labelsHidden()
+                                .onChange(of: viewModel.selectedWindowID) {
+                                    Task { await viewModel.refreshScreenRecordingOptions() }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                flowSection(title: String(localized: "Ses")) {
+                    if viewModel.showsMicrophonePicker {
+                        flowPickerRow(
+                            title: microphonePickerTitle,
+                            hint: String(localized: "Mikrofon girişini seçer.")
+                        ) {
+                            Picker(microphonePickerTitle, selection: $viewModel.selectedMicrophoneID) {
+                                if viewModel.microphonePermissionStatus != .authorized {
+                                    Text(String(localized: "Mikrofon izni gerekli")).tag("")
+                                } else if viewModel.microphones.isEmpty {
+                                    Text(String(localized: "Mikrofon bulunamadı")).tag("")
+                                } else {
+                                    if viewModel.showsScreenControls {
+                                        Text(String(localized: "Mikrofon kapalı")).tag("")
+                                    }
+                                    ForEach(viewModel.microphones) { microphone in
+                                        Text(microphone.name).tag(microphone.id)
+                                    }
+                                }
+                            }
+                            .labelsHidden()
+                            .disabled(viewModel.microphonePermissionStatus != .authorized || viewModel.microphones.isEmpty)
+                            .onChange(of: viewModel.selectedMicrophoneID) {
+                                viewModel.applySelectedInputs()
+                            }
+                        }
+                    }
+
+                    flowToggleRow(
+                        title: String(localized: "Sistem sesini kaydet"),
+                        detail: String(localized: "Mac'te çalan uygulama ve sistem seslerini kayda ekler."),
+                        isOn: $viewModel.isSystemAudioEnabled
+                    )
+
+                    if viewModel.showsMicrophoneVolumeControl {
+                        flowSliderRow(
+                            title: String(localized: "Mikrofon seviyesi"),
+                            valueText: String(localized: "\(Int(viewModel.microphoneVolume * 100))%"),
+                            value: Binding(
+                                get: { Double(viewModel.microphoneVolume) },
+                                set: { viewModel.microphoneVolume = Float($0) }
+                            )
+                        )
+                    }
+
+                    if viewModel.showsSystemAudioVolumeControl {
+                        flowSliderRow(
+                            title: String(localized: "Sistem sesi seviyesi"),
+                            valueText: String(localized: "\(Int(viewModel.systemAudioVolume * 100))%"),
+                            value: Binding(
+                                get: { Double(viewModel.systemAudioVolume) },
+                                set: { viewModel.systemAudioVolume = Float($0) }
+                            )
+                        )
+                    }
+                }
+
+                if viewModel.showsFrameCoachControls {
+                    flowSection(title: String(localized: "Kadraj")) {
+                        flowToggleRow(
+                            title: String(localized: "Otomatik yeniden kadrajlama"),
+                            detail: String(localized: "Tek kişilik çekimde görüntüyü daha dengeli tutar."),
+                            isOn: Binding(
+                                get: { viewModel.isAutoReframeEnabled },
+                                set: { _ in viewModel.toggleAutoReframe() }
+                            )
+                        )
+
+                        if viewModel.showsFrameCoachTextOnScreen {
+                            HStack(spacing: 8) {
+                                Image(systemName: "figure.stand")
+                                    .foregroundStyle(Color.fmAccent)
+                                    .accessibilityHidden(true)
+                                Text(frameCoachStatusText)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .textSelection(.enabled)
+                            }
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
+                }
+
+                if viewModel.showsScreenControls {
+                    flowSection(title: String(localized: "Görüntü")) {
+                        flowToggleRow(
+                            title: String(localized: "İmleci vurgula"),
+                            detail: String(localized: "Kayıtta imlecin etrafında vurgu ve tıklama halkası gösterir."),
+                            isOn: $viewModel.isCursorHighlightEnabled
+                        )
+
+                        flowToggleRow(
+                            title: String(localized: "Klavye kısayollarını göster"),
+                            detail: String(localized: "Anlamlı kısayolları videoda kısa süre gösterir."),
+                            isOn: $viewModel.isKeyboardShortcutOverlayEnabled
+                        )
+                    }
+                }
+
+                if viewModel.showsScreenOverlayControls {
+                    flowSection(title: String(localized: "Kamera kutusu")) {
+                        flowToggleRow(
+                            title: String(localized: "Kamera kutusunu göster"),
+                            detail: String(localized: "Ekran kaydının üstüne kamera görüntünü ekler."),
+                            isOn: Binding(
+                                get: { viewModel.isScreenCameraOverlayEnabled },
+                                set: { _ in viewModel.toggleScreenCameraOverlay() }
+                            )
+                        )
+
+                        if viewModel.showsScreenOverlayConfiguration {
+                            flowPickerRow(
+                                title: String(localized: "Kamera"),
+                                hint: String(localized: "Kamera kutusunda kullanılacak kamerayı seçer.")
+                            ) {
+                                Picker(String(localized: "Kamera"), selection: $viewModel.selectedCameraID) {
+                                    if viewModel.cameraPermissionStatus != .authorized {
+                                        Text(String(localized: "Kamera izni gerekli")).tag("")
+                                    } else if viewModel.cameras.isEmpty {
+                                        Text(String(localized: "Kamera bulunamadı")).tag("")
+                                    } else {
+                                        ForEach(viewModel.cameras) { camera in
+                                            Text(camera.name).tag(camera.id)
+                                        }
+                                    }
+                                }
+                                .labelsHidden()
+                                .disabled(!viewModel.canChooseCamera)
+                                .onChange(of: viewModel.selectedCameraID) {
+                                    viewModel.refreshDeviceState()
+                                }
+                            }
+
+                            flowPickerRow(
+                                title: String(localized: "Kamera konumu"),
+                                hint: String(localized: "Kamera kutusunun ekrandaki yerini seçer.")
+                            ) {
+                                Picker(String(localized: "Kamera konumu"), selection: $viewModel.selectedScreenCameraOverlayPosition) {
+                                    ForEach(ScreenCameraOverlayPosition.allCases) { position in
+                                        Text(position.label).tag(position)
+                                    }
+                                }
+                                .labelsHidden()
+                            }
+
+                            flowPickerRow(
+                                title: String(localized: "Kamera boyutu"),
+                                hint: String(localized: "Kamera kutusunun boyutunu seçer.")
+                            ) {
+                                Picker(String(localized: "Kamera boyutu"), selection: $viewModel.selectedScreenCameraOverlaySize) {
+                                    ForEach(ScreenCameraOverlaySize.allCases) { size in
+                                        Text(size.label).tag(size)
+                                    }
+                                }
+                                .labelsHidden()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private var setupSummaryPanel: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(String(localized: "Seçili ayarlar"))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.fmAccent)
+                .accessibilityHidden(true)
+
+            Text(viewModel.accessibilitySetupSummary)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if let permissionSummary = viewModel.accessibilityPermissionSummary, shouldShowPermissionHub {
+                Text(permissionSummary)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color.fmAccent.opacity(0.14),
+                            Color.fmAccent.opacity(0.05)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(Color.fmAccent.opacity(0.14), lineWidth: 1)
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(String(localized: "Kayıt ayarları özeti"))
+        .accessibilityValue(viewModel.accessibilitySetupSummary)
+        .accessibilityHint(
+            shouldShowPermissionHub && viewModel.accessibilityPermissionSummary != nil
+                ? String(localized: "Eksik izinler aşağıda ayrı olarak yönetilebilir.")
+                : String(localized: "Aşağıdaki alanlarla bu ayarları değiştirebilirsin.")
+        )
+    }
+
+    private func flowSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(.primary)
+                .accessibilityHidden(true)
+            content()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func flowPickerRow<Content: View>(title: String, hint: String, @ViewBuilder control: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .accessibilityHidden(true)
+            control()
+            Text(hint)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.fmSurface.opacity(0.7))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func flowToggleRow(title: String, detail: String, isOn: Binding<Bool>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle(isOn: isOn) {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+            }
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .accessibilityHidden(true)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.fmSurface.opacity(0.7))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func flowSliderRow(title: String, valueText: String, value: Binding<Double>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(title)
+                    .font(.subheadline.weight(.semibold))
+                    .accessibilityHidden(true)
+                Spacer()
+                Text(valueText)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.fmAccent)
+                    .accessibilityHidden(true)
+            }
+
+            Slider(value: value, in: 0...1.5)
+                .accessibilityLabel(title)
+                .accessibilityValue(valueText)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.fmSurface.opacity(0.7))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
 
     /// Shown only in pure Camera mode so the user can pick which camera to use.
     /// In Screen+Camera mode the camera picker lives inside cameraBoxCard.

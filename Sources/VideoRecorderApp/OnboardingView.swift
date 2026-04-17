@@ -200,6 +200,8 @@ private struct OnboardingModesPage: View {
 
 private struct OnboardingPermissionsPage: View {
     var viewModel: RecorderViewModel
+    @State private var feedbackMessage: String?
+    @State private var feedbackColor: Color = .green
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -209,6 +211,27 @@ private struct OnboardingPermissionsPage: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityLabel("Adım 3 / 3: Birkaç İzne İhtiyacımız Var")
                 .accessibilityAddTraits(.isHeader)
+
+            Text("Sağdaki düğmeler tıklanabilir. İzin istedikten sonra macOS penceresi açılırsa oradan onay ver.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            if let feedbackMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: feedbackColor == .green ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .foregroundStyle(feedbackColor)
+                        .accessibilityHidden(true)
+                    Text(feedbackMessage)
+                        .font(.callout)
+                        .foregroundStyle(.primary)
+                    Spacer()
+                }
+                .padding(12)
+                .background(feedbackColor.opacity(0.10))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(feedbackMessage)
+            }
 
             ForEach(viewModel.permissionHubItems) { item in
                 PermissionRow(item: item, onPrimaryAction: {
@@ -223,6 +246,36 @@ private struct OnboardingPermissionsPage: View {
                 .foregroundStyle(.secondary)
         }
         .padding(.horizontal, 32)
+        .onChange(of: viewModel.cameraPermissionStatus) { _, newStatus in
+            switch newStatus {
+            case .authorized:
+                postFeedback("Kamera izni verildi.", color: .green)
+            case .denied, .restricted:
+                postFeedback("Kamera izni verilmedi.", color: .orange)
+            default:
+                break
+            }
+        }
+        .onChange(of: viewModel.microphonePermissionStatus) { _, newStatus in
+            switch newStatus {
+            case .authorized:
+                postFeedback("Mikrofon izni verildi.", color: .green)
+            case .denied, .restricted:
+                postFeedback("Mikrofon izni verilmedi.", color: .orange)
+            default:
+                break
+            }
+        }
+        .onChange(of: viewModel.screenPermissionNeedsRestart) { _, needsRestart in
+            guard needsRestart else { return }
+            postFeedback("Ekran kaydı izni verildi. Uygulamayı yeniden açman gerekecek.", color: .green)
+        }
+    }
+
+    private func postFeedback(_ message: String, color: Color) {
+        feedbackMessage = message
+        feedbackColor = color
+        viewModel.announceText(message)
     }
 }
 
@@ -250,45 +303,79 @@ private struct PermissionRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 14) {
-            Image(systemName: item.symbolName)
-                .font(.system(size: 20))
-                .foregroundStyle(Color.fmAccent)
-                .frame(width: 26)
-                .accessibilityHidden(true)
+        HStack(alignment: .top, spacing: 16) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.fmAccent.opacity(0.12))
+                Image(systemName: item.symbolName)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(Color.fmAccent)
+            }
+            .frame(width: 44, height: 44)
+            .accessibilityHidden(true)
 
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
                     Text(item.title)
-                        .fontWeight(.semibold)
+                        .font(.headline)
                     if !item.isRequired {
-                        Text("(opsiyonel)")
-                            .font(.caption)
+                        Text("Opsiyonel")
+                            .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(Color.secondary.opacity(0.10))
+                            .clipShape(Capsule())
                     }
+                    statusBadge
                 }
+
                 Text(item.detail)
-                    .font(.caption)
+                    .font(.callout)
                     .foregroundStyle(.secondary)
-                stateLabel
+
+                if let helperText = item.helperText {
+                    Text(helperText)
+                        .font(.caption)
+                        .foregroundStyle(item.isSatisfied ? .green : .secondary)
+                }
             }
 
-            Spacer()
+            Spacer(minLength: 16)
 
             stateButton
         }
-        // Tüm satırı tek VoiceOver elemanına dönüştür
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(rowAccessibilityLabel)
-        // Eylem varsa accessibilityAction ekle
-        .modifier(PermissionRowActions(item: item, onPrimaryAction: onPrimaryAction, onSecondaryAction: onSecondaryAction))
+        .padding(16)
+        .background(rowBackground)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(rowBorderColor, lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
-    @ViewBuilder
-    private var stateLabel: some View {
+    private var statusBadge: some View {
         Text(item.statusLabel)
             .font(.caption)
             .foregroundStyle(item.isSatisfied ? .green : .orange)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background((item.isSatisfied ? Color.green : Color.orange).opacity(0.12))
+            .clipShape(Capsule())
+    }
+
+    private var rowBackground: Color {
+        if item.isRequestInFlight {
+            return Color.fmAccent.opacity(0.08)
+        }
+        return item.isSatisfied ? Color.green.opacity(0.05) : Color.white.opacity(0.72)
+    }
+
+    private var rowBorderColor: Color {
+        if item.isRequestInFlight {
+            return Color.fmAccent.opacity(0.45)
+        }
+        return item.isSatisfied ? Color.green.opacity(0.22) : Color.secondary.opacity(0.12)
     }
 
     @ViewBuilder
@@ -296,42 +383,30 @@ private struct PermissionRow: View {
         if let buttonTitle = item.primaryAction.buttonTitle {
             VStack(alignment: .trailing, spacing: 6) {
                 Button(buttonTitle) { onPrimaryAction() }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.fmAccent)
+                    .controlSize(.large)
+                    .frame(minWidth: 128)
                 if let secondaryAction = item.secondaryAction,
                    let secondaryTitle = secondaryAction.buttonTitle,
                    let onSecondaryAction {
                     Button(secondaryTitle) { onSecondaryAction() }
-                        .buttonStyle(.plain)
+                        .buttonStyle(.bordered)
+                        .controlSize(.regular)
                         .font(.caption)
+                        .frame(minWidth: 128)
                 }
             }
         } else {
-            Label("Verildi", systemImage: "checkmark.circle.fill")
-                .foregroundStyle(.green)
-        }
-    }
-}
-
-// MARK: - PermissionRow Accessibility Actions
-
-/// Adds the correct accessibilityAction(s) to a PermissionRow based on its state.
-/// Separated into a ViewModifier so the conditional logic stays outside body.
-private struct PermissionRowActions: ViewModifier {
-    let item: PermissionHubItem
-    let onPrimaryAction: () -> Void
-    let onSecondaryAction: (() -> Void)?
-
-    func body(content: Content) -> some View {
-        if let primaryTitle = item.primaryAction.buttonTitle {
-            content
-                .accessibilityAction(named: primaryTitle) {
-                    onPrimaryAction()
+            VStack(alignment: .trailing, spacing: 6) {
+                Label(item.isRequestInFlight ? "Bekleniyor" : "Tamam", systemImage: item.isRequestInFlight ? "hourglass" : "checkmark.circle.fill")
+                    .foregroundStyle(item.isRequestInFlight ? Color.fmAccent : .green)
+                    .font(.subheadline.weight(.semibold))
+                if item.isRequestInFlight {
+                    ProgressView()
+                        .controlSize(.small)
                 }
-                .accessibilityAction(named: item.secondaryAction?.buttonTitle ?? "") {
-                    onSecondaryAction?()
-                }
-        } else {
-            content
+            }
         }
     }
 }

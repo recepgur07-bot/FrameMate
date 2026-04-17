@@ -5,24 +5,6 @@
    <BuildAction
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES">
-      <PostActions>
-         <ExecutionAction
-            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
-            <ActionContent
-               title = "Resign Debug App For Stable Privacy Permissions"
-               scriptText = "if [ &quot;${CONFIGURATION}&quot; != &quot;Debug&quot; ]; then&#10;  exit 0&#10;fi&#10;&#10;APP_PATH=&quot;${TARGET_BUILD_DIR}/${FULL_PRODUCT_NAME}&quot;&#10;IDENTITY=&quot;$(security find-identity -v -p codesigning | awk -F &apos;\&quot;&apos; &apos;/Apple Development:/ { print $2; exit }&apos;)&quot;&#10;&#10;if [ -z &quot;${IDENTITY}&quot; ]; then&#10;  echo &quot;warning: Apple Development sertifikasi bulunamadi; yerel imza korunuyor.&quot;&#10;  exit 0&#10;fi&#10;&#10;/usr/bin/codesign \&#10;  --force \&#10;  --deep \&#10;  --sign &quot;${IDENTITY}&quot; \&#10;  --preserve-metadata=entitlements,requirements,flags \&#10;  &quot;${APP_PATH}&quot;&#10;echo &quot;VideoRecorder yeniden imzalandi: ${IDENTITY}&quot;&#10;">
-               <EnvironmentBuildable>
-                  <BuildableReference
-                     BuildableIdentifier = "primary"
-                     BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
-                     BuildableName = "VideoRecorder.app"
-                     BlueprintName = "VideoRecorderApp"
-                     ReferencedContainer = "container:VideoRecorder.xcodeproj">
-                  </BuildableReference>
-               </EnvironmentBuildable>
-            </ActionContent>
-         </ExecutionAction>
-      </PostActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -33,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
-               BuildableName = "VideoRecorder.app"
+               BuildableName = "FrameMate.app"
                BlueprintName = "VideoRecorderApp"
                ReferencedContainer = "container:VideoRecorder.xcodeproj">
             </BuildableReference>
@@ -49,7 +31,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
-            BuildableName = "VideoRecorder.app"
+            BuildableName = "FrameMate.app"
             BlueprintName = "VideoRecorderApp"
             ReferencedContainer = "container:VideoRecorder.xcodeproj">
          </BuildableReference>
@@ -83,7 +65,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
-            BuildableName = "VideoRecorder.app"
+            BuildableName = "FrameMate.app"
             BlueprintName = "VideoRecorderApp"
             ReferencedContainer = "container:VideoRecorder.xcodeproj">
          </BuildableReference>
@@ -100,7 +82,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
-            BuildableName = "VideoRecorder.app"
+            BuildableName = "FrameMate.app"
             BlueprintName = "VideoRecorderApp"
             ReferencedContainer = "container:VideoRecorder.xcodeproj">
          </BuildableReference>

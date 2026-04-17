@@ -44,6 +44,36 @@ enum RecordingPreset: String, CaseIterable, Identifiable, Codable {
         label
     }
 
+    var shortDescription: String {
+        switch self {
+        case .horizontalCamera:
+            return String(localized: "Kamera ile yatay video çek")
+        case .verticalCamera:
+            return String(localized: "Kamera ile dikey video çek")
+        case .horizontalScreen:
+            return String(localized: "Yatay ekran veya pencere kaydet")
+        case .verticalScreen:
+            return String(localized: "Dikey ekran veya pencere kaydet")
+        case .audioOnly:
+            return String(localized: "Sadece ses kaydı al")
+        }
+    }
+
+    var symbolName: String {
+        switch self {
+        case .horizontalCamera:
+            return "video.fill"
+        case .verticalCamera:
+            return "video.badge.ellipsis"
+        case .horizontalScreen:
+            return "display"
+        case .verticalScreen:
+            return "rectangle.portrait.on.rectangle.portrait"
+        case .audioOnly:
+            return "waveform.circle.fill"
+        }
+    }
+
     var recordingMode: RecordingMode {
         switch self {
         case .horizontalCamera, .horizontalScreen, .audioOnly:

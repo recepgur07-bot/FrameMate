@@ -8,6 +8,7 @@ protocol SystemAudioRecordingProviding: AnyObject {
 }
 
 final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStreamOutput, SCStreamDelegate, @unchecked Sendable {
+    private static let finalizeDelay: DispatchTimeInterval = .milliseconds(250)
     private let streamQueue = DispatchQueue(label: "com.local.VideoRecorder.system-audio-stream")
     private let writerQueue = DispatchQueue(label: "com.local.VideoRecorder.system-audio-writer")
 
@@ -80,7 +81,7 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
                 try await currentStream?.stopCapture()
             } catch {}
 
-            writerQueue.async {
+            writerQueue.asyncAfter(deadline: .now() + Self.finalizeDelay) {
                 guard let currentWriter, let outputURL else {
                     self.complete(.failure(ScreenRecordingError.cannotCreateWriter))
                     return

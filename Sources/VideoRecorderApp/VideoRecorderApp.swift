@@ -1,6 +1,11 @@
 import SwiftUI
 
 final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
+    static var shouldTerminateAfterLastWindowClosed: () -> Bool = { true }
+
+    /// Uygulama kapanmadan önce çağrılır: aktif kaydı durdur, hotkey handler'larını temizle.
+    var onWillTerminate: (() -> Void)?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
@@ -20,7 +25,11 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        false
+        Self.shouldTerminateAfterLastWindowClosed()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        onWillTerminate?()
     }
 
     private static func showMainWindowIfAvailable() {
@@ -48,15 +57,24 @@ struct VideoRecorderApp: App {
             onAudioToggle: { vm.toggleAudioRecording() },
             onPauseResumeToggle: { vm.togglePauseResume() }
         )
+        VideoRecorderAppDelegate.shouldTerminateAfterLastWindowClosed = {
+            AppTerminationPolicy().shouldTerminateAfterLastWindowClosed(isRecording: vm.isRecording)
+        }
         hotkeyMonitor.start()
     }
 
     var body: some Scene {
-        Window("Video Kaydedici", id: "main") {
+        Window("FrameMate", id: "main") {
             ContentView(viewModel: viewModel)
                 .onAppear {
                     installMenuBarIfNeeded()
                     updateMenuBarState()
+                    appDelegate.onWillTerminate = {
+                        if viewModel.isRecording {
+                            viewModel.stopRecording()
+                        }
+                        hotkeyMonitor.stop()
+                    }
                 }
                 .onChange(of: viewModel.isRecording) { wasRecording, isRecording in
                     updateMenuBarState()
@@ -99,6 +117,7 @@ struct VideoRecorderApp: App {
                         viewModel.selectPreset(preset)
                     }
                     .keyboardShortcut(KeyEquivalent(preset.commandKey), modifiers: .command)
+                    .disabled(!onboardingCompleted)
                 }
             }
 
@@ -106,24 +125,25 @@ struct VideoRecorderApp: App {
                 Button("\(recordingCommandTitle) (\(GlobalHotkeyMonitor.recordingToggleDisplay))") {
                     viewModel.toggleRecording()
                 }
-                .disabled(!viewModel.canStartRecording && !viewModel.isRecording && !viewModel.isCountingDown)
+                .disabled(!onboardingCompleted || (!viewModel.canStartRecording && !viewModel.isRecording && !viewModel.isCountingDown))
 
                 Button("\(audioRecordingCommandTitle) (\(GlobalHotkeyMonitor.audioRecordingToggleDisplay))") {
                     viewModel.toggleAudioRecording()
                 }
-                .disabled(viewModel.isPreparingRecording || (viewModel.isRecording && viewModel.selectedRecordingSource != .audio))
+                .disabled(!onboardingCompleted || viewModel.isPreparingRecording || (viewModel.isRecording && viewModel.selectedRecordingSource != .audio))
                 .keyboardShortcut("5", modifiers: [.command, .control])
 
                 Button("\(pauseResumeCommandTitle) (\(GlobalHotkeyMonitor.pauseResumeToggleDisplay))") {
                     viewModel.togglePauseResume()
                 }
-                .disabled(!viewModel.canPauseRecording)
+                .disabled(!onboardingCompleted || !viewModel.canPauseRecording)
                 .keyboardShortcut("p", modifiers: [.command, .control])
 
                 Button(frameCoachCommandTitle) {
                     viewModel.toggleFrameCoach()
                 }
                 .keyboardShortcut("d", modifiers: .command)
+                .disabled(!onboardingCompleted)
             }
         }
 

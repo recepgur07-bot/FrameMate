@@ -74,6 +74,59 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(microphoneRecorder.startCalled)
     }
 
+    func testAccessibilitySetupSummaryForVerticalCameraDescribesSelectedInputs() async {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
+                microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.verticalCamera)
+        viewModel.selectedCameraID = "cam-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isSystemAudioEnabled = false
+
+        XCTAssertEqual(
+            viewModel.accessibilitySetupSummary,
+            "Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu açık."
+        )
+    }
+
+    func testAccessibilitySetupSummaryForHorizontalScreenDescribesSourceAndEnabledOptions() async {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(
+                status: .authorized,
+                displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Retina Display")],
+                windows: []
+            ),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(RecordingPreset.horizontalScreen)
+        viewModel.selectScreenCaptureSource(ScreenCaptureSource.screen)
+        viewModel.selectedDisplayID = "display-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isSystemAudioEnabled = true
+        viewModel.isCursorHighlightEnabled = true
+
+        XCTAssertEqual(
+            viewModel.accessibilitySetupSummary,
+            "Kaynak tam ekran, ekran seçilmedi, mikrofon MacBook Mikrofonu, sistem sesi açık, imleç vurgusu açık."
+        )
+    }
+
     func testFrameCoachSettingsDefaultToAccessibleBalancedGuidance() async {
         let settingsStore = MockFrameCoachSettingsStore()
         let viewModel = RecorderViewModel(
@@ -302,19 +355,23 @@ final class RecorderViewModelTests: XCTestCase {
             let viewModel = RecorderViewModel(
                 recorder: recorder,
                 screenRecordingProvider: MockScreenRecordingProvider(),
+                systemAudioRecorder: MockSystemAudioRecorder(),
                 fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
-                soundEffectPlayer: SoundEffectPlayer(),
+                soundEffectPlayer: MockSoundEffectPlayer(),
                 permissionProvider: permissions
             )
 
             await viewModel.setup()
             viewModel.selectPreset(preset)
+            viewModel.isSystemAudioEnabled = false
             viewModel.refreshDeviceState()
 
             XCTAssertTrue(viewModel.canStartRecording)
 
             viewModel.startRecording()
-            try? await Task.sleep(nanoseconds: 50_000_000)
+            for _ in 0..<40 where !recorder.startCalled || !viewModel.isRecording {
+                try? await Task.sleep(nanoseconds: 25_000_000)
+            }
 
             XCTAssertEqual(viewModel.selectedRecordingSource, .camera)
             XCTAssertEqual(recorder.configuredMode, expectedMode)
@@ -481,10 +538,11 @@ final class RecorderViewModelTests: XCTestCase {
             cameraOverlayRecorder: MockCameraOverlayRecorder(),
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
             soundEffectPlayer: SoundEffectPlayer(),
-            permissionProvider: MockMediaPermissionProvider(statuses: [:])
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
         )
 
         await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
         XCTAssertTrue(viewModel.showsCameraControls)
         XCTAssertFalse(viewModel.showsScreenControls)
         XCTAssertFalse(viewModel.showsScreenPicker)
@@ -576,6 +634,8 @@ final class RecorderViewModelTests: XCTestCase {
             recorder: recorder,
             screenRecordingProvider: screenProvider,
             cameraOverlayRecorder: overlayRecorder,
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            microphoneAudioRecorder: MockMicrophoneAudioRecorder(),
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
             soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: permissions
@@ -589,7 +649,9 @@ final class RecorderViewModelTests: XCTestCase {
         await viewModel.refreshScreenRecordingOptions()
 
         viewModel.startRecording()
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        for _ in 0..<40 where overlayRecorder.startedURL == nil || !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
 
         XCTAssertEqual(overlayRecorder.configuredCameraID, "cam-1")
         XCTAssertEqual(overlayRecorder.configuredMode, .horizontal1080p)
@@ -621,6 +683,8 @@ final class RecorderViewModelTests: XCTestCase {
             recorder: recorder,
             screenRecordingProvider: screenProvider,
             cameraOverlayRecorder: overlayRecorder,
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            microphoneAudioRecorder: MockMicrophoneAudioRecorder(),
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
             soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: permissions
@@ -628,12 +692,15 @@ final class RecorderViewModelTests: XCTestCase {
 
         await viewModel.setup()
         viewModel.selectPreset(.horizontalScreen)
-        viewModel.toggleScreenCameraOverlay()
+        viewModel.isSystemAudioEnabled = false
+        viewModel.isScreenCameraOverlayEnabled = true
         viewModel.refreshDeviceState()
         await viewModel.refreshScreenRecordingOptions()
 
         viewModel.startRecording()
-        try? await Task.sleep(nanoseconds: 80_000_000)
+        for _ in 0..<40 where viewModel.errorText == nil && !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
 
         XCTAssertEqual(
             viewModel.errorText,
@@ -664,7 +731,7 @@ final class RecorderViewModelTests: XCTestCase {
             systemAudioRecorder: MockSystemAudioRecorder(),
             microphoneAudioRecorder: microphoneRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
-            soundEffectPlayer: SoundEffectPlayer(),
+            soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: permissions
         )
 
@@ -674,10 +741,12 @@ final class RecorderViewModelTests: XCTestCase {
         await viewModel.refreshScreenRecordingOptions()
 
         viewModel.startRecording()
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        for _ in 0..<40 where screenProvider.startedMicrophoneID == nil || !microphoneRecorder.startCalled {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
 
-        XCTAssertEqual(screenProvider.startedMicrophoneID, "")
-        XCTAssertTrue(microphoneRecorder.startCalled)
+        XCTAssertEqual(screenProvider.startedMicrophoneID, "", viewModel.errorText ?? viewModel.statusText)
+        XCTAssertTrue(microphoneRecorder.startCalled, viewModel.errorText ?? viewModel.statusText)
 
         viewModel.stopRecording()
         try? await Task.sleep(nanoseconds: 50_000_000)
@@ -709,7 +778,7 @@ final class RecorderViewModelTests: XCTestCase {
             microphoneAudioRecorder: MockMicrophoneAudioRecorder(),
             cursorHighlightRecorder: cursorRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
-            soundEffectPlayer: SoundEffectPlayer(),
+            soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: permissions
         )
 
@@ -720,9 +789,11 @@ final class RecorderViewModelTests: XCTestCase {
         await viewModel.refreshScreenRecordingOptions()
 
         viewModel.startRecording()
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        for _ in 0..<40 where !cursorRecorder.startCalled || !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
 
-        XCTAssertTrue(cursorRecorder.startCalled)
+        XCTAssertTrue(cursorRecorder.startCalled, viewModel.errorText ?? viewModel.statusText)
         XCTAssertEqual(cursorRecorder.startedFrame, CGRect(x: 0, y: 0, width: 1440, height: 900))
 
         viewModel.stopRecording()
@@ -756,7 +827,7 @@ final class RecorderViewModelTests: XCTestCase {
             cursorHighlightRecorder: MockCursorHighlightRecorder(),
             keyboardShortcutRecorder: keyboardRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
-            soundEffectPlayer: SoundEffectPlayer(),
+            soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: permissions
         )
 
@@ -767,9 +838,11 @@ final class RecorderViewModelTests: XCTestCase {
         await viewModel.refreshScreenRecordingOptions()
 
         viewModel.startRecording()
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        for _ in 0..<40 where !keyboardRecorder.startCalled || !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
 
-        XCTAssertTrue(keyboardRecorder.startCalled)
+        XCTAssertTrue(keyboardRecorder.startCalled, viewModel.errorText ?? viewModel.statusText)
 
         viewModel.stopRecording()
         try? await Task.sleep(nanoseconds: 50_000_000)
@@ -1251,23 +1324,25 @@ final class RecorderViewModelTests: XCTestCase {
             systemAudioRecorder: systemAudioRecorder,
             microphoneAudioRecorder: microphoneRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
-            soundEffectPlayer: SoundEffectPlayer(),
+            soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: permissions
         )
 
         await viewModel.setup()
-        viewModel.selectedRecordingSource = .screen
+        viewModel.selectPreset(.horizontalScreen)
         viewModel.isSystemAudioEnabled = true
         viewModel.refreshDeviceState()
         await viewModel.refreshScreenRecordingOptions()
 
         viewModel.startRecording()
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        for _ in 0..<40 where screenProvider.startedTarget == nil || !systemAudioRecorder.startCalled || !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
 
-        XCTAssertEqual(screenProvider.startedTarget, .display(id: "display-1"))
+        XCTAssertEqual(screenProvider.startedTarget, .display(id: "display-1"), viewModel.errorText ?? viewModel.statusText)
         XCTAssertFalse(screenProvider.startedSystemAudioEnabled)
-        XCTAssertTrue(systemAudioRecorder.startCalled)
-        XCTAssertTrue(viewModel.isRecording)
+        XCTAssertTrue(systemAudioRecorder.startCalled, viewModel.errorText ?? viewModel.statusText)
+        XCTAssertTrue(viewModel.isRecording, viewModel.errorText ?? viewModel.statusText)
 
         viewModel.stopRecording()
         try? await Task.sleep(nanoseconds: 50_000_000)
@@ -1298,7 +1373,7 @@ final class RecorderViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.statusText,
-            "Yatay kamera kaydı hazır. Mikrofon ve sistem sesi kayda eklenecek."
+            "Yatay video kaydı hazır. Mikrofon ve sistem sesi kayda eklenecek."
         )
     }
 
@@ -1314,10 +1389,10 @@ final class RecorderViewModelTests: XCTestCase {
 
         let viewModel = RecorderViewModel(
             recorder: recorder,
-            screenRecordingProvider: MockScreenRecordingProvider(),
+            screenRecordingProvider: MockScreenRecordingProvider(status: .authorized),
             systemAudioRecorder: systemAudioRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
-            soundEffectPlayer: SoundEffectPlayer(),
+            soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: permissions
         )
 
@@ -1326,9 +1401,11 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.refreshDeviceState()
 
         viewModel.startRecording()
-        try? await Task.sleep(nanoseconds: 50_000_000)
+        for _ in 0..<40 where !systemAudioRecorder.startCalled {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
 
-        XCTAssertTrue(systemAudioRecorder.startCalled)
+        XCTAssertTrue(systemAudioRecorder.startCalled, viewModel.errorText ?? viewModel.statusText)
     }
 
     func testCameraRecordingStopsSystemAudioRecorderWhenEnabled() async {
@@ -1382,7 +1459,7 @@ final class RecorderViewModelTests: XCTestCase {
             systemAudioRecorder: systemAudioRecorder,
             microphoneAudioRecorder: microphoneAudioRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
-            soundEffectPlayer: SoundEffectPlayer(),
+            soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: permissions
         )
 
@@ -1394,11 +1471,11 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.refreshDeviceState()
 
         viewModel.startRecording()
-        for _ in 0..<20 where !systemAudioRecorder.startCalled {
+        for _ in 0..<40 where !systemAudioRecorder.startCalled || screenProvider.startedTarget == nil {
             try? await Task.sleep(nanoseconds: 25_000_000)
         }
 
-        XCTAssertTrue(systemAudioRecorder.startCalled)
+        XCTAssertTrue(systemAudioRecorder.startCalled, viewModel.errorText ?? viewModel.statusText)
         XCTAssertFalse(screenProvider.startedSystemAudioEnabled)
     }
 
@@ -2013,10 +2090,11 @@ final class RecorderViewModelTests: XCTestCase {
         )
 
         await viewModel.setup()
+        viewModel.selectPreset(.audioOnly)
 
         let cameraItem = try XCTUnwrap(viewModel.permissionHubItems.first(where: { $0.id == .camera }))
         XCTAssertEqual(cameraItem.primaryAction, .openSettings)
-        XCTAssertFalse(cameraItem.isSatisfied)
+        XCTAssertTrue(cameraItem.isSatisfied)
         XCTAssertFalse(cameraItem.isRequired)
     }
 
@@ -2073,6 +2151,7 @@ final class RecorderViewModelTests: XCTestCase {
         )
 
         await viewModel.setup()
+        viewModel.selectPreset(.audioOnly)
 
         XCTAssertTrue(viewModel.canProceedPastOnboarding)
         XCTAssertFalse(viewModel.hasBlockingPermissionIssue)
@@ -2250,55 +2329,35 @@ final class RecordButtonStateTests: XCTestCase {
 
 // MARK: - FMModeSelector mapping tests
 final class FMModeSelectorTests: XCTestCase {
-    typealias PM  = FMModeSelector.PrimaryMode
-    typealias ORI = FMModeSelector.Orientation
-
-    // compose: PrimaryMode + Orientation → RecordingPreset
-
-    func test_compose_cameraHorizontal() {
-        XCTAssertEqual(FMModeSelector.compose(primaryMode: .camera, orientation: .horizontal), .horizontalCamera)
-    }
-    func test_compose_cameraVertical() {
-        XCTAssertEqual(FMModeSelector.compose(primaryMode: .camera, orientation: .vertical), .verticalCamera)
-    }
-    func test_compose_screenHorizontal() {
-        XCTAssertEqual(FMModeSelector.compose(primaryMode: .screen, orientation: .horizontal), .horizontalScreen)
-    }
-    func test_compose_screenVertical() {
-        XCTAssertEqual(FMModeSelector.compose(primaryMode: .screen, orientation: .vertical), .verticalScreen)
-    }
-    func test_compose_screenCamera_alwaysHorizontalScreen() {
-        XCTAssertEqual(FMModeSelector.compose(primaryMode: .screenCamera, orientation: .horizontal), .horizontalScreen)
-        XCTAssertEqual(FMModeSelector.compose(primaryMode: .screenCamera, orientation: .vertical),   .horizontalScreen)
-    }
-    func test_compose_audio() {
-        XCTAssertEqual(FMModeSelector.compose(primaryMode: .audio, orientation: .horizontal), .audioOnly)
+    func test_labels_are_explicit_and_distinct() {
+        XCTAssertEqual(RecordingPreset.horizontalCamera.label, "Yatay video kaydı")
+        XCTAssertEqual(RecordingPreset.verticalCamera.label, "Dikey video kaydı")
+        XCTAssertEqual(RecordingPreset.horizontalScreen.label, "Yatay ekran kaydı")
+        XCTAssertEqual(RecordingPreset.verticalScreen.label, "Dikey ekran kaydı")
+        XCTAssertEqual(RecordingPreset.audioOnly.label, "Ses kaydı")
     }
 
-    // decompose: RecordingPreset + overlayEnabled → (PrimaryMode, Orientation)
+    func test_shortDescriptions_match_visible_mode_purpose() {
+        XCTAssertEqual(RecordingPreset.horizontalCamera.shortDescription, "Kamera ile yatay video çek")
+        XCTAssertEqual(RecordingPreset.verticalCamera.shortDescription, "Kamera ile dikey video çek")
+        XCTAssertEqual(RecordingPreset.horizontalScreen.shortDescription, "Yatay ekran veya pencere kaydet")
+        XCTAssertEqual(RecordingPreset.verticalScreen.shortDescription, "Dikey ekran veya pencere kaydet")
+        XCTAssertEqual(RecordingPreset.audioOnly.shortDescription, "Sadece ses kaydı al")
+    }
 
-    func test_decompose_horizontalCamera() {
-        let (pm, ori) = FMModeSelector.decompose(preset: .horizontalCamera, overlayEnabled: false)
-        XCTAssertEqual(pm, .camera); XCTAssertEqual(ori, .horizontal)
+    func test_commandKeys_follow_announced_order() {
+        XCTAssertEqual(RecordingPreset.horizontalCamera.commandKey, "1")
+        XCTAssertEqual(RecordingPreset.verticalCamera.commandKey, "2")
+        XCTAssertEqual(RecordingPreset.horizontalScreen.commandKey, "3")
+        XCTAssertEqual(RecordingPreset.verticalScreen.commandKey, "4")
+        XCTAssertEqual(RecordingPreset.audioOnly.commandKey, "5")
     }
-    func test_decompose_verticalCamera() {
-        let (pm, ori) = FMModeSelector.decompose(preset: .verticalCamera, overlayEnabled: false)
-        XCTAssertEqual(pm, .camera); XCTAssertEqual(ori, .vertical)
-    }
-    func test_decompose_horizontalScreen_noOverlay() {
-        let (pm, ori) = FMModeSelector.decompose(preset: .horizontalScreen, overlayEnabled: false)
-        XCTAssertEqual(pm, .screen); XCTAssertEqual(ori, .horizontal)
-    }
-    func test_decompose_horizontalScreen_withOverlay() {
-        let (pm, ori) = FMModeSelector.decompose(preset: .horizontalScreen, overlayEnabled: true)
-        XCTAssertEqual(pm, .screenCamera); XCTAssertEqual(ori, .horizontal)
-    }
-    func test_decompose_verticalScreen() {
-        let (pm, ori) = FMModeSelector.decompose(preset: .verticalScreen, overlayEnabled: false)
-        XCTAssertEqual(pm, .screen); XCTAssertEqual(ori, .vertical)
-    }
-    func test_decompose_audioOnly() {
-        let (pm, ori) = FMModeSelector.decompose(preset: .audioOnly, overlayEnabled: false)
-        XCTAssertEqual(pm, .audio); XCTAssertEqual(ori, .horizontal)
+
+    func test_recordingModes_match_orientation_expectations() {
+        XCTAssertEqual(RecordingPreset.horizontalCamera.recordingMode, .horizontal1080p)
+        XCTAssertEqual(RecordingPreset.verticalCamera.recordingMode, .vertical1080p)
+        XCTAssertEqual(RecordingPreset.horizontalScreen.recordingMode, .horizontal1080p)
+        XCTAssertEqual(RecordingPreset.verticalScreen.recordingMode, .vertical1080p)
+        XCTAssertEqual(RecordingPreset.audioOnly.recordingMode, .horizontal1080p)
     }
 }

@@ -39,6 +39,7 @@ final class MicrophoneAudioRecorderSampleTracker {
 }
 
 final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, MicrophoneAudioRecordingProviding, @unchecked Sendable {
+    private static let finalizeDelay: DispatchTimeInterval = .milliseconds(250)
     private let sessionQueue = DispatchQueue(label: "com.local.VideoRecorder.microphone-audio-session")
     private let writerQueue = DispatchQueue(label: "com.local.VideoRecorder.microphone-audio-writer")
     private let outputQueue = DispatchQueue(label: "com.local.VideoRecorder.microphone-audio-output")
@@ -130,7 +131,7 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                 self.session.stopRunning()
             }
 
-            self.writerQueue.async {
+            self.writerQueue.asyncAfter(deadline: .now() + Self.finalizeDelay) {
                 currentWriterInput?.markAsFinished()
 
                 guard let currentWriter, let outputURL else {

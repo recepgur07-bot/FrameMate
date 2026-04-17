@@ -267,13 +267,23 @@ enum PermissionAction: Equatable {
     }
 }
 
+enum PermissionInteractionState: Equatable {
+    case idle
+    case requesting
+    case granted
+    case denied
+    case needsRestart
+}
+
 struct PermissionHubItem: Identifiable, Equatable {
     let id: PermissionKind
     let title: String
     let detail: String
     let statusLabel: String
+    let helperText: String?
     let isRequired: Bool
     let isSatisfied: Bool
+    let isRequestInFlight: Bool
     let primaryAction: PermissionAction
     let secondaryAction: PermissionAction?
 
@@ -511,6 +521,7 @@ final class RecorderViewModel {
     var paywallMessageText: String?
     var errorText: String?
     var screenPermissionNeedsRestart = false
+    var permissionInteractionStates: [PermissionKind: PermissionInteractionState] = [:]
     private var screenPermissionConfirmedBySourceFetch = false
     var recordingOutputDirectoryURL: URL {
         didSet {
@@ -543,6 +554,53 @@ final class RecorderViewModel {
             makeMicrophonePermissionItem(),
             makeScreenRecordingPermissionItem()
         ]
+    }
+
+    var accessibilitySetupSummary: String {
+        switch selectedPreset {
+        case .horizontalCamera, .verticalCamera:
+            var parts = [
+                "Kamera \(selectedCameraNameOrFallback)",
+                "mikrofon \(selectedMicrophoneNameOrFallback(required: true))",
+                "sistem sesi \(isSystemAudioEnabled ? "açık" : "kapalı")"
+            ]
+            if showsFrameCoachControls {
+                parts.append("kadraj koçu \(isAutoReframeEnabled ? "açık" : "kapalı")")
+            }
+            return parts.joined(separator: ", ") + "."
+        case .horizontalScreen, .verticalScreen:
+            var parts = [
+                "Kaynak \(selectedScreenCaptureSource == .screen ? "tam ekran" : "pencere")"
+            ]
+            if selectedScreenCaptureSource == .screen {
+                parts.append("ekran \(selectedDisplayNameOrFallback)")
+            } else {
+                parts.append("pencere \(selectedWindowNameOrFallback)")
+            }
+            parts.append("mikrofon \(selectedMicrophoneNameOrFallback(required: false))")
+            parts.append("sistem sesi \(isSystemAudioEnabled ? "açık" : "kapalı")")
+            if showsScreenControls {
+                parts.append("imleç vurgusu \(isCursorHighlightEnabled ? "açık" : "kapalı")")
+            }
+            if isScreenCameraOverlayEnabled {
+                parts.append("kamera kutusu açık")
+            }
+            return parts.joined(separator: ", ") + "."
+        case .audioOnly:
+            return [
+                "Mikrofon \(selectedMicrophoneNameOrFallback(required: false))",
+                "sistem sesi \(isSystemAudioEnabled ? "açık" : "kapalı")"
+            ].joined(separator: ", ") + "."
+        }
+    }
+
+    var accessibilityPermissionSummary: String? {
+        guard hasBlockingPermissionIssue else { return nil }
+        let pendingTitles = requiredPermissionItems
+            .filter { !$0.isSatisfied }
+            .map { $0.title.lowercased() }
+        guard !pendingTitles.isEmpty else { return nil }
+        return "Eksik izinler: \(pendingTitles.joined(separator: ", "))."
     }
 
     var requiredPermissionItems: [PermissionHubItem] {
@@ -1074,23 +1132,36 @@ final class RecorderViewModel {
     }
 
     func requestCameraPermission() {
+        permissionInteractionStates[.camera] = .requesting
         Task {
-            _ = await permissionProvider.requestAccess(for: .video)
+            let granted = await permissionProvider.requestAccess(for: .video)
+            permissionInteractionStates[.camera] = granted ? .granted : .denied
             refreshDeviceState()
         }
     }
 
     func requestMicrophonePermission() {
+        permissionInteractionStates[.microphone] = .requesting
         Task {
-            _ = await permissionProvider.requestAccess(for: .audio)
+            let granted = await permissionProvider.requestAccess(for: .audio)
+            permissionInteractionStates[.microphone] = granted ? .granted : .denied
             refreshDeviceState()
         }
     }
 
     func requestScreenRecordingPermission() {
+        permissionInteractionStates[.screenRecording] = .requesting
         Task {
             let result = await screenRecordingProvider.requestAccess()
             screenPermissionNeedsRestart = (result == .grantedButRequiresRestart)
+            switch result {
+            case .granted:
+                permissionInteractionStates[.screenRecording] = .granted
+            case .denied:
+                permissionInteractionStates[.screenRecording] = .denied
+            case .grantedButRequiresRestart:
+                permissionInteractionStates[.screenRecording] = .needsRestart
+            }
             refreshDeviceState()
         }
     }
@@ -1464,7 +1535,7 @@ final class RecorderViewModel {
         guard ensureRecordingAccess() else { return }
 
         do {
-            let fileNamer = activeFileNamer
+            let fileNamer = try resolvedActiveFileNamer()
             isPreparingRecording = true
             statusText = String(localized: "Kayıt hazırlanıyor")
             errorText = nil
@@ -1479,7 +1550,6 @@ final class RecorderViewModel {
                 return
             }
 
-            try fileNamer.ensureOutputDirectoryExists()
             try await configureRecorder()
             autoReframeTimeline.reset()
             autoReframeSmoother.reset()
@@ -1609,8 +1679,7 @@ final class RecorderViewModel {
     }
 
     private func startAudioRecording() async throws {
-        let fileNamer = activeFileNamer
-        try fileNamer.ensureOutputDirectoryExists()
+        let fileNamer = try resolvedActiveFileNamer()
 
         let finalURL = fileNamer.audioRecordingURL()
         let microphoneCaptureURL = fileNamer.temporaryAudioURL(stem: "audio-microphone")
@@ -1670,8 +1739,7 @@ final class RecorderViewModel {
     }
 
     private func startScreenRecording() async throws {
-        let fileNamer = activeFileNamer
-        try fileNamer.ensureOutputDirectoryExists()
+        let fileNamer = try resolvedActiveFileNamer()
 
         let captureURL = fileNamer.temporaryMovieURL()
         let finalURL = fileNamer.recordingURL()
@@ -2543,6 +2611,11 @@ final class RecorderViewModel {
     }
 
     private func preferredMicrophoneID() -> String {
+        if let defaultMicrophoneID = AVCaptureDevice.default(for: .audio)?.uniqueID,
+           microphones.contains(where: { $0.id == defaultMicrophoneID }) {
+            return defaultMicrophoneID
+        }
+
         let preferredIDs = [
             "BuiltInHeadphoneInputDevice",
             "BuiltInMicrophoneDevice"
@@ -2562,6 +2635,27 @@ final class RecorderViewModel {
                 && !device.name.localizedCaseInsensitiveContains("aggregate")
                 && !device.name.localizedCaseInsensitiveContains("kümesi")
         }?.id ?? microphones.first?.id ?? ""
+    }
+
+    private func resolvedActiveFileNamer() throws -> RecordingFileNamer {
+        let configuredFileNamer = activeFileNamer
+
+        do {
+            try configuredFileNamer.ensureOutputDirectoryExists()
+            return configuredFileNamer
+        } catch {
+            let downloadsDirectory = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0]
+            let fallbackDirectory = downloadsDirectory.appendingPathComponent("FrameMate", isDirectory: true)
+            let fallbackFileNamer = RecordingFileNamer(outputDirectory: fallbackDirectory)
+            try fallbackFileNamer.ensureOutputDirectoryExists()
+
+            if recordingOutputDirectoryURL != fallbackDirectory {
+                recordingOutputDirectoryURL = fallbackDirectory
+                statusText = String(localized: "Kayıt klasörü otomatik olarak İndirilenler/FrameMate olarak güncellendi.")
+            }
+
+            return fallbackFileNamer
+        }
     }
 
     private func report(_ error: Error) {
@@ -2657,38 +2751,58 @@ final class RecorderViewModel {
         let detail = isRequired
             ? String(localized: "Kamera kaydı veya kamera kutusu için gerekli")
             : String(localized: "Yalnızca kamera içeren modlarda gerekli")
+        let interactionState = permissionInteractionStates[.camera] ?? .idle
 
-        switch cameraPermissionStatus {
-        case .authorized:
+        switch (cameraPermissionStatus, interactionState) {
+        case (_, .requesting):
+            return PermissionHubItem(
+                id: .camera,
+                title: PermissionKind.camera.title,
+                detail: detail,
+                statusLabel: String(localized: "İzin penceresi açık olabilir"),
+                helperText: String(localized: "macOS izin penceresini kontrol et. Kararını orada vereceksin."),
+                isRequired: isRequired,
+                isSatisfied: false,
+                isRequestInFlight: true,
+                primaryAction: .none,
+                secondaryAction: nil
+            )
+        case (.authorized, _):
             return PermissionHubItem(
                 id: .camera,
                 title: PermissionKind.camera.title,
                 detail: detail,
                 statusLabel: String(localized: "Verildi"),
+                helperText: interactionState == .granted ? String(localized: "Kamera izni verildi.") : nil,
                 isRequired: isRequired,
                 isSatisfied: isSatisfied,
+                isRequestInFlight: false,
                 primaryAction: .none,
                 secondaryAction: nil
             )
-        case .denied, .restricted:
+        case (.denied, _), (.restricted, _):
             return PermissionHubItem(
                 id: .camera,
                 title: PermissionKind.camera.title,
                 detail: detail,
                 statusLabel: String(localized: "Reddedildi"),
+                helperText: String(localized: "Kamera izni verilmedi. Sağdaki düğmeyle Sistem Ayarları'nı açabilirsin."),
                 isRequired: isRequired,
                 isSatisfied: isSatisfied,
+                isRequestInFlight: false,
                 primaryAction: .openSettings,
                 secondaryAction: nil
             )
-        case .notDetermined:
+        case (.notDetermined, _):
             return PermissionHubItem(
                 id: .camera,
                 title: PermissionKind.camera.title,
                 detail: detail,
                 statusLabel: String(localized: "İzin bekleniyor"),
+                helperText: String(localized: "Sağdaki düğme tıklanabilir. İzin penceresini açar."),
                 isRequired: isRequired,
                 isSatisfied: isSatisfied,
+                isRequestInFlight: false,
                 primaryAction: .request,
                 secondaryAction: nil
             )
@@ -2698,8 +2812,10 @@ final class RecorderViewModel {
                 title: PermissionKind.camera.title,
                 detail: detail,
                 statusLabel: String(localized: "Durum bilinmiyor"),
+                helperText: nil,
                 isRequired: isRequired,
                 isSatisfied: isSatisfied,
+                isRequestInFlight: false,
                 primaryAction: .openSettings,
                 secondaryAction: nil
             )
@@ -2709,38 +2825,58 @@ final class RecorderViewModel {
     private func makeMicrophonePermissionItem() -> PermissionHubItem {
         let isRequired = true
         let detail = String(localized: "Sesli kayıt akışları için gerekli")
+        let interactionState = permissionInteractionStates[.microphone] ?? .idle
 
-        switch microphonePermissionStatus {
-        case .authorized:
+        switch (microphonePermissionStatus, interactionState) {
+        case (_, .requesting):
+            return PermissionHubItem(
+                id: .microphone,
+                title: PermissionKind.microphone.title,
+                detail: detail,
+                statusLabel: String(localized: "İzin penceresi açık olabilir"),
+                helperText: String(localized: "macOS izin penceresini kontrol et. Kararını orada vereceksin."),
+                isRequired: isRequired,
+                isSatisfied: false,
+                isRequestInFlight: true,
+                primaryAction: .none,
+                secondaryAction: nil
+            )
+        case (.authorized, _):
             return PermissionHubItem(
                 id: .microphone,
                 title: PermissionKind.microphone.title,
                 detail: detail,
                 statusLabel: String(localized: "Verildi"),
+                helperText: interactionState == .granted ? String(localized: "Mikrofon izni verildi.") : nil,
                 isRequired: isRequired,
                 isSatisfied: true,
+                isRequestInFlight: false,
                 primaryAction: .none,
                 secondaryAction: nil
             )
-        case .denied, .restricted:
+        case (.denied, _), (.restricted, _):
             return PermissionHubItem(
                 id: .microphone,
                 title: PermissionKind.microphone.title,
                 detail: detail,
                 statusLabel: String(localized: "Reddedildi"),
+                helperText: String(localized: "Mikrofon izni verilmedi. Sağdaki düğmeyle Sistem Ayarları'nı açabilirsin."),
                 isRequired: isRequired,
                 isSatisfied: false,
+                isRequestInFlight: false,
                 primaryAction: .openSettings,
                 secondaryAction: nil
             )
-        case .notDetermined:
+        case (.notDetermined, _):
             return PermissionHubItem(
                 id: .microphone,
                 title: PermissionKind.microphone.title,
                 detail: detail,
                 statusLabel: String(localized: "İzin bekleniyor"),
+                helperText: String(localized: "Sağdaki düğme tıklanabilir. İzin penceresini açar."),
                 isRequired: isRequired,
                 isSatisfied: false,
+                isRequestInFlight: false,
                 primaryAction: .request,
                 secondaryAction: nil
             )
@@ -2750,8 +2886,10 @@ final class RecorderViewModel {
                 title: PermissionKind.microphone.title,
                 detail: detail,
                 statusLabel: String(localized: "Durum bilinmiyor"),
+                helperText: nil,
                 isRequired: isRequired,
                 isSatisfied: false,
+                isRequestInFlight: false,
                 primaryAction: .openSettings,
                 secondaryAction: nil
             )
@@ -2763,6 +2901,22 @@ final class RecorderViewModel {
         let detail = isSystemAudioEnabled
             ? String(localized: "Ekran ve sistem sesi kaydı için gerekli")
             : String(localized: "Ekran veya pencere kaydı için gerekli")
+        let interactionState = permissionInteractionStates[.screenRecording] ?? .idle
+
+        if interactionState == .requesting {
+            return PermissionHubItem(
+                id: .screenRecording,
+                title: PermissionKind.screenRecording.title,
+                detail: detail,
+                statusLabel: String(localized: "İzin penceresi veya sistem ayarı açık olabilir"),
+                helperText: String(localized: "Ekran kaydı izni bazen ayrı bir sistem penceresinde görünür. Arkada kalmış olabilir; Sistem Ayarları'nı da kontrol et."),
+                isRequired: isRequired,
+                isSatisfied: false,
+                isRequestInFlight: true,
+                primaryAction: .none,
+                secondaryAction: nil
+            )
+        }
 
         if screenPermissionNeedsRestart {
             return PermissionHubItem(
@@ -2770,8 +2924,10 @@ final class RecorderViewModel {
                 title: PermissionKind.screenRecording.title,
                 detail: detail,
                 statusLabel: String(localized: "Yeniden açılmalı"),
+                helperText: String(localized: "İzin verildi. Değişikliğin aktif olması için uygulamayı kapatıp yeniden aç."),
                 isRequired: isRequired,
                 isSatisfied: true,
+                isRequestInFlight: false,
                 primaryAction: .restartApp,
                 secondaryAction: .openSettings
             )
@@ -2784,8 +2940,10 @@ final class RecorderViewModel {
                 title: PermissionKind.screenRecording.title,
                 detail: detail,
                 statusLabel: String(localized: "Verildi"),
+                helperText: interactionState == .granted ? String(localized: "Ekran kaydı izni verildi.") : nil,
                 isRequired: isRequired,
                 isSatisfied: true,
+                isRequestInFlight: false,
                 primaryAction: .none,
                 secondaryAction: nil
             )
@@ -2795,8 +2953,10 @@ final class RecorderViewModel {
                 title: PermissionKind.screenRecording.title,
                 detail: detail,
                 statusLabel: String(localized: "Gerekli"),
+                helperText: String(localized: "Sağdaki düğmeler izin istemek veya Sistem Ayarları'nı açmak içindir."),
                 isRequired: isRequired,
                 isSatisfied: !isRequired,
+                isRequestInFlight: false,
                 primaryAction: .openSettings,
                 secondaryAction: .request
             )
@@ -2892,6 +3052,25 @@ final class RecorderViewModel {
             return preferredID
         }
         return fallback(devices)
+    }
+
+    private var selectedCameraNameOrFallback: String {
+        cameras.first(where: { $0.id == selectedCameraID })?.name ?? cameras.first?.name ?? "seçilmedi"
+    }
+
+    private func selectedMicrophoneNameOrFallback(required: Bool) -> String {
+        if selectedMicrophoneID.isEmpty {
+            return required ? "seçilmedi" : "kapalı"
+        }
+        return microphones.first(where: { $0.id == selectedMicrophoneID })?.name ?? "seçilmedi"
+    }
+
+    private var selectedDisplayNameOrFallback: String {
+        availableDisplays.first(where: { $0.id == selectedDisplayID })?.name ?? "seçilmedi"
+    }
+
+    private var selectedWindowNameOrFallback: String {
+        availableWindows.first(where: { $0.id == selectedWindowID })?.name ?? "seçilmedi"
     }
 
     private func makeStatusText() -> String {
@@ -3224,6 +3403,19 @@ final class RecorderViewModel {
             selectedWindowID = ""
             screenPermissionConfirmedBySourceFetch = false
             errorText = nil
+            statusText = makeStatusText()
+            return
+        }
+
+        // SCShareableContent.excludingDesktopWindows, ekran kaydı izni olmadan
+        // sistemde permission prompt tetikleyebilir veya asılı kalabilir.
+        // İzin verilmemişse listeleri boş bırak, statusText'i güncelle.
+        guard screenRecordingPermissionStatus == .authorized else {
+            availableDisplays = []
+            availableWindows = []
+            selectedDisplayID = ""
+            selectedWindowID = ""
+            screenPermissionConfirmedBySourceFetch = false
             statusText = makeStatusText()
             return
         }

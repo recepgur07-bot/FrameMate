@@ -14,46 +14,26 @@ struct FMCard<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            // Header row — always announces as a heading regardless of collapsibility
-            Button(action: {
-                if isCollapsible {
+            if isCollapsible {
+                Button(action: {
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         isExpanded.toggle()
                     }
+                }) {
+                    headerRow
                 }
-            }) {
-                HStack(spacing: 8) {
-                    Image(systemName: icon)
-                        .foregroundStyle(Color.fmAccent)
-                        .frame(width: 20)
-                        .accessibilityHidden(true)
-
-                    Text(title)
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.primary)
-
-                    Spacer()
-
-                    if isCollapsible {
-                        Image(systemName: "chevron.down")
-                            .rotationEffect(.degrees(isExpanded ? 0 : -180))
-                            .foregroundStyle(.secondary)
-                            .accessibilityHidden(true)
-                    }
-                }
-                .padding(16)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(title)
-            .accessibilityAddTraits(.isHeader)
-            .accessibilityHint(
-                isCollapsible
-                    ? (isExpanded
+                .buttonStyle(.plain)
+                .accessibilityLabel(title)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityHint(
+                    isExpanded
                         ? String(localized: "Daraltmak için dokun")
-                        : String(localized: "Genişletmek için dokun"))
-                    : ""
-            )
+                        : String(localized: "Genişletmek için dokun")
+                )
+            } else {
+                headerRow
+                    .accessibilityHidden(true)
+            }
 
             if isExpanded {
                 Divider()
@@ -63,11 +43,37 @@ struct FMCard<Content: View>: View {
                     content()
                 }
                 .padding(16)
+                .accessibilityElement(children: .contain)
             }
         }
+        .accessibilityElement(children: .contain)
         .background(Color.fmCardBg)
         .clipShape(RoundedRectangle(cornerRadius: 12))
         // Shadow only — no stroke border (preview card has its own border)
         .shadow(color: Color.primary.opacity(0.06), radius: 4, x: 0, y: 2)
+    }
+
+    private var headerRow: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundStyle(Color.fmAccent)
+                .frame(width: 20)
+                .accessibilityHidden(true)
+
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            Spacer()
+
+            if isCollapsible {
+                Image(systemName: "chevron.down")
+                    .rotationEffect(.degrees(isExpanded ? 0 : -180))
+                    .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .padding(16)
+        .contentShape(Rectangle())
     }
 }

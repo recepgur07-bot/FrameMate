@@ -16,6 +16,12 @@ struct MainWindowPresentationPolicy {
     }
 }
 
+struct AppTerminationPolicy {
+    func shouldTerminateAfterLastWindowClosed(isRecording: Bool) -> Bool {
+        !isRecording
+    }
+}
+
 @MainActor
 final class MainWindowController {
     func hideMainWindow() {

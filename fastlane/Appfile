@@ -1,4 +1,4 @@
-app_identifier(ENV["APP_IDENTIFIER"] || "com.recepgur.VideoRecorder")
+app_identifier("com.recepgur.VideoRecorder")
 
 apple_id(ENV["FASTLANE_APPLE_ID"]) if ENV["FASTLANE_APPLE_ID"]
 team_id(ENV["APPLE_TEAM_ID"] || "U77D9GCA5Z")

@@ -1,4 +1,5 @@
 .env
+.env.fastlane
 fastlane/keys/
 build/
 *.xcarchive

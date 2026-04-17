@@ -478,7 +478,7 @@ final class FrameCoachingEngineTests: XCTestCase {
         )
     }
 
-    func testSameSinglePersonIsAcceptableInHorizontalButTooTightInVertical() {
+    func testSameSinglePersonStaysAcceptableWhenVerticalFramingIsOnlyModeratelyTight() {
         let analysis = FrameAnalysis(
             faceBoxes: [
                 NormalizedFaceBox(rect: CGRect(x: 0.385, y: 0.28, width: 0.23, height: 0.29))
@@ -497,7 +497,7 @@ final class FrameCoachingEngineTests: XCTestCase {
         )
         XCTAssertEqual(
             FrameCoachingEngine().instruction(for: analysis, mode: .vertical1080p, profile: .verticalSocialVideo),
-            "kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün"
+            "kadraj uygun"
         )
     }
 
@@ -541,7 +541,7 @@ final class FrameCoachingEngineTests: XCTestCase {
         )
     }
 
-    func testVerticalSocialVideoAcceptsTighterSinglePersonThanDeskProfile() {
+    func testVerticalProfilesAllowModeratelyTightSinglePersonFraming() {
         let analysis = makeAnalysis(
             faceBoxes: [CGRect(x: 0.40, y: 0.30, width: 0.21, height: 0.27)],
             subjectCount: .one,
@@ -553,11 +553,27 @@ final class FrameCoachingEngineTests: XCTestCase {
 
         XCTAssertEqual(
             FrameCoachingEngine().instruction(for: analysis, mode: .vertical1080p, profile: .singleDeskSpeaker),
-            "kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün"
+            "kadraj uygun"
         )
         XCTAssertEqual(
             FrameCoachingEngine().instruction(for: analysis, mode: .vertical1080p, profile: .verticalSocialVideo),
             "kadraj uygun"
+        )
+    }
+
+    func testVerticalDeskSpeakerWarnsWhenSinglePersonFramingIsClearlyTooTight() {
+        let analysis = makeAnalysis(
+            faceBoxes: [CGRect(x: 0.38, y: 0.29, width: 0.25, height: 0.31)],
+            subjectCount: .one,
+            headroomRatio: 0.30,
+            bottomCoverageRatio: 0.12,
+            horizontalGroupCenter: 0.505,
+            spacingMetric: 0
+        )
+
+        XCTAssertEqual(
+            FrameCoachingEngine().instruction(for: analysis, mode: .vertical1080p, profile: .singleDeskSpeaker),
+            "kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün"
         )
     }
 

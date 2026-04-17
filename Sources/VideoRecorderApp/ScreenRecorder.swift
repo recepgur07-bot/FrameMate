@@ -5,6 +5,7 @@ import Foundation
 import ScreenCaptureKit
 
 final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, SCStreamDelegate, @unchecked Sendable {
+    private static let finalizeDelay: DispatchTimeInterval = .milliseconds(250)
     private let systemProvider = SystemScreenRecordingProvider()
     private let writerQueue = DispatchQueue(label: "com.local.VideoRecorder.screen-writer")
     private let streamQueue = DispatchQueue(label: "com.local.VideoRecorder.screen-stream")
@@ -160,7 +161,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
                 try await currentStream?.stopCapture()
             } catch {}
 
-            writerQueue.async {
+            writerQueue.asyncAfter(deadline: .now() + Self.finalizeDelay) {
                 currentVideoInput?.markAsFinished()
 
                 guard let currentWriter, let outputURL else {

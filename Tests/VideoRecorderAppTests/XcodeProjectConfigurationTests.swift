@@ -21,6 +21,21 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         )
     }
 
+    func testAppEntitlementsAllowHardenedRuntimeMicrophoneInput() throws {
+        let entitlementsURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("VideoRecorder.entitlements")
+
+        let entitlementsData = try Data(contentsOf: entitlementsURL)
+        let entitlements = try XCTUnwrap(
+            PropertyListSerialization.propertyList(from: entitlementsData, format: nil) as? [String: Any]
+        )
+
+        XCTAssertEqual(entitlements["com.apple.security.device.audio-input"] as? Bool, true)
+    }
+
     func testUnitTestsUseBuiltFrameMateAppAsTestHost() throws {
         let projectFileURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
@@ -70,7 +85,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         )
     }
 
-    func testProjectResignsDebugAppAfterBuildAction() throws {
+    func testProjectDoesNotResignDebugAppAfterBuildAction() throws {
         let schemeFileURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -79,13 +94,9 @@ final class XcodeProjectConfigurationTests: XCTestCase {
 
         let schemeContents = try String(contentsOf: schemeFileURL, encoding: .utf8)
 
-        XCTAssertTrue(
+        XCTAssertFalse(
             schemeContents.contains("Resign Debug App For Stable Privacy Permissions"),
-            "The generated scheme should re-sign the debug app after the build action completes."
-        )
-        XCTAssertTrue(
-            schemeContents.contains("Apple Development:"),
-            "The scheme post-action should look for an Apple Development signing identity."
+            "The debug scheme should not trigger extra signing or keychain prompts during local permission testing."
         )
     }
 

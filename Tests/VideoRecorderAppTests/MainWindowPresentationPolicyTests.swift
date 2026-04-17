@@ -28,4 +28,16 @@ final class MainWindowPresentationPolicyTests: XCTestCase {
 
         XCTAssertNil(policy.actionForRecordingStateChange(from: true, to: true))
     }
+
+    func testAppTerminatesAfterLastWindowClosesWhenIdle() {
+        let policy = AppTerminationPolicy()
+
+        XCTAssertTrue(policy.shouldTerminateAfterLastWindowClosed(isRecording: false))
+    }
+
+    func testAppStaysOpenAfterLastWindowClosesWhileRecording() {
+        let policy = AppTerminationPolicy()
+
+        XCTAssertFalse(policy.shouldTerminateAfterLastWindowClosed(isRecording: true))
+    }
 }

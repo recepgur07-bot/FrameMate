@@ -1,10 +1,26 @@
 ENV["LC_ALL"] = "en_US.UTF-8"
 ENV["LANG"] = "en_US.UTF-8"
+fastlane_require "dotenv"
+Dotenv.overload(".env.fastlane", ".env")
 
 fastlane_version "2.227.0"
 default_platform(:mac)
 
 platform :mac do
+  CANONICAL_APP_IDENTIFIER = "com.recepgur.VideoRecorder"
+  CANONICAL_MATCH_GIT_URL = "git@github.com:recepgur07-bot/voicemate-certificates.git"
+  CANONICAL_PROFILE_NAME = "match AppStore #{CANONICAL_APP_IDENTIFIER} macos"
+
+  def normalize_project_release_environment!
+    # Keep old shell exports from the previous app name from leaking into signing.
+    ENV["APP_IDENTIFIER"] = CANONICAL_APP_IDENTIFIER
+    ENV["MATCH_GIT_URL"] = CANONICAL_MATCH_GIT_URL
+    ENV["PROFILE_NAME"] = CANONICAL_PROFILE_NAME
+
+    UI.user_error!("Bu proje sadece #{CANONICAL_APP_IDENTIFIER} ile imzalanabilir. APP_IDENTIFIER=#{ENV['APP_IDENTIFIER']}") unless ENV["APP_IDENTIFIER"] == CANONICAL_APP_IDENTIFIER
+    UI.user_error!("Bu proje sadece #{CANONICAL_MATCH_GIT_URL} sertifika reposunu kullanmali. MATCH_GIT_URL=#{ENV['MATCH_GIT_URL']}") unless ENV["MATCH_GIT_URL"] == CANONICAL_MATCH_GIT_URL
+  end
+
   def required_env!(key)
     value = ENV[key]
     UI.user_error!("Eksik ortam degiskeni: #{key}") if value.to_s.strip.empty?
@@ -22,6 +38,8 @@ platform :mac do
 
   desc "Fastlane ortam kontrolu"
   lane :doctor do
+    normalize_project_release_environment!
+
     required_keys = %w[
       APP_IDENTIFIER
       ASC_KEY_ID
@@ -41,10 +59,13 @@ platform :mac do
 
   desc "App Store sertifika/provision profile cek"
   lane :certificates do |options|
+    normalize_project_release_environment!
+
     match(
       type: "appstore",
       readonly: options[:readonly].nil? ? true : options[:readonly],
       app_identifier: required_env!("APP_IDENTIFIER"),
+      git_url: required_env!("MATCH_GIT_URL"),
       api_key: get_api_key
     )
   end
@@ -57,6 +78,7 @@ platform :mac do
 
   desc "Mac icin internal TestFlight build yukle"
   lane :beta do |options|
+    normalize_project_release_environment!
     doctor
     certificates unless options[:skip_certificates]
 
@@ -67,27 +89,44 @@ platform :mac do
       key: "CFBundleShortVersionString"
     )
 
-    set_info_plist_value(
-      path: "Resources/Info.plist",
-      key: "CFBundleVersion",
-      value: build_number
-    )
+    # set_info_plist_value, proje klasör adındaki boşluk nedeniyle PlistBuddy'ye
+    # hatalı path geçiriyor. Direkt shell çağrısı ile çözülüyor.
+    plist_path = File.expand_path("../Resources/Info.plist", __dir__)
+    sh("/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion #{build_number}' '#{plist_path}'")
 
-    build_mac_app(
+    profile_name = ENV["PROFILE_NAME"] || "match AppStore #{required_env!("APP_IDENTIFIER")}"
+
+    # suppress_xcode_output: gym'in Türkçe karakter içeren xcodebuild çıktısını
+    # US-ASCII ile parse etmesinden kaynaklanan encoding bug'ını önler.
+    # buildlog_path: çıktı /tmp/gym_build.log dosyasına yazılır.
+    build_options = {
       project: "VideoRecorder.xcodeproj",
       scheme: "VideoRecorderApp",
       configuration: "Release",
       clean: true,
       xcodebuild_formatter: "",
+      suppress_xcode_output: true,
+      buildlog_path: "/tmp",
       export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          required_env!("APP_IDENTIFIER") => "match AppStore #{required_env!("APP_IDENTIFIER")}"
-        }
-      },
       output_directory: "build",
       skip_package_pkg: false
-    )
+    }
+
+    if options[:skip_certificates]
+      build_options[:xcargs] = "-allowProvisioningUpdates CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY='Apple Development' PROVISIONING_PROFILE_SPECIFIER=''"
+      build_options[:export_options] = {
+        signingStyle: "automatic"
+      }
+    else
+      build_options[:xcargs] = "PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'"
+      build_options[:export_options] = {
+        provisioningProfiles: {
+          required_env!("APP_IDENTIFIER") => profile_name
+        }
+      }
+    end
+
+    build_mac_app(**build_options)
 
     upload_to_testflight(
       api_key: api_key,

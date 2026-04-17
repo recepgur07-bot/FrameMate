@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "tr",
   "strings" : {
+    "%@" : {
+
+    },
     "%@ hazır." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -232,6 +235,9 @@
         }
       }
     },
+    "Birkaç İzne İhtiyacımız Var" : {
+
+    },
     "Bu süre dolunca kayıt otomatik olarak durur." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -452,9 +458,6 @@
         }
       }
     },
-    "Ekran bulunamadı" : {
-
-    },
     "Ekran Kaydı Ayarları'nı aç" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -521,6 +524,9 @@
         }
       }
     },
+    "Ekranını, sesini ve kameranı kolayca kaydet." : {
+
+    },
     "Erişilebilirlik ve Yönlendirme" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -553,6 +559,12 @@
           }
         }
       }
+    },
+    "FrameMate" : {
+
+    },
+    "FrameMate'e Hoş Geldin" : {
+
     },
     "Geri bildirim sıklığı" : {
       "extractionState" : "manual",
@@ -807,9 +819,6 @@
         }
       }
     },
-    "Kamera bulunamadı" : {
-
-    },
     "Kamera bulunamadı." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -864,6 +873,9 @@
           }
         }
       }
+    },
+    "Kamera izni yalnızca Ekran + Kamera modunda gereklidir." : {
+
     },
     "Kamera iznine izin ver" : {
       "extractionState" : "manual",
@@ -985,9 +997,6 @@
           }
         }
       }
-    },
-    "Kayıt %@ saniye sonra başlıyor…" : {
-
     },
     "Kayıt %lld saniye sonra başlıyor…" : {
       "extractionState" : "manual",
@@ -1143,6 +1152,9 @@
         }
       }
     },
+    "Kısayol: ⌘%@" : {
+
+    },
     "Klasör Seç" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1276,6 +1288,7 @@
       }
     },
     "Mikrofon bulunamadı" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1295,9 +1308,6 @@
           }
         }
       }
-    },
-    "Mikrofon izni gerekli" : {
-
     },
     "Mikrofon izni reddedildi — Sistem Ayarları'nı aç" : {
       "extractionState" : "manual",
@@ -1387,9 +1397,6 @@
         }
       }
     },
-    "Mikrofon seviyesi: %@%%" : {
-
-    },
     "Mikrofon seviyesi: %lld%%" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1422,6 +1429,12 @@
           }
         }
       }
+    },
+    "Nasıl Kayıt Yapabilirsin?" : {
+
+    },
+    "Opsiyonel" : {
+
     },
     "Orta Sağ" : {
       "extractionState" : "manual",
@@ -1500,9 +1513,6 @@
         }
       }
     },
-    "Pencere bulunamadı" : {
-
-    },
     "Pencere seçimi" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1513,6 +1523,9 @@
           }
         }
       }
+    },
+    "Sağdaki düğmeler tıklanabilir. İzin istedikten sonra macOS penceresi açılırsa oradan onay ver." : {
+
     },
     "Seçilen kamera oturuma eklenemedi." : {
       "extractionState" : "manual",
@@ -1623,9 +1636,6 @@
           }
         }
       }
-    },
-    "Sistem sesi seviyesi: %@%%" : {
-
     },
     "Sistem sesi seviyesi: %lld%%" : {
       "extractionState" : "manual",

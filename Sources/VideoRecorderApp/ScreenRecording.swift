@@ -1,6 +1,7 @@
 import CoreGraphics
 import Foundation
 import AVFoundation
+import AppKit
 
 struct ScreenDisplayOption: Identifiable, Hashable {
     let id: String
@@ -91,6 +92,9 @@ final class SystemScreenRecordingProvider: ScreenRecordingProviding {
     func requestAccess() async -> ScreenRecordingPermissionRequestResult {
         await withCheckedContinuation { continuation in
             DispatchQueue.main.async {
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.windows.first(where: \.canBecomeKey)?.makeKeyAndOrderFront(nil)
+
                 if CGPreflightScreenCaptureAccess() {
                     continuation.resume(returning: .granted)
                     return

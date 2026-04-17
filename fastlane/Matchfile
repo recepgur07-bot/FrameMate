@@ -1,6 +1,6 @@
-git_url(ENV["MATCH_GIT_URL"] || "https://github.com/recepgur/certificates")
+git_url("git@github.com:recepgur07-bot/voicemate-certificates.git")
 storage_mode("git")
 type("appstore")
 
-app_identifier([ENV["APP_IDENTIFIER"] || "com.recepgur.VideoRecorder"])
+app_identifier(["com.recepgur.VideoRecorder"])
 username(ENV["FASTLANE_USER"] || "recepgur07@gmail.com")
