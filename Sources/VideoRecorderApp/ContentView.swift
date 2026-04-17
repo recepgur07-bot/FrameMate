@@ -264,10 +264,10 @@ struct ContentView: View {
 
                 if viewModel.selectedPreset == .verticalScreen {
                     HStack(alignment: .top, spacing: 6) {
-                        Image(systemName: "exclamationmark.triangle")
+                        Image(systemName: "info.circle")
                             .font(.caption2)
-                            .foregroundStyle(.orange)
-                        Text(String(localized: "Mac ekranı yatay olduğundan dikey (9:16) çıktıda üst ve alt siyah bant oluşur. Düzenleme uygulamasında kırpabilirsin."))
+                            .foregroundStyle(.secondary)
+                        Text(String(localized: "Ekran içeriği dikey (9:16) kanvası dolduracak şekilde ortalanır; sol ve sağ kenarlar hafifçe kırpılabilir."))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
@@ -300,7 +300,7 @@ struct ContentView: View {
                         flowPickerRow(
                             title: String(localized: "Kamera seçimi"),
                             hint: viewModel.cameraPermissionStatus == .authorized
-                                ? String(localized: "Hangi kamerayla kayıt yapılacağını seçer.")
+                                ? String(localized: "Hangi kamerayla kayıt yapılacağını seçer. Mac kamerası için bilgisayarın önüne geç; iPhone kamerası için Süreklilik Kamerası'nı kullan.")
                                 : String(localized: "Önce üstteki izinler bölümünden kamera iznini tamamla.")
                         ) {
                             Picker(String(localized: "Kamera seçimi"), selection: $viewModel.selectedCameraID) {
@@ -418,7 +418,7 @@ struct ContentView: View {
 
                     flowToggleRow(
                         title: String(localized: "Sistem sesini kaydet"),
-                        detail: String(localized: "Mac'te çalan uygulama ve sistem seslerini kayda ekler."),
+                        detail: String(localized: "Mac'te çalan müzik, video veya uygulama seslerini videoya ekler. Sadece senin sesin yeterliyse kapalı bırak."),
                         isOn: $viewModel.isSystemAudioEnabled
                     )
 
@@ -449,7 +449,7 @@ struct ContentView: View {
                     flowSection(title: String(localized: "Kadraj")) {
                         flowToggleRow(
                             title: String(localized: "Otomatik yeniden kadrajlama"),
-                            detail: String(localized: "Tek kişilik çekimde görüntüyü daha dengeli tutar."),
+                            detail: String(localized: "Kayıt sırasında yüzünü çerçevede tutar; yana döndüğünde kamera seni takip eder. Tek kişilik kamera çekimlerinde çalışır."),
                             isOn: Binding(
                                 get: { viewModel.isAutoReframeEnabled },
                                 set: { _ in viewModel.toggleAutoReframe() }
@@ -488,10 +488,10 @@ struct ContentView: View {
                 }
 
                 if viewModel.showsScreenOverlayControls {
-                    flowSection(title: String(localized: "Kamera kutusu")) {
+                    flowSection(title: String(localized: "Kamera kutusu — ekranda kendinizi gösterin")) {
                         flowToggleRow(
                             title: String(localized: "Kamera kutusunu göster"),
-                            detail: String(localized: "Ekran kaydının üstüne kamera görüntünü ekler."),
+                            detail: String(localized: "Ekran kaydının üstüne kendi görüntünü ekler. Aşağıdan kamerayı, konumu ve boyutu seçebilirsin."),
                             isOn: Binding(
                                 get: { viewModel.isScreenCameraOverlayEnabled },
                                 set: { _ in viewModel.toggleScreenCameraOverlay() }
@@ -501,7 +501,7 @@ struct ContentView: View {
                         if viewModel.showsScreenOverlayConfiguration {
                             flowPickerRow(
                                 title: String(localized: "Kamera"),
-                                hint: String(localized: "Kamera kutusunda kullanılacak kamerayı seçer.")
+                                hint: String(localized: "Kamera kutusunda görünecek kamerayı seçer. Mac kamerası için bilgisayarın önüne geç; iPhone kamerası için Süreklilik Kamerası'nı kullan.")
                             ) {
                                 Picker(String(localized: "Kamera"), selection: $viewModel.selectedCameraID) {
                                     if viewModel.cameraPermissionStatus != .authorized {

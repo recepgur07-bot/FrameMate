@@ -47,15 +47,15 @@ enum RecordingPreset: String, CaseIterable, Identifiable, Codable {
     var shortDescription: String {
         switch self {
         case .horizontalCamera:
-            return String(localized: "Kamera ile yatay video çek")
+            return String(localized: "YouTube, Zoom ve genel paylaşım için 1920×1080 yatay kamera")
         case .verticalCamera:
-            return String(localized: "Kamera ile dikey video çek")
+            return String(localized: "Reels, Shorts ve TikTok için 1080×1920 dikey kamera")
         case .horizontalScreen:
-            return String(localized: "Yatay ekran veya pencere kaydet")
+            return String(localized: "Ekranını veya bir pencereyi yatay videoya kaydet")
         case .verticalScreen:
-            return String(localized: "Dikey ekran veya pencere kaydet")
+            return String(localized: "Ekranını Reels, Shorts ve TikTok için dikey videoya kaydet")
         case .audioOnly:
-            return String(localized: "Sadece ses kaydı al")
+            return String(localized: "Görüntüsüz, yalnızca ses kaydı al")
         }
     }
 
