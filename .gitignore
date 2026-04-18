@@ -1,6 +1,11 @@
 .env
 .env.fastlane
 fastlane/keys/
+*.provisionprofile
+*.mobileprovision
+*.p12
+*.cer
+*.key
 build/
 *.xcarchive
 tmp/
