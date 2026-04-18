@@ -1236,6 +1236,31 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Yardım ve Gizlilik") {
+                Link(
+                    "Yardım ve Destek",
+                    destination: URL(string: "https://recepgur07-bot.github.io/oneday-support/framemate-support")!
+                )
+                .accessibilityHint(String(localized: "FrameMate destek sayfasını tarayıcıda açar."))
+
+                Link(
+                    "Gizlilik Politikası",
+                    destination: URL(string: "https://recepgur07-bot.github.io/oneday-support/framemate-privacy")!
+                )
+                .accessibilityHint(String(localized: "FrameMate gizlilik politikasını tarayıcıda açar."))
+
+                Link(
+                    "Geliştiriciye E-posta Gönder",
+                    destination: URL(string: "mailto:seslerinizindeapps@outlook.com")!
+                )
+                .accessibilityHint(String(localized: "Destek için e-posta uygulamasını açar."))
+
+                Text("Kamera, mikrofon ve ekran kaydı izinleri yalnızca seçtiğin kayıt özellikleri için kullanılır. Kayıt dosyaları varsayılan olarak Mac'inde saklanır.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             #if DEBUG
             Section("Tanılama") {
                 DisclosureGroup("Otomatik Kadraj Tanılama") {
