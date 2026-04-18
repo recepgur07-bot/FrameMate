@@ -1336,6 +1336,7 @@ final class RecorderViewModel {
         }
 
         guard ensureRecordingAccess() else { return }
+        guard ensureSelectedRecordingCanStart() else { return }
 
         if recordingCountdown == .none {
             startRecording()
@@ -1610,6 +1611,7 @@ final class RecorderViewModel {
         guard !isPreparingRecording else { return }
         selectPreset(.audioOnly)
         guard ensureRecordingAccess() else { return }
+        guard ensureSelectedRecordingCanStart() else { return }
         startRecording()
     }
 
@@ -1630,6 +1632,7 @@ final class RecorderViewModel {
 
     private func startRecordingAsync() async {
         guard ensureRecordingAccess() else { return }
+        guard ensureSelectedRecordingCanStart() else { return }
 
         do {
             let fileNamer = try resolvedActiveFileNamer()
@@ -2667,6 +2670,17 @@ final class RecorderViewModel {
             paywallMessageText = nil
             errorText = nil
             statusText = String(localized: "14 günlük deneme sona erdi")
+            return false
+        }
+
+        return true
+    }
+
+    private func ensureSelectedRecordingCanStart() -> Bool {
+        guard canStartRecording else {
+            refreshDeviceState()
+            errorText = nil
+            statusText = makeStatusText()
             return false
         }
 

@@ -74,6 +74,84 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(microphoneRecorder.startCalled)
     }
 
+    func testDirectStartDoesNotBeginScreenRecordingWithoutScreenPermission() async {
+        let screenProvider = MockScreenRecordingProvider(
+            status: .denied,
+            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+        )
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: screenProvider,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .denied, .audio: .denied])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.selectScreenCaptureSource(.screen)
+        viewModel.refreshDeviceState()
+
+        viewModel.startRecording()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertNil(screenProvider.startedTarget)
+        XCTAssertFalse(viewModel.isRecording)
+        XCTAssertFalse(viewModel.isPreparingRecording)
+        XCTAssertEqual(viewModel.statusText, "Ekran kaydı için macOS ekran kaydı izni gerekli.")
+    }
+
+    func testGlobalToggleDoesNotBeginCountdownWhenSelectedModeCannotStart() async {
+        let screenProvider = MockScreenRecordingProvider(
+            status: .denied,
+            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+        )
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: screenProvider,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .denied, .audio: .denied])
+        )
+
+        await viewModel.setup()
+        viewModel.recordingCountdown = .three
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.selectScreenCaptureSource(.screen)
+        viewModel.refreshDeviceState()
+
+        viewModel.toggleRecording()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertEqual(viewModel.countdownRemaining, 0)
+        XCTAssertNil(screenProvider.startedTarget)
+        XCTAssertFalse(viewModel.isRecording)
+        XCTAssertEqual(viewModel.statusText, "Ekran kaydı için macOS ekran kaydı izni gerekli.")
+    }
+
+    func testAudioShortcutDoesNotStartWhenMicrophonePermissionIsDenied() async {
+        let microphoneRecorder = MockMicrophoneAudioRecorder()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            microphoneAudioRecorder: microphoneRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.audio: .denied])
+        )
+
+        await viewModel.setup()
+        viewModel.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertFalse(microphoneRecorder.startCalled)
+        XCTAssertFalse(viewModel.isRecording)
+        XCTAssertFalse(viewModel.isPreparingRecording)
+        XCTAssertNotEqual(viewModel.statusText, "Ses kaydı yapılıyor")
+    }
+
     func testAccessibilitySetupSummaryForVerticalCameraDescribesSelectedInputs() async {
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(
