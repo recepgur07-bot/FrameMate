@@ -560,36 +560,54 @@ final class RecorderViewModel {
         switch selectedPreset {
         case .horizontalCamera, .verticalCamera:
             var parts = [
-                "Kamera \(selectedCameraNameOrFallback)",
-                "mikrofon \(selectedMicrophoneNameOrFallback(required: true))",
-                "sistem sesi \(isSystemAudioEnabled ? "açık" : "kapalı")"
+                String(localized: "Kamera \(selectedCameraNameOrFallback)"),
+                String(localized: "mikrofon \(selectedMicrophoneNameOrFallback(required: true))"),
+                isSystemAudioEnabled
+                    ? String(localized: "sistem sesi açık")
+                    : String(localized: "sistem sesi kapalı")
             ]
             if showsFrameCoachControls {
-                parts.append("kadraj koçu \(isAutoReframeEnabled ? "açık" : "kapalı")")
+                parts.append(
+                    isAutoReframeEnabled
+                        ? String(localized: "kadraj koçu açık")
+                        : String(localized: "kadraj koçu kapalı")
+                )
             }
             return parts.joined(separator: ", ") + "."
         case .horizontalScreen, .verticalScreen:
             var parts = [
-                "Kaynak \(selectedScreenCaptureSource == .screen ? "tam ekran" : "pencere")"
+                selectedScreenCaptureSource == .screen
+                    ? String(localized: "Kaynak tam ekran")
+                    : String(localized: "Kaynak pencere")
             ]
             if selectedScreenCaptureSource == .screen {
-                parts.append("ekran \(selectedDisplayNameOrFallback)")
+                parts.append(String(localized: "ekran \(selectedDisplayNameOrFallback)"))
             } else {
-                parts.append("pencere \(selectedWindowNameOrFallback)")
+                parts.append(String(localized: "pencere \(selectedWindowNameOrFallback)"))
             }
-            parts.append("mikrofon \(selectedMicrophoneNameOrFallback(required: false))")
-            parts.append("sistem sesi \(isSystemAudioEnabled ? "açık" : "kapalı")")
+            parts.append(String(localized: "mikrofon \(selectedMicrophoneNameOrFallback(required: false))"))
+            parts.append(
+                isSystemAudioEnabled
+                    ? String(localized: "sistem sesi açık")
+                    : String(localized: "sistem sesi kapalı")
+            )
             if showsScreenControls {
-                parts.append("imleç vurgusu \(isCursorHighlightEnabled ? "açık" : "kapalı")")
+                parts.append(
+                    isCursorHighlightEnabled
+                        ? String(localized: "imleç vurgusu açık")
+                        : String(localized: "imleç vurgusu kapalı")
+                )
             }
             if isScreenCameraOverlayEnabled {
-                parts.append("kamera kutusu açık")
+                parts.append(String(localized: "kamera kutusu açık"))
             }
             return parts.joined(separator: ", ") + "."
         case .audioOnly:
             return [
-                "Mikrofon \(selectedMicrophoneNameOrFallback(required: false))",
-                "sistem sesi \(isSystemAudioEnabled ? "açık" : "kapalı")"
+                String(localized: "Mikrofon \(selectedMicrophoneNameOrFallback(required: false))"),
+                isSystemAudioEnabled
+                    ? String(localized: "sistem sesi açık")
+                    : String(localized: "sistem sesi kapalı")
             ].joined(separator: ", ") + "."
         }
     }
@@ -600,7 +618,7 @@ final class RecorderViewModel {
             .filter { !$0.isSatisfied }
             .map { $0.title.lowercased() }
         guard !pendingTitles.isEmpty else { return nil }
-        return "Eksik izinler: \(pendingTitles.joined(separator: ", "))."
+        return String(localized: "Eksik izinler: \(pendingTitles.joined(separator: ", ")).")
     }
 
     var requiredPermissionItems: [PermissionHubItem] {
@@ -1260,7 +1278,9 @@ final class RecorderViewModel {
             beginCurrentPauseRange()
             isPaused = true
             soundEffectPlayer.playPauseResume()
-            statusText = selectedRecordingSource == .audio ? "Ses kaydı duraklatıldı" : "Kayıt duraklatıldı"
+            statusText = selectedRecordingSource == .audio
+                ? String(localized: "Ses kaydı duraklatıldı")
+                : String(localized: "Kayıt duraklatıldı")
             sleepPreventer.allow()
             recordingDurationTask?.cancel()
             recordingDurationTask = nil
@@ -1487,6 +1507,8 @@ final class RecorderViewModel {
         speechCuePlayer.speakIfNeeded(guidance.sentenceCased, isEnabled: true, key: guidance.sentenceCased, settings: frameCoachPreferences)
     }
 
+    /// Matches against Turkish coaching phrases produced by the frame coach engine.
+    /// These are pattern strings used for internal matching — intentionally not localized.
     private func isHardFrameCoachInstruction(_ instruction: String) -> Bool {
         let hardKeywords = ["algılanam", "tam girmiyor", "arkada kalmış", "daha yakın", "Çok yakınsın", "Çok uzaktasın", "Çok uzaktasınız"]
         return hardKeywords.contains { instruction.contains($0) }
@@ -1600,7 +1622,7 @@ final class RecorderViewModel {
             lastSavedURL = nil
             completedRecording = nil
             errorText = nil
-            statusText = "Kayıt yapılıyor"
+            statusText = String(localized: "Kayıt yapılıyor")
             sleepPreventer.prevent(reason: "Video kaydı devam ediyor")
             startMaxDurationTimer()
         } catch {
@@ -1640,7 +1662,7 @@ final class RecorderViewModel {
         isPaused = false
         pauseResumeTask?.cancel()
         pauseResumeTask = nil
-        statusText = "Kayıt durduruluyor"
+        statusText = String(localized: "Kayıt durduruluyor")
         soundEffectPlayer.playStop()
         sleepPreventer.allow()
         recordingDurationTask?.cancel()
@@ -1655,7 +1677,7 @@ final class RecorderViewModel {
                 await MainActor.run { [weak self] in
                     guard let self, self.isRecording else { return }
                     self.speechCuePlayer.speakIfNeeded(
-                        "Maksimum kayıt süresine ulaşıldı, kayıt durduruluyor",
+                        String(localized: "Maksimum kayıt süresine ulaşıldı, kayıt durduruluyor"),
                         isEnabled: true,
                         key: "max-duration-stop"
                     )
@@ -1733,7 +1755,7 @@ final class RecorderViewModel {
         lastSavedURL = nil
         completedRecording = nil
         errorText = nil
-        statusText = "Ses kaydı yapılıyor"
+        statusText = String(localized: "Ses kaydı yapılıyor")
         sleepPreventer.prevent(reason: "Ses kaydı devam ediyor")
         startMaxDurationTimer()
     }
@@ -1849,7 +1871,7 @@ final class RecorderViewModel {
         lastSavedURL = nil
         completedRecording = nil
         errorText = nil
-        statusText = "Kayıt yapılıyor"
+        statusText = String(localized: "Kayıt yapılıyor")
             sleepPreventer.prevent(reason: "Ekran kaydı devam ediyor")
             startMaxDurationTimer()
     }
@@ -1868,7 +1890,7 @@ final class RecorderViewModel {
             if let screenError = error as? ScreenRecordingError, screenError == .emptyRecording {
                 pendingCameraSystemAudioCaptureResult = .success(nil)
             } else {
-                pendingCameraSystemAudioWarning = "sistem sesi eklenemedi"
+                pendingCameraSystemAudioWarning = String(localized: "sistem sesi eklenemedi")
                 pendingCameraSystemAudioCaptureResult = .success(nil)
             }
         }
@@ -1912,7 +1934,7 @@ final class RecorderViewModel {
 
         switch result {
         case .success(let captureURL):
-            statusText = "MP4 hazırlanıyor"
+            statusText = String(localized: "MP4 hazırlanıyor")
             Task {
                 do {
                     let exportResult = try await exportMP4(
@@ -1939,9 +1961,9 @@ final class RecorderViewModel {
                             usedVideoComposition: exportResult.usedVideoComposition
                         )
                         if let warningText {
-                            statusText = "Kaydedildi: \(exportResult.url.path) (\(summary), \(warningText))"
+                            statusText = String(localized: "Kaydedildi: \(exportResult.url.path) (\(summary), \(warningText))")
                         } else {
-                            statusText = "Kaydedildi: \(exportResult.url.path) (\(summary))"
+                            statusText = String(localized: "Kaydedildi: \(exportResult.url.path) (\(summary))")
                         }
                         speechCuePlayer.reset()
                         speechCuePlayer.speakIfNeeded(
@@ -1981,7 +2003,7 @@ final class RecorderViewModel {
             if let microphoneError = error as? MicrophoneAudioRecorderError, microphoneError == .emptyRecording {
                 pendingScreenMicrophoneCaptureResult = .success(nil)
             } else {
-                pendingScreenMicrophoneWarning = "mikrofon sesi eklenemedi"
+                pendingScreenMicrophoneWarning = String(localized: "mikrofon sesi eklenemedi")
                 pendingScreenMicrophoneCaptureResult = .success(nil)
             }
         }
@@ -1996,7 +2018,7 @@ final class RecorderViewModel {
             if let screenError = error as? ScreenRecordingError, screenError == .emptyRecording {
                 pendingScreenSystemAudioCaptureResult = .success(nil)
             } else {
-                pendingScreenSystemAudioWarning = "sistem sesi eklenemedi"
+                pendingScreenSystemAudioWarning = String(localized: "sistem sesi eklenemedi")
                 pendingScreenSystemAudioCaptureResult = .success(nil)
             }
         }
@@ -2011,7 +2033,7 @@ final class RecorderViewModel {
             if let microphoneError = error as? MicrophoneAudioRecorderError, microphoneError == .emptyRecording {
                 pendingAudioMicrophoneCaptureResult = .success(nil)
             } else {
-                pendingAudioMicrophoneWarning = "mikrofon sesi eklenemedi"
+                pendingAudioMicrophoneWarning = String(localized: "mikrofon sesi eklenemedi")
                 pendingAudioMicrophoneCaptureResult = .success(nil)
             }
         }
@@ -2026,7 +2048,7 @@ final class RecorderViewModel {
             if let screenError = error as? ScreenRecordingError, screenError == .emptyRecording {
                 pendingAudioSystemAudioCaptureResult = .success(nil)
             } else {
-                pendingAudioSystemAudioWarning = "sistem sesi eklenemedi"
+                pendingAudioSystemAudioWarning = String(localized: "sistem sesi eklenemedi")
                 pendingAudioSystemAudioCaptureResult = .success(nil)
             }
         }
@@ -2051,7 +2073,7 @@ final class RecorderViewModel {
         case (.failure(let error), _), (_, .failure(let error)):
             report(error)
         case (.success(let microphoneURL), .success(let systemAudioURL)):
-            statusText = "M4A hazırlanıyor"
+            statusText = String(localized: "M4A hazırlanıyor")
             Task {
                 do {
                     let exportURL = try await audioRecordingExporter.export(
@@ -2073,9 +2095,9 @@ final class RecorderViewModel {
                         lastSavedURL = exportURL
                         completedRecording = makeCompletedRecordingSummary(for: exportURL, warnings: warnings)
                         if warnings.isEmpty {
-                            statusText = "Kaydedildi: \(exportURL.path)"
+                            statusText = String(localized: "Kaydedildi: \(exportURL.path)")
                         } else {
-                            statusText = "Kaydedildi: \(exportURL.path) (\(warnings.joined(separator: ", ")))"
+                            statusText = String(localized: "Kaydedildi: \(exportURL.path) (\(warnings.joined(separator: ", ")))")
                         }
                     }
                 } catch {
@@ -2128,7 +2150,7 @@ final class RecorderViewModel {
         case (_, _, _, .failure(let error)):
             report(error)
         case (.success(let captureURL), .success(let overlayURL), .success(let microphoneURL), .success(let systemAudioURL)):
-            statusText = "MP4 hazırlanıyor"
+            statusText = String(localized: "MP4 hazırlanıyor")
             Task {
                 do {
                     let exportResult = try await exportMP4(
@@ -2164,9 +2186,9 @@ final class RecorderViewModel {
                         lastAutoReframeUsedFallbackExport = exportResult.usedFallbackExport
                         lastAutoReframeStrategy = exportResult.strategy
                         if warnings.isEmpty {
-                            statusText = "Kaydedildi: \(exportResult.url.path)"
+                            statusText = String(localized: "Kaydedildi: \(exportResult.url.path)")
                         } else {
-                            statusText = "Kaydedildi: \(exportResult.url.path) (\(warnings.joined(separator: ", ")))"
+                            statusText = String(localized: "Kaydedildi: \(exportResult.url.path) (\(warnings.joined(separator: ", ")))")
                         }
                     }
                 } catch {
@@ -2483,7 +2505,7 @@ final class RecorderViewModel {
     func chooseRecordingOutputDirectory() {
         guard let selectedURL = chooseOutputDirectory(recordingOutputDirectoryURL) else { return }
         recordingOutputDirectoryURL = selectedURL
-        statusText = "Varsayılan kayıt klasörü: \(selectedURL.path)"
+        statusText = String(localized: "Varsayılan kayıt klasörü: \(selectedURL.path)")
     }
 
     func renameCompletedRecording() {
@@ -2504,7 +2526,7 @@ final class RecorderViewModel {
             try moveRecordingFile(from: completedRecording.url, to: renamedURL)
             lastSavedURL = renamedURL
             self.completedRecording = makeCompletedRecordingSummary(for: renamedURL, warnings: completedRecording.warnings)
-            statusText = "Yeniden adlandırıldı: \(renamedURL.lastPathComponent)"
+            statusText = String(localized: "Yeniden adlandırıldı: \(renamedURL.lastPathComponent)")
         } catch {
             report(error)
             self.completedRecording = completedRecording
@@ -2531,7 +2553,7 @@ final class RecorderViewModel {
             try moveRecordingFile(from: completedRecording.url, to: destinationURL)
             lastSavedURL = destinationURL
             self.completedRecording = makeCompletedRecordingSummary(for: destinationURL, warnings: completedRecording.warnings)
-            statusText = "Farklı kaydedildi: \(destinationURL.path)"
+            statusText = String(localized: "Farklı kaydedildi: \(destinationURL.path)")
         } catch {
             report(error)
             self.completedRecording = completedRecording
@@ -2583,7 +2605,7 @@ final class RecorderViewModel {
             throw NSError(
                 domain: "VideoRecorderApp.RecordingFileMove",
                 code: 1,
-                userInfo: [NSLocalizedDescriptionKey: "Hedefte aynı isimde bir dosya zaten var."]
+                userInfo: [NSLocalizedDescriptionKey: String(localized: "Hedefte aynı isimde bir dosya zaten var.")]
             )
         }
 
@@ -2970,26 +2992,26 @@ final class RecorderViewModel {
         switch selectedRecordingSource {
         case .camera:
             var lines = [
-                "Kamera izni: \(permissionLabel(for: .video)). Mikrofon izni: \(permissionLabel(for: .audio))."
+                String(localized: "Kamera izni: \(permissionLabel(for: .video)). Mikrofon izni: \(permissionLabel(for: .audio)).")
             ]
             if isSystemAudioEnabled {
-                lines.append("Sistem sesi için ekran kaydı izni: \(screenPermissionLabel()).")
+                lines.append(String(localized: "Sistem sesi için ekran kaydı izni: \(screenPermissionLabel())."))
             }
             permissionStatusText = lines.joined(separator: " ")
         case .screen, .window:
-            var lines = ["Ekran kaydı izni: \(screenPermissionLabel())."]
-            lines.append("Mikrofon izni: \(permissionLabel(for: .audio)).")
+            var lines = [String(localized: "Ekran kaydı izni: \(screenPermissionLabel()).")]
+            lines.append(String(localized: "Mikrofon izni: \(permissionLabel(for: .audio))."))
             if isScreenCameraOverlayEnabled {
-                lines.append("Kamera kutusu için kamera izni: \(permissionLabel(for: .video)).")
+                lines.append(String(localized: "Kamera kutusu için kamera izni: \(permissionLabel(for: .video))."))
             }
             if screenPermissionNeedsRestart {
-                lines.append("İzin verdiysen macOS değişikliği görmek için uygulamayı kapatıp yeniden açman gerekebilir.")
+                lines.append(String(localized: "İzin verdiysen macOS değişikliği görmek için uygulamayı kapatıp yeniden açman gerekebilir."))
             }
             permissionStatusText = lines.joined(separator: " ")
         case .audio:
-            var lines = ["Mikrofon izni: \(permissionLabel(for: .audio))."]
+            var lines = [String(localized: "Mikrofon izni: \(permissionLabel(for: .audio)).")]
             if isSystemAudioEnabled {
-                lines.append("Sistem sesi için ekran kaydı izni: \(screenPermissionLabel()).")
+                lines.append(String(localized: "Sistem sesi için ekran kaydı izni: \(screenPermissionLabel())."))
             }
             permissionStatusText = lines.joined(separator: " ")
         }
@@ -3010,15 +3032,15 @@ final class RecorderViewModel {
     private func permissionLabel(for mediaType: AVMediaType) -> String {
         switch permissionProvider.authorizationStatus(for: mediaType) {
         case .authorized:
-            return "verildi"
+            return String(localized: "verildi")
         case .notDetermined:
-            return "henüz sorulmadı"
+            return String(localized: "henüz sorulmadı")
         case .denied:
-            return "reddedildi"
+            return String(localized: "reddedildi")
         case .restricted:
-            return "kısıtlı"
+            return String(localized: "kısıtlı")
         @unknown default:
-            return "bilinmiyor"
+            return String(localized: "bilinmiyor")
         }
     }
 
@@ -3058,22 +3080,27 @@ final class RecorderViewModel {
     }
 
     private var selectedCameraNameOrFallback: String {
-        cameras.first(where: { $0.id == selectedCameraID })?.name ?? cameras.first?.name ?? "seçilmedi"
+        cameras.first(where: { $0.id == selectedCameraID })?.name
+            ?? cameras.first?.name
+            ?? String(localized: "seçilmedi")
     }
 
     private func selectedMicrophoneNameOrFallback(required: Bool) -> String {
         if selectedMicrophoneID.isEmpty {
-            return required ? "seçilmedi" : "kapalı"
+            return required ? String(localized: "seçilmedi") : String(localized: "kapalı")
         }
-        return microphones.first(where: { $0.id == selectedMicrophoneID })?.name ?? "seçilmedi"
+        return microphones.first(where: { $0.id == selectedMicrophoneID })?.name
+            ?? String(localized: "seçilmedi")
     }
 
     private var selectedDisplayNameOrFallback: String {
-        availableDisplays.first(where: { $0.id == selectedDisplayID })?.name ?? "seçilmedi"
+        availableDisplays.first(where: { $0.id == selectedDisplayID })?.name
+            ?? String(localized: "seçilmedi")
     }
 
     private var selectedWindowNameOrFallback: String {
-        availableWindows.first(where: { $0.id == selectedWindowID })?.name ?? "seçilmedi"
+        availableWindows.first(where: { $0.id == selectedWindowID })?.name
+            ?? String(localized: "seçilmedi")
     }
 
     private func makeStatusText() -> String {
@@ -3087,33 +3114,33 @@ final class RecorderViewModel {
 
         let missingPermissions = missingPermissionNames()
         if !missingPermissions.isEmpty {
-            return "Kayıt için şu izinler gerekli: \(missingPermissions.joined(separator: ", ")). Aşağıdaki butonlardan izin verin."
+            return String(localized: "Kayıt için şu izinler gerekli: \(missingPermissions.joined(separator: ", ")). Aşağıdaki butonlardan izin verin.")
         }
 
         if cameras.isEmpty {
-            return "Kamera bulunduğunda seçim burada görünecek."
+            return String(localized: "Kamera bulunduğunda seçim burada görünecek.")
         }
 
         if microphones.isEmpty {
-            return "Mikrofon bulunduğunda seçim burada görünecek."
+            return String(localized: "Mikrofon bulunduğunda seçim burada görünecek.")
         }
 
         if isSystemAudioEnabled {
             guard screenRecordingPermissionStatus == .authorized else {
-                return "Sistem sesi için macOS ekran kaydı izni gerekli."
+                return String(localized: "Sistem sesi için macOS ekran kaydı izni gerekli.")
             }
-            return "\(currentPresetReadinessLabel) hazır. Mikrofon ve sistem sesi kayda eklenecek."
+            return String(localized: "\(currentPresetReadinessLabel) hazır. Mikrofon ve sistem sesi kayda eklenecek.")
         }
 
-        return "\(currentPresetReadinessLabel) hazır."
+        return String(localized: "\(currentPresetReadinessLabel) hazır.")
     }
 
     private func makeScreenRecordingStatusText() -> String {
         guard screenRecordingPermissionStatus == .authorized else {
             if screenPermissionNeedsRestart {
-                return "Ekran kaydı izni verdiysen uygulamayı kapatıp yeniden aç. Olmazsa Sistem Ayarları > Gizlilik ve Güvenlik > Ekran Kaydı'nı kontrol et."
+                return String(localized: "Ekran kaydı izni verdiysen uygulamayı kapatıp yeniden aç. Olmazsa Sistem Ayarları > Gizlilik ve Güvenlik > Ekran Kaydı'nı kontrol et.")
             }
-            return "Ekran kaydı için macOS ekran kaydı izni gerekli."
+            return String(localized: "Ekran kaydı için macOS ekran kaydı izni gerekli.")
         }
 
         if let overlayProblem = screenOverlayReadiness.message {
@@ -3125,39 +3152,39 @@ final class RecorderViewModel {
         switch selectedRecordingSource {
         case .screen:
             if availableDisplays.isEmpty {
-                return "Paylaşılabilir ekran bulunamadı."
+                return String(localized: "Paylaşılabilir ekran bulunamadı.")
             }
             if selectedDisplayID.isEmpty {
-                return "Kayıt için bir ekran seçin."
+                return String(localized: "Kayıt için bir ekran seçin.")
             }
-            return "\(currentPresetReadinessLabel) hazır. \(audioSummary)"
+            return String(localized: "\(currentPresetReadinessLabel) hazır. \(audioSummary)")
         case .window:
             if availableWindows.isEmpty {
-                return "Paylaşılabilir pencere bulunamadı."
+                return String(localized: "Paylaşılabilir pencere bulunamadı.")
             }
             if selectedWindowID.isEmpty {
-                return "Kayıt için bir pencere seçin."
+                return String(localized: "Kayıt için bir pencere seçin.")
             }
-            return "\(currentPresetReadinessLabel) hazır. \(audioSummary)"
+            return String(localized: "\(currentPresetReadinessLabel) hazır. \(audioSummary)")
         case .camera, .audio:
-            return "Hazır"
+            return String(localized: "Hazır")
         }
     }
 
     private func makeAudioRecordingStatusText() -> String {
         if !selectedMicrophoneID.isEmpty && microphonePermissionStatus != .authorized {
-            return "Ses kaydı için mikrofon izni gerekli."
+            return String(localized: "Ses kaydı için mikrofon izni gerekli.")
         }
 
         if !isSystemAudioEnabled && selectedMicrophoneID.isEmpty {
-            return "Ses kaydı için bir mikrofon seçin ya da sistem sesini dahil edin."
+            return String(localized: "Ses kaydı için bir mikrofon seçin ya da sistem sesini dahil edin.")
         }
 
         if isSystemAudioEnabled && screenRecordingPermissionStatus != .authorized {
-            return "Sistem sesi için macOS ekran kaydı izni gerekli."
+            return String(localized: "Sistem sesi için macOS ekran kaydı izni gerekli.")
         }
 
-        return "\(currentPresetReadinessLabel) hazır. \(screenAudioSummary)"
+        return String(localized: "\(currentPresetReadinessLabel) hazır. \(screenAudioSummary)")
     }
 
     private var screenAudioSummary: String {
@@ -3165,23 +3192,23 @@ final class RecorderViewModel {
 
         switch (usesMicrophone, isSystemAudioEnabled) {
         case (true, true):
-            return "Mikrofon ve sistem sesi kayda eklenecek."
+            return String(localized: "Mikrofon ve sistem sesi kayda eklenecek.")
         case (true, false):
-            return "Yalnızca mikrofon kayda eklenecek."
+            return String(localized: "Yalnızca mikrofon kayda eklenecek.")
         case (false, true):
-            return "Yalnızca sistem sesi kayda eklenecek."
+            return String(localized: "Yalnızca sistem sesi kayda eklenecek.")
         case (false, false):
-            return "Mikrofon ve sistem sesi kapalı."
+            return String(localized: "Mikrofon ve sistem sesi kapalı.")
         }
     }
 
     private func missingPermissionNames() -> [String] {
         var names: [String] = []
         if cameraPermissionStatus != .authorized {
-            names.append("kamera")
+            names.append(String(localized: "kamera"))
         }
         if microphonePermissionStatus != .authorized {
-            names.append("mikrofon")
+            names.append(String(localized: "mikrofon"))
         }
         return names
     }
@@ -3192,15 +3219,15 @@ final class RecorderViewModel {
         }
 
         guard cameraPermissionStatus == .authorized else {
-            return (false, "Kamera kutusu için kamera izni gerekli.")
+            return (false, String(localized: "Kamera kutusu için kamera izni gerekli."))
         }
 
         guard !cameras.isEmpty else {
-            return (false, "Kamera kutusu için kullanılabilir kamera bulunamadı.")
+            return (false, String(localized: "Kamera kutusu için kullanılabilir kamera bulunamadı."))
         }
 
         guard !selectedCameraID.isEmpty else {
-            return (false, "Kamera kutusu için bir kamera seçin.")
+            return (false, String(localized: "Kamera kutusu için bir kamera seçin."))
         }
 
         if let camera = AVCaptureDevice(uniqueID: selectedCameraID) {
@@ -3208,7 +3235,7 @@ final class RecorderViewModel {
             if !effectNames.isEmpty {
                 return (
                     false,
-                    "Kamera denetim merkezindeki video efektleri açık: \(effectNames.joined(separator: ", ")). Bu efektleri kapatıp tekrar deneyin."
+                    String(localized: "Kamera denetim merkezindeki video efektleri açık: \(effectNames.joined(separator: ", ")). Bu efektleri kapatıp tekrar deneyin.")
                 )
             }
         }
@@ -3345,7 +3372,7 @@ final class RecorderViewModel {
         lastAutoReframeKeyframeCount = 0
         lastAutoReframeUsedVideoComposition = false
         lastAutoReframeUsedFallbackExport = false
-        lastAutoReframeStrategy = "hazır"
+        lastAutoReframeStrategy = String(localized: "hazır")
     }
 
     private func resetPendingScreenRecordingState() {
@@ -3377,10 +3404,10 @@ final class RecorderViewModel {
 
     func autoReframeExportSummary(keyframeCount: Int, usedVideoComposition: Bool) -> String {
         guard usedVideoComposition else {
-            return "normal export tamamlandı"
+            return String(localized: "normal export tamamlandı")
         }
 
-        return "otomatik kadraj uygulandı, \(keyframeCount) ana kare kullanıldı"
+        return String(localized: "otomatik kadraj uygulandı, \(keyframeCount) ana kare kullanıldı")
     }
 
     private func automaticFrameCoachingProfile(for analysis: FrameAnalysis) -> FrameCoachingProfile {
@@ -3488,9 +3515,11 @@ final class RecorderViewModel {
     private func screenPermissionLabel() -> String {
         switch screenRecordingPermissionStatus {
         case .authorized:
-            return "verildi"
+            return String(localized: "verildi")
         case .denied:
-            return screenPermissionNeedsRestart ? "yeniden açılış bekleniyor olabilir" : "gerekli"
+            return screenPermissionNeedsRestart
+                ? String(localized: "yeniden açılış bekleniyor olabilir")
+                : String(localized: "gerekli")
         }
     }
 

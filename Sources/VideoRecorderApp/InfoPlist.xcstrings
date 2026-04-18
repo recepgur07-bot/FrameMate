@@ -1,0 +1,74 @@
+{
+  "sourceLanguage" : "tr",
+  "strings" : {
+    "NSCameraUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera access is needed for framing guidance and video recording."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kadraj yönlendirmesi ve video kaydı için kameraya erişim gerekiyor."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Microphone access is needed to record videos with audio."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Videoları sesli kaydetmek için mikrofona erişim gerekiyor."
+          }
+        }
+      }
+    },
+    "NSScreenCaptureUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screen capture permission is required to record your screen."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekranı kaydetmek için ekran yakalama iznine ihtiyaç var."
+          }
+        }
+      }
+    },
+    "NSSpeechUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speech synthesis is used to deliver framing coach instructions aloud."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kadraj koçluğu talimatlarını sesli olarak iletmek için ses sentezi kullanılır."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

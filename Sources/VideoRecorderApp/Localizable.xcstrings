@@ -1,1950 +1,2967 @@
 {
-  "sourceLanguage" : "tr",
-  "strings" : {
-    "%@" : {
-
+  "sourceLanguage": "tr",
+  "strings": {
+    "%1$@ hazır.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is ready."
+          }
+        }
+      }
+    },
+    "%1$@ hazır. %2$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ready. %2$@"
+          }
+        }
+      }
+    },
+    "%1$@ hazır. Mikrofon ve sistem sesi kayda eklenecek.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ready. Microphone and system audio will be included."
+          }
+        }
+      }
+    },
+    "%1$@ izni gerekli": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ permission required"
+          }
+        }
+      }
+    },
+    "%1$@ ve %2$@ izni gerekli": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ and %2$@ permission required"
+          }
+        }
+      }
+    },
+    "%@": {},
+    "%@ hazır.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is ready."
+          }
+        }
+      }
+    },
+    "%lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld seconds"
+          }
+        }
+      }
+    },
+    "%lld yüzde": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld percent"
+          }
+        }
+      }
+    },
+    ", opsiyonel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", optional"
+          }
+        }
+      }
+    },
+    "10 dakika": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "10 minutes"
+          }
+        }
+      }
+    },
+    "10 saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "10 seconds"
+          }
+        }
+      }
+    },
+    "15 dakika": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 minutes"
+          }
+        }
+      }
+    },
+    "3 saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 seconds"
+          }
+        }
+      }
+    },
+    "30 dakika": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 minutes"
+          }
+        }
+      }
+    },
+    "5 dakika": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 minutes"
+          }
+        }
+      }
+    },
+    "5 saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 seconds"
+          }
+        }
+      }
+    },
+    "60 dakika": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "60 minutes"
+          }
+        }
+      }
+    },
+    "Adım 1 / 3, FrameMate'e Hoş Geldin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 1 of 3, Welcome to FrameMate"
+          }
+        }
+      }
+    },
+    "Adım 2 / 3, Kayıt Modları": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 2 of 3, Recording Modes"
+          }
+        }
+      }
+    },
+    "Adım 3 / 3: Birkaç İzne İhtiyacımız Var": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step 3 of 3: We Need a Few Permissions"
+          }
+        }
+      }
+    },
+    "Alt Orta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom Center"
+          }
+        }
+      }
+    },
+    "Alt Sağ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom Right"
+          }
+        }
+      }
+    },
+    "Alt Sol": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bottom Left"
+          }
+        }
+      }
+    },
+    "Ana kare sayısı: %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyframe count: %lld"
+          }
+        }
+      }
+    },
+    "Aynı uyarıyı tekrarla": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repeat same warning"
+          }
+        }
+      }
+    },
+    "Aç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
+          }
+        }
+      }
+    },
+    "Başla": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get Started"
+          }
+        }
+      }
+    },
+    "Bekleniyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting…"
+          }
+        }
+      }
+    },
+    "bilinmiyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unknown"
+          }
+        }
+      }
+    },
+    "biraz sağa geç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "move a bit to the right"
+          }
+        }
+      }
+    },
+    "biraz sola geç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "move a bit to the left"
+          }
+        }
+      }
+    },
+    "Birkaç İzne İhtiyacımız Var": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We Need a Few Permissions"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "Bu süre dolunca kayıt otomatik olarak durur.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The recording stops automatically when this duration is reached."
+          }
+        }
+      }
+    },
+    "Dengeli": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Balanced"
+          }
+        }
+      }
+    },
+    "Devam Et": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume"
+          }
+        }
+      }
+    },
+    "Dikey ekran kaydı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical screen recording"
+          }
+        }
+      }
+    },
+    "Dikey ekran kaydı modu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical screen recording mode"
+          }
+        }
+      }
+    },
+    "Dikey pencere kaydı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical window recording"
+          }
+        }
+      }
+    },
+    "Dikey Sohbet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical Conversation"
+          }
+        }
+      }
+    },
+    "Dikey Sosyal Video": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical Social Video"
+          }
+        }
+      }
+    },
+    "Dikey video kaydı modu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vertical video recording mode"
+          }
+        }
+      }
+    },
+    "Dosya adı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "File name"
+          }
+        }
+      }
+    },
+    "Duraklat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause"
+          }
+        }
+      }
+    },
+    "Durum %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status %1$@"
+          }
+        }
+      }
+    },
+    "Durum: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: %1$@"
+          }
+        }
+      }
+    },
+    "Ekran": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen"
+          }
+        }
+      }
     },
-    "%@ hazır." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ is ready."
+    "ekran %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "screen %1$@"
           }
         }
       }
     },
-    "%1$@ hazır." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@ is ready."
+    "Ekran + Kamera": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen + Camera"
           }
         }
       }
     },
-    "%lld saniye" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld seconds"
+    "Ekran Anlatımı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen Guide"
           }
         }
       }
     },
-    "%lld yüzde" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld percent"
+    "Ekran Kaydı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen Recording"
           }
         }
       }
     },
-    "3 saniye" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "3 seconds"
+    "Ekran Kaydı Ayarları'nı aç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Screen Recording Settings"
           }
         }
       }
     },
-    "5 dakika" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5 minutes"
+    "Ekran kaydı izni verdiysen uygulamayı kapatıp yeniden aç. Olmazsa Sistem Ayarları > Gizlilik ve Güvenlik > Ekran Kaydı'nı kontrol et.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you granted screen recording permission, quit and reopen the app. Otherwise check System Settings > Privacy & Security > Screen Recording."
           }
         }
       }
     },
-    "5 saniye" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "5 seconds"
+    "Ekran kaydı izni verildi. Uygulamayı yeniden açman gerekecek.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen recording permission granted. You'll need to reopen the app."
           }
         }
       }
     },
-    "10 dakika" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "10 minutes"
+    "Ekran kaydı izni: %1$@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen recording permission: %1$@."
           }
         }
       }
     },
-    "10 saniye" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "10 seconds"
+    "Ekran kaydı iznini iste": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Request screen recording permission"
           }
         }
       }
     },
-    "15 dakika" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "15 minutes"
+    "Ekran kaydı için macOS ekran kaydı izni gerekli.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS screen recording permission is required for screen recording."
           }
         }
       }
     },
-    "30 dakika" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "30 minutes"
+    "Ekran kaynağı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen source"
           }
         }
       }
     },
-    "60 dakika" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "60 minutes"
+    "Ekran kaynağı seçimi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen source selection"
           }
         }
       }
     },
-    "Aç" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open"
+    "Ekran seçimi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen selection"
           }
         }
       }
     },
-    "Alt Orta" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bottom Center"
+    "Ekranda yönlendirme metnini göster": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show guidance text on screen"
           }
         }
       }
     },
-    "Alt Sağ" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bottom Right"
+    "Ekranını, sesini ve kameranı kolayca kaydet.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Easily record your screen, audio, and camera."
           }
         }
+      },
+      "extractionState": "manual"
+    },
+    "Eksik izinler: %1$@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missing permissions: %1$@."
+          }
+        }
+      }
+    },
+    "Erişilebilirlik ve Yönlendirme": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessibility and Guidance"
+          }
+        }
+      }
+    },
+    "Erişim ve Satın Alma": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access & Purchase"
+          }
+        }
+      }
+    },
+    "evet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "yes"
+          }
+        }
+      }
+    },
+    "Farklı kaydedildi: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved as: %1$@"
+          }
+        }
+      }
+    },
+    "Farklı Kaydet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save As"
+          }
+        }
+      }
+    },
+    "FrameMate": {},
+    "FrameMate'e Hoş Geldin": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to FrameMate"
+          }
+        }
+      },
+      "extractionState": "manual"
+    },
+    "gerekli": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "required"
+          }
+        }
+      }
+    },
+    "Geri bildirim sıklığı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback frequency"
+          }
+        }
+      }
+    },
+    "Geri sayım süresi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Countdown duration"
+          }
+        }
+      }
+    },
+    "Geri sayım: %lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Countdown: %lld seconds"
+          }
+        }
+      }
+    },
+    "Görüntü": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visual"
+          }
+        }
+      }
+    },
+    "Hata: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Error: %1$@"
+          }
+        }
+      }
+    },
+    "hayır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "no"
+          }
+        }
+      }
+    },
+    "hazır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ready"
+          }
+        }
+      }
+    },
+    "Hazır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        }
+      }
+    },
+    "Hedefte aynı isimde bir dosya zaten var.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A file with the same name already exists at the destination."
+          }
+        }
+      }
+    },
+    "henüz sorulmadı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not requested yet"
+          }
+        }
+      }
+    },
+    "imleç vurgusu açık": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cursor highlight on"
+          }
+        }
+      }
+    },
+    "imleç vurgusu kapalı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "cursor highlight off"
+          }
+        }
+      }
+    },
+    "İki Kişi Podcast": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two Person Podcast"
+          }
+        }
+      }
+    },
+    "İleri": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Next"
+          }
+        }
+      }
+    },
+    "İmleci vurgula": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Highlight cursor"
+          }
+        }
+      }
+    },
+    "İptal edildi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelled"
+          }
+        }
+      }
+    },
+    "İptal Et (%lld)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel (%lld)"
+          }
+        }
+      }
+    },
+    "İzin durumu kontrol edilmedi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permission status not checked"
+          }
+        }
+      }
+    },
+    "İzin verdiysen macOS değişikliği görmek için uygulamayı kapatıp yeniden açman gerekebilir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "If you granted permission, you may need to quit and reopen the app for macOS to reflect the change."
+          }
+        }
+      }
+    },
+    "kadraj dengeli": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "frame is balanced"
+          }
+        }
+      }
+    },
+    "Kadraj koçu açık": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame coach is on"
+          }
+        }
+      }
+    },
+    "kadraj koçu açık": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "frame coach on"
+          }
+        }
+      }
+    },
+    "Kadraj koçu kapalı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame coach is off"
+          }
+        }
+      }
+    },
+    "kadraj koçu kapalı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "frame coach off"
+          }
+        }
+      }
+    },
+    "Kadraj koçu: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame coach: %1$@"
+          }
+        }
+      }
+    },
+    "Kadraj koçu: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame coach: %@"
+          }
+        }
+      }
+    },
+    "Kadraj koçu: açık": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame coach: ON"
+          }
+        }
+      }
+    },
+    "Kadraj koçu: kapalı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame coach: OFF"
+          }
+        }
+      }
+    },
+    "kadraj uygun": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "frame is good"
+          }
+        }
       }
     },
-    "Alt Sol" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bottom Left"
+    "Kamera": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera"
           }
         }
       }
     },
-    "Ana kare sayısı: %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keyframe count: %@"
+    "kamera": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "camera"
           }
         }
       }
     },
-    "Ana kare sayısı: %lld" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keyframe count: %lld"
+    "Kamera %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera %1$@"
           }
         }
       }
     },
-    "Aynı uyarıyı tekrarla" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repeat same warning"
+    "Kamera bulunamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera not found."
           }
         }
       }
     },
-    "biraz sağa geç" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "move a bit to the right"
+    "Kamera bulunduğunda seçim burada görünecek.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your camera selection will appear here once detected."
           }
         }
       }
     },
-    "biraz sola geç" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "move a bit to the left"
+    "Kamera denetim merkezindeki video efektleri açık: %1$@. Bu efektleri kapatıp tekrar deneyin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video effects are active in the camera control center: %1$@. Turn them off and try again."
           }
         }
       }
     },
-    "Birkaç İzne İhtiyacımız Var" : {
-
+    "Kamera izni gerekli": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera permission required"
+          }
+        }
+      }
     },
-    "Bu süre dolunca kayıt otomatik olarak durur." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The recording stops automatically when this duration is reached."
+    "Kamera izni reddedildi — Sistem Ayarları'nı aç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera permission denied — Open System Settings"
           }
         }
       }
     },
-    "Çıktı önizlemesi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Output preview"
+    "Kamera izni verildi.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera permission granted."
           }
         }
       }
     },
-    "Çıktı önizlemesi. Kamera kutusu %1$@ konumunda ve %2$@ boyutta." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Output preview. Camera box at %1$@ position and in %2$@ size."
+    "Kamera izni verilmedi.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera permission denied."
           }
         }
       }
     },
-    "Çıktı önizlemesi. Kamera kutusu kapalı." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Output preview. Camera box is off."
+    "Kamera izni yalnızca Ekran + Kamera modunda gereklidir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera permission is only required in Screen + Camera mode."
           }
         }
       }
     },
-    "Çok uzaktasın, biraz yaklaş" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You are too far, move closer"
+    "Kamera izni: %1$@. Mikrofon izni: %2$@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera permission: %1$@. Microphone permission: %2$@."
           }
         }
       }
     },
-    "Çok yakınsın, biraz uzaklaş" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You are too close, move back a bit"
+    "Kamera iznine izin ver": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow camera permission"
           }
         }
       }
     },
-    "Dengeli" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Balanced"
+    "Kamera Kutusu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera Box"
           }
         }
       }
     },
-    "Devam Et" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Resume"
+    "kamera kutusu açık": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "camera overlay on"
           }
         }
       }
     },
-    "Dikey ekran kaydı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vertical screen recording"
+    "Kamera kutusu boyutu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera box size"
           }
         }
       }
     },
-    "Dikey ekran kaydı modu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vertical screen recording mode"
+    "Kamera kutusu için bir kamera seçin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a camera for the camera overlay."
           }
         }
       }
     },
-    "Dikey pencere kaydı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vertical window recording"
+    "Kamera kutusu için kamera izni gerekli.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera permission is required for the camera overlay."
           }
         }
       }
     },
-    "Dikey Sohbet" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vertical Conversation"
+    "Kamera kutusu için kamera izni: %1$@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera permission for camera overlay: %1$@."
           }
         }
       }
     },
-    "Dikey Sosyal Video" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vertical Social Video"
+    "Kamera kutusu için kullanılabilir kamera bulunamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No available camera found for the camera overlay."
           }
         }
       }
     },
-    "Dikey video kaydı modu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vertical video recording mode"
+    "Kamera kutusu konumu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera box position"
           }
         }
       }
     },
-    "Dosya adı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "File name"
+    "Kamera kutusunu göster": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show camera box"
           }
         }
       }
     },
-    "Duraklat" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pause"
+    "Kamera seçimi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera selection"
           }
         }
       }
     },
-    "Durum %1$@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Status %1$@"
+    "kamerayı biraz aşağı indir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tilt the camera down a bit"
           }
         }
       }
     },
-    "Durum: %1$@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Status: %1$@"
+    "kamerayı biraz yukarı al": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tilt the camera up a bit"
           }
         }
       }
     },
-    "Ekran" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Screen"
+    "kapalı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "off"
           }
         }
       }
     },
-    "Ekran Anlatımı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Screen Guide"
+    "Kapat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close"
           }
         }
       }
     },
-    "Ekran Kaydı Ayarları'nı aç" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Screen Recording Settings"
+    "Kaydedildi: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved: %1$@"
           }
         }
       }
     },
-    "Ekran kaydı iznini iste" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Request screen recording permission"
+    "Kaydedildi: %1$@ (%2$@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved: %1$@ (%2$@)"
           }
         }
       }
     },
-    "Ekran kaynağı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Screen source"
+    "Kaydedildi: %1$@ (%2$@, %3$@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved: %1$@ (%2$@, %3$@)"
           }
         }
       }
     },
-    "Ekran kaynağı seçimi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Screen source selection"
+    "Kaydı Başlat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Recording"
           }
         }
       }
     },
-    "Ekran seçimi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Screen selection"
+    "Kaydı Durdur": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Recording"
           }
         }
       }
     },
-    "Ekranda yönlendirme metnini göster" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show guidance text on screen"
+    "Kaynak": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Source"
           }
         }
       }
     },
-    "Ekranını, sesini ve kameranı kolayca kaydet." : {
-
+    "Kaynak pencere": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "source: window"
+          }
+        }
+      }
     },
-    "Erişilebilirlik ve Yönlendirme" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accessibility and Guidance"
+    "Kaynak tam ekran": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "source: full screen"
           }
         }
       }
     },
-    "evet" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "yes"
+    "Kayıt %lld saniye sonra başlıyor…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording starts in %lld seconds…"
           }
         }
       }
     },
-    "Farklı Kaydet" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Save As"
+    "Kayıt Ayarları": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording Settings"
           }
         }
       }
     },
-    "FrameMate" : {
-
+    "Kayıt başlatıldıktan sonra kaç saniye bekleyeceğini belirler.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Determines how many seconds to wait after the recording is started."
+          }
+        }
+      }
     },
-    "FrameMate'e Hoş Geldin" : {
-
+    "Kayıt duraklatıldı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording paused"
+          }
+        }
+      }
     },
-    "Geri bildirim sıklığı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Feedback frequency"
+    "Kayıt durduruluyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopping recording…"
           }
         }
       }
     },
-    "Geri sayım süresi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Countdown duration"
+    "Kayıt dışa aktarılırken imlecin etrafında yumuşak bir vurgu ve tıklama halkası gösterir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows a soft highlight and click ring around the cursor when exporting the recording."
           }
         }
       }
     },
-    "Geri sayım: %lld saniye" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Countdown: %lld seconds"
+    "Kayıt hazırlanıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording is being prepared"
           }
         }
       }
     },
-    "Görüntü" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Visual"
+    "Kayıt hazırlanıyor…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing recording…"
           }
         }
       }
     },
-    "Hata: %1$@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Error: %1$@"
+    "Kayıt için bir ekran seçin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a screen to record."
           }
         }
       }
     },
-    "hayır" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "no"
+    "Kayıt için bir pencere seçin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a window to record."
           }
         }
       }
     },
-    "hazır" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ready"
+    "Kayıt için şu izinler gerekli: %1$@. Aşağıdaki butonlardan izin verin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The following permissions are required: %1$@. Grant them using the buttons below."
           }
         }
       }
     },
-    "Hazır" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ready"
+    "Kayıt modu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording mode"
           }
         }
       }
     },
-    "İki Kişi Podcast" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Two Person Podcast"
+    "Kayıt modu seçimi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording mode selection"
           }
         }
       }
     },
-    "İmleci vurgula" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Highlight cursor"
+    "Kayıt oturumu henüz hazır değil.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording session is not ready yet."
           }
         }
       }
     },
-    "İptal edildi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancelled"
+    "Kayıt Tamamlandı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording Completed"
           }
         }
       }
     },
-    "İptal Et (%lld)" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cancel (%lld)"
+    "Kayıt yapılıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording"
           }
         }
       }
     },
-    "İzin durumu kontrol edilmedi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permission status not checked"
+    "Kayıt zaten devam ediyor.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording is already in progress."
           }
         }
       }
     },
-    "ışık düşük, lambayı aç veya ekran parlaklığını artır" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "light is low, turn on a lamp or increase screen brightness"
+    "Kendi görüntünle birlikte kaydet.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record with your own video overlay."
           }
         }
       }
     },
-    "kadraj dengeli" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "frame is balanced"
+    "Klasör Seç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Folder"
           }
         }
       }
     },
-    "Kadraj koçu açık" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Frame coach is on"
+    "Klasörde Göster": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show in Finder"
           }
         }
       }
     },
-    "Kadraj koçu kapalı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Frame coach is off"
+    "Klasörü Seç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose Folder"
           }
         }
       }
     },
-    "Kadraj koçu: %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Frame coach: %@"
+    "Klavye kısayollarını göster": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show keyboard shortcuts"
           }
         }
       }
     },
-    "Kadraj koçu: %1$@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Frame coach: %1$@"
+    "Kompozisyon kullanıldı: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Composition used: %1$@"
           }
         }
       }
     },
-    "Kadraj koçu: açık" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Frame coach: ON"
+    "Komut, kontrol ve option gibi anlamlı kısayolları videoda kısa süre gösterir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Briefly shows meaningful shortcuts like command, control, and option in the video."
           }
         }
       }
+    },
+    "Kısayol: ⌘%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shortcut: ⌘%@"
+          }
+        }
+      },
+      "extractionState": "manual"
     },
-    "Kadraj koçu: kapalı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Frame coach: OFF"
+    "kısıtlı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "restricted"
           }
         }
       }
     },
-    "kadraj uygun" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "frame is good"
+    "M4A hazırlanıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing M4A…"
           }
         }
       }
     },
-    "Kamera" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera"
+    "Mac'te calan uygulama ve sistem seslerini kayda ekler.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adds app and system sounds playing on the Mac to the recording."
           }
         }
       }
     },
-    "Kamera bulunamadı." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera not found."
+    "Maksimum kayıt süresi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum recording duration"
           }
         }
       }
     },
-    "Kamera denetim merkezindeki video efektleri açık: %1$@. Bu efektleri kapatıp tekrar deneyin." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Video effects are active in the camera control center: %1$@. Turn them off and try again."
+    "Maksimum kayıt süresine ulaşıldı, kayıt durduruluyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum recording duration reached, stopping recording"
           }
         }
       }
     },
-    "Kamera izni gerekli" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera permission required"
+    "Merkez": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Center"
           }
         }
       }
     },
-    "Kamera izni reddedildi — Sistem Ayarları'nı aç" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera permission denied — Open System Settings"
+    "Mikrofon": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone"
           }
         }
       }
     },
-    "Kamera izni verilmedi." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera permission denied."
+    "mikrofon": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "microphone"
           }
         }
       }
     },
-    "Kamera izni yalnızca Ekran + Kamera modunda gereklidir." : {
-
+    "mikrofon %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "microphone %1$@"
+          }
+        }
+      }
     },
-    "Kamera iznine izin ver" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow camera permission"
+    "Mikrofon %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone %1$@"
           }
         }
       }
     },
-    "Kamera Kutusu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera Box"
+    "Mikrofon (isteğe bağlı)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone (optional)"
           }
         }
       }
     },
-    "Kamera kutusu boyutu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera box size"
+    "Mikrofon bulunamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone not found."
           }
         }
       }
     },
-    "Kamera kutusu konumu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera box position"
+    "Mikrofon bulunduğunda seçim burada görünecek.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your microphone selection will appear here once detected."
           }
         }
       }
     },
-    "Kamera kutusunu göster" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show camera box"
+    "Mikrofon izni reddedildi — Sistem Ayarları'nı aç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone permission denied — Open System Settings"
           }
         }
       }
     },
-    "Kamera seçimi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera selection"
+    "Mikrofon izni verildi.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone permission granted."
           }
         }
       }
     },
-    "kamerayı biraz aşağı indir" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tilt the camera down a bit"
+    "Mikrofon izni verilmedi.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone permission denied."
           }
         }
       }
     },
-    "kamerayı biraz yukarı al" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "tilt the camera up a bit"
+    "Mikrofon izni: %1$@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone permission: %1$@."
           }
         }
       }
     },
-    "Kapat" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Close"
+    "Mikrofon iznine izin ver": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow microphone permission"
           }
         }
       }
     },
-    "Kaydı Başlat" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Start Recording"
+    "Mikrofon kapalı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone off"
           }
         }
       }
     },
-    "Kaydı Durdur" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stop Recording"
+    "Mikrofon kaydında ses alınamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No audio received in microphone recording."
           }
         }
       }
     },
-    "Kayıt %lld saniye sonra başlıyor…" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording starts in %lld seconds…"
+    "Mikrofon ses dosyası oluşturulamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone audio file could not be created."
           }
         }
       }
     },
-    "Kayıt Ayarları" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording Settings"
+    "Mikrofon ses kaydı hazırlanamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone audio recording could not be prepared."
           }
         }
       }
     },
-    "Kayıt başlatıldıktan sonra kaç saniye bekleyeceğini belirler." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Determines how many seconds to wait after the recording is started."
+    "mikrofon sesi eklenemedi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "microphone audio could not be added"
           }
         }
       }
     },
-    "Kayıt dışa aktarılırken imlecin etrafında yumuşak bir vurgu ve tıklama halkası gösterir." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Shows a soft highlight and click ring around the cursor when exporting the recording."
+    "Mikrofon seviyesi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone level"
           }
         }
       }
     },
-    "Kayıt duraklatıldı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording paused"
+    "Mikrofon seviyesi: %lld%%": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone level: %lld%%"
           }
         }
       }
     },
-    "Kayıt hazırlanıyor" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording is being prepared"
+    "Mikrofon ve sistem sesi kapalı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone and system audio are off."
           }
         }
       }
     },
-    "Kayıt hazırlanıyor…" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Preparing recording…"
+    "Mikrofon ve sistem sesi kayda eklenecek.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone and system audio will be included."
           }
         }
       }
     },
-    "Kayıt modu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording mode"
+    "Minimal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimal"
           }
         }
       }
     },
-    "Kayıt modu seçimi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording mode selection"
+    "MP4 dosyası oluşturulamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not create MP4 file."
           }
         }
       }
     },
-    "Kayıt oturumu henüz hazır değil." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording session is not ready yet."
+    "MP4 hazırlanıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing MP4…"
           }
         }
       }
     },
-    "Kayıt Tamamlandı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording Completed"
+    "Nasıl Kayıt Yapabilirsin?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How Can You Record?"
           }
         }
+      },
+      "extractionState": "manual"
+    },
+    "normal export tamamlandı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "standard export completed"
+          }
+        }
       }
     },
-    "Kayıt yapılıyor" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording"
+    "Opsiyonel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional"
           }
         }
       }
     },
-    "Kayıt zaten devam ediyor." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recording is already in progress."
+    "Orta Sağ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Center Right"
           }
         }
       }
     },
-    "Kaynak" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Source"
+    "Orta Sol": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Center Left"
           }
         }
       }
     },
-    "Kısayol: ⌘%@" : {
-
+    "Otomatik": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic"
+          }
+        }
+      }
     },
-    "Klasör Seç" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose Folder"
+    "Otomatik Kadraj Tanılama": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto Reframe Diagnostics"
           }
         }
       }
     },
-    "Klasörde Göster" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show in Finder"
+    "otomatik kadraj uygulandı, %1$lld ana kare kullanıldı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "auto-reframe applied, %1$lld keyframes used"
           }
         }
       }
     },
-    "Klasörü Seç" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose Folder"
+    "Otomatik modda VoiceOver açıksa yönlendirmeler erişilebilirlik anonsu olarak iletilir. Sessiz mod, sesi kapatır ama istersen ekrandaki metni bırakır.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In auto mode, guidance is sent as an accessibility announcement if VoiceOver is on. Silent mode turns off the sound but keeps the on-screen text if you wish."
           }
         }
       }
     },
-    "Klavye kısayollarını göster" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show keyboard shortcuts"
+    "Otomatik yeniden kadrajlama": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto reframe"
           }
         }
       }
     },
-    "Kompozisyon kullanıldı: %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Composition used: %@"
+    "Paylaşılabilir ekran bulunamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No shareable screen found."
           }
         }
       }
     },
-    "Kompozisyon kullanıldı: %1$@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Composition used: %1$@"
+    "Paylaşılabilir pencere bulunamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No shareable window found."
           }
         }
       }
     },
-    "Komut, kontrol ve option gibi anlamlı kısayolları videoda kısa süre gösterir." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Briefly shows meaningful shortcuts like command, control, and option in the video."
+    "Pencere": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window"
           }
         }
       }
     },
-    "Mac'te calan uygulama ve sistem seslerini kayda ekler." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Adds app and system sounds playing on the Mac to the recording."
+    "pencere %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "window %1$@"
           }
         }
       }
     },
-    "Maksimum kayıt süresi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Maximum recording duration"
+    "Pencere seçimi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window selection"
           }
         }
       }
     },
-    "Merkez" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Center"
+    "Planları Gör": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Plans"
           }
         }
       }
     },
-    "Mikrofon" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone"
+    "reddedildi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "denied"
           }
         }
       }
     },
-    "Mikrofon (isteğe bağlı)" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone (optional)"
+    "Sadece Ses": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio Only"
           }
         }
       }
     },
-    "Mikrofon bulunamadı" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone not found"
+    "Satın Alımları Geri Yükle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore Purchases"
           }
         }
       }
     },
-    "Mikrofon bulunamadı." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone not found."
+    "Sağdaki düğmeler tıklanabilir. İzin istedikten sonra macOS penceresi açılırsa oradan onay ver.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The buttons on the right are clickable. If a macOS dialog appears after requesting permission, approve it there."
           }
         }
+      },
+      "extractionState": "manual"
+    },
+    "Ses": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio"
+          }
+        }
       }
     },
-    "Mikrofon izni reddedildi — Sistem Ayarları'nı aç" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone permission denied — Open System Settings"
+    "Ses kaydı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio recording"
           }
         }
       }
     },
-    "Mikrofon izni verilmedi." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone permission denied."
+    "Ses kaydı duraklatıldı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio recording paused"
           }
         }
       }
     },
-    "Mikrofon iznine izin ver" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow microphone permission"
+    "Ses kaydı için bir mikrofon seçin ya da sistem sesini dahil edin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select a microphone or enable system audio for recording."
           }
         }
       }
     },
-    "Mikrofon kapalı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone off"
+    "Ses kaydı için mikrofon izni gerekli.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone permission is required for audio recording."
           }
         }
       }
     },
-    "Mikrofon kaydında ses alınamadı." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No audio received in microphone recording."
+    "Ses kaydı modu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio recording mode"
           }
         }
       }
     },
-    "Mikrofon ses dosyası oluşturulamadı." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone audio file could not be created."
+    "Ses kaydı yapılıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio recording in progress"
           }
         }
       }
     },
-    "Mikrofon ses kaydı hazırlanamadı." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone audio recording could not be prepared."
+    "Sessiz": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Silent"
           }
         }
       }
     },
-    "Mikrofon seviyesi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone level"
+    "Seçilen kamera oturuma eklenemedi.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not add selected camera to the session."
           }
         }
       }
     },
-    "Mikrofon seviyesi: %lld%%" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone level: %lld%%"
+    "Seçilen mikrofon bulunamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected microphone not found."
           }
         }
       }
     },
-    "Minimal" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Minimal"
+    "Seçilen mikrofon oturuma eklenemedi.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not add selected microphone to the session."
           }
         }
       }
     },
-    "MP4 dosyası oluşturulamadı." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Could not create MP4 file."
+    "seçilmedi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "not selected"
           }
         }
       }
     },
-    "Nasıl Kayıt Yapabilirsin?" : {
-
+    "sistem sesi açık": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "system audio on"
+          }
+        }
+      }
     },
-    "Opsiyonel" : {
-
+    "sistem sesi eklenemedi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "system audio could not be added"
+          }
+        }
+      }
     },
-    "Orta Sağ" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Center Right"
+    "Sistem sesi için ekran kaydı izni: %1$@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen recording permission for system audio: %1$@."
           }
         }
       }
     },
-    "Orta Sol" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Center Left"
+    "Sistem sesi için macOS ekran kaydı izni gerekli.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS screen recording permission is required for system audio."
           }
         }
       }
     },
-    "Otomatik" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatic"
+    "sistem sesi kapalı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "system audio off"
           }
         }
       }
     },
-    "Otomatik Kadraj Tanılama" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto Reframe Diagnostics"
+    "Sistem sesi seviyesi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System audio level"
           }
         }
       }
     },
-    "Otomatik modda VoiceOver açıksa yönlendirmeler erişilebilirlik anonsu olarak iletilir. Sessiz mod, sesi kapatır ama istersen ekrandaki metni bırakır." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In auto mode, guidance is sent as an accessibility announcement if VoiceOver is on. Silent mode turns off the sound but keeps the on-screen text if you wish."
+    "Sistem sesi seviyesi: %lld%%": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System audio level: %lld%%"
           }
         }
       }
     },
-    "Otomatik yeniden kadrajlama" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Auto reframe"
+    "Sistem sesini dahil et": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Include system audio"
           }
         }
       }
     },
-    "Pencere" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Window"
+    "Son kayıt dosyası %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last recording file %1$@"
           }
         }
       }
     },
-    "Pencere seçimi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Window selection"
+    "Son kayıt: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last recording: %1$@"
           }
         }
       }
     },
-    "Sağdaki düğmeler tıklanabilir. İzin istedikten sonra macOS penceresi açılırsa oradan onay ver." : {
-
+    "Strateji: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strategy: %1$@"
+          }
+        }
+      }
     },
-    "Seçilen kamera oturuma eklenemedi." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Could not add selected camera to the session."
+    "Sık": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frequent"
           }
         }
       }
     },
-    "Seçilen mikrofon bulunamadı." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selected microphone not found."
+    "Sınırsız": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlimited"
           }
         }
       }
     },
-    "Seçilen mikrofon oturuma eklenemedi." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Could not add selected microphone to the session."
+    "tam ekran": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "full screen"
           }
         }
       }
     },
-    "Ses" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Audio"
+    "Tamam": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
           }
         }
       }
     },
-    "Ses kaydı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Audio recording"
+    "Tanılama": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
           }
         }
       }
     },
-    "Ses kaydı duraklatıldı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Audio recording paused"
+    "Tek Kişi Masabaşı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Single Desk Speaker"
           }
         }
       }
     },
-    "Ses kaydı modu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Audio recording mode"
+    "Toplantı ve podcast için saf ses kaydı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pure audio recording for meetings and podcasts."
           }
         }
       }
     },
-    "Ses kaydı yapılıyor" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Audio recording in progress"
+    "Tüm ekranı veya bir pencereyi yakala.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture your entire screen or a window."
           }
         }
       }
     },
-    "Sessiz" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Silent"
+    "Uygulama sesi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App Voice"
           }
         }
       }
     },
-    "Sistem sesi seviyesi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System audio level"
+    "Varsayılan kayıt klasörü": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default recording folder"
           }
         }
       }
     },
-    "Sistem sesi seviyesi: %lld%%" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "System audio level: %lld%%"
+    "Varsayılan kayıt klasörü: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default recording folder: %1$@"
           }
         }
       }
     },
-    "Sistem sesini dahil et" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Include system audio"
+    "verildi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "granted"
           }
         }
       }
     },
-    "Sık" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Frequent"
+    "Video Kaydedici": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video Recorder"
           }
         }
       }
     },
-    "Sınırsız" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlimited"
+    "Video kayıt çıkışı hazırlanamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not prepare video recording output."
           }
         }
       }
     },
-    "Son kayıt dosyası %1$@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last recording file %1$@"
+    "VoiceOver": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VoiceOver"
           }
         }
       }
     },
-    "Son kayıt: %1$@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Last recording: %1$@"
+    "Yalnızca mikrofon kayda eklenecek.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone only will be included."
           }
         }
       }
     },
-    "Strateji: %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Strategy: %@"
+    "Yalnızca sistem sesi kayda eklenecek.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "System audio only will be included."
           }
         }
       }
     },
-    "Strateji: %1$@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Strategy: %1$@"
+    "Yatay ekran kaydı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizontal screen recording"
           }
         }
       }
     },
-    "Tek Kişi Masabaşı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Single Desk Speaker"
+    "Yatay ekran kaydı modu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizontal screen recording mode"
           }
         }
       }
     },
-    "Üst Orta" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top Center"
+    "Yatay pencere kaydı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizontal window recording"
           }
         }
       }
     },
-    "Üst Sağ" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top Right"
+    "Yatay video kaydı modu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Horizontal video recording mode"
           }
         }
       }
     },
-    "Üst Sol" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Top Left"
+    "Yedek dışa aktarım: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fallback export: %1$@"
           }
         }
       }
     },
-    "Uygulama sesi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "App Voice"
+    "Yeniden Adlandır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rename"
           }
         }
       }
     },
-    "Varsayılan kayıt klasörü" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Default recording folder"
+    "Yeniden adlandırıldı: %1$@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Renamed: %1$@"
           }
         }
       }
     },
-    "Video Kaydedici" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Video Recorder"
+    "yeniden açılış bekleniyor olabilir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "may be awaiting restart"
           }
         }
       }
     },
-    "Video kayıt çıkışı hazırlanamadı." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Could not prepare video recording output."
+    "Yok": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
           }
         }
       }
     },
-    "VoiceOver" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "VoiceOver"
+    "Yönlendirme sesi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guidance voice"
           }
         }
       }
     },
-    "Yatay ekran kaydı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Horizontal screen recording"
+    "Yüz algılanamıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face not detected"
           }
         }
       }
     },
-    "Yatay ekran kaydı modu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Horizontal screen recording mode"
+    "Yüz algılanamıyor, kameraya bak": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face not detected, look at the camera"
           }
         }
       }
     },
-    "Yatay pencere kaydı" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Horizontal window recording"
+    "Çok uzaktasın, biraz yaklaş": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are too far, move closer"
           }
         }
       }
     },
-    "Yatay video kaydı modu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Horizontal video recording mode"
+    "Çok yakınsın, biraz uzaklaş": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are too close, move back a bit"
           }
         }
       }
     },
-    "Yedek dışa aktarım: %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fallback export: %@"
+    "Çıktı önizlemesi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output preview"
           }
         }
       }
     },
-    "Yedek dışa aktarım: %1$@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fallback export: %1$@"
+    "Çıktı önizlemesi. Kamera kutusu %1$@ konumunda ve %2$@ boyutta.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output preview. Camera box at %1$@ position and in %2$@ size."
           }
         }
       }
     },
-    "Yeniden Adlandır" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rename"
+    "Çıktı önizlemesi. Kamera kutusu kapalı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Output preview. Camera box is off."
           }
         }
       }
     },
-    "Yok" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "None"
+    "Üst Orta": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top Center"
           }
         }
       }
     },
-    "Yönlendirme sesi" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guidance voice"
+    "Üst Sağ": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top Right"
           }
         }
       }
     },
-    "Yüz algılanamıyor" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Face not detected"
+    "Üst Sol": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Top Left"
           }
         }
       }
     },
-    "Yüz algılanamıyor, kameraya bak" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Face not detected, look at the camera"
+    "ışık düşük, lambayı aç veya ekran parlaklığını artır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "light is low, turn on a lamp or increase screen brightness"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

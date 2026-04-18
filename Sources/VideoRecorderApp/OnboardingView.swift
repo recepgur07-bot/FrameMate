@@ -76,7 +76,7 @@ struct OnboardingView: View {
         HStack {
             Spacer()
             if currentStep < 2 {
-                Button("İleri") {
+                Button(String(localized: "İleri")) {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         currentStep += 1
                     }
@@ -85,7 +85,7 @@ struct OnboardingView: View {
                 .tint(Color.fmAccent)
                 .keyboardShortcut(.return, modifiers: [])
             } else {
-                Button("Başla") {
+                Button(String(localized: "Başla")) {
                     onDismiss()
                 }
                 .buttonStyle(.borderedProminent)
@@ -102,8 +102,8 @@ struct OnboardingView: View {
             .filter { !$0.isSatisfied }
             .map(\.title)
         if missingTitles.isEmpty { return "" }
-        if missingTitles.count == 1 { return "\(missingTitles[0]) izni gerekli" }
-        if missingTitles.count == 2 { return "\(missingTitles[0]) ve \(missingTitles[1]) izni gerekli" }
+        if missingTitles.count == 1 { return String(localized: "\(missingTitles[0]) izni gerekli") }
+        if missingTitles.count == 2 { return String(localized: "\(missingTitles[0]) ve \(missingTitles[1]) izni gerekli") }
         return ""
     }
 
@@ -136,7 +136,7 @@ private struct OnboardingWelcomePage: View {
         }
         .padding(.horizontal, 32)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Adım 1 / 3, FrameMate'e Hoş Geldin")
+        .accessibilityLabel(String(localized: "Adım 1 / 3, FrameMate'e Hoş Geldin"))
     }
 }
 
@@ -176,23 +176,23 @@ private struct OnboardingModesPage: View {
 
             ModeRow(
                 symbol: "rectangle.on.rectangle",
-                title: "Ekran Kaydı",
-                description: "Tüm ekranı veya bir pencereyi yakala."
+                title: String(localized: "Ekran Kaydı"),
+                description: String(localized: "Tüm ekranı veya bir pencereyi yakala.")
             )
             ModeRow(
                 symbol: "rectangle.badge.person.crop",
-                title: "Ekran + Kamera",
-                description: "Kendi görüntünle birlikte kaydet."
+                title: String(localized: "Ekran + Kamera"),
+                description: String(localized: "Kendi görüntünle birlikte kaydet.")
             )
             ModeRow(
                 symbol: "waveform",
-                title: "Sadece Ses",
-                description: "Toplantı ve podcast için saf ses kaydı."
+                title: String(localized: "Sadece Ses"),
+                description: String(localized: "Toplantı ve podcast için saf ses kaydı.")
             )
         }
         .padding(.horizontal, 32)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Adım 2 / 3, Kayıt Modları")
+        .accessibilityLabel(String(localized: "Adım 2 / 3, Kayıt Modları"))
     }
 }
 
@@ -209,7 +209,7 @@ private struct OnboardingPermissionsPage: View {
                 .font(.title2)
                 .fontWeight(.bold)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityLabel("Adım 3 / 3: Birkaç İzne İhtiyacımız Var")
+                .accessibilityLabel(String(localized: "Adım 3 / 3: Birkaç İzne İhtiyacımız Var"))
                 .accessibilityAddTraits(.isHeader)
 
             Text("Sağdaki düğmeler tıklanabilir. İzin istedikten sonra macOS penceresi açılırsa oradan onay ver.")
@@ -249,9 +249,9 @@ private struct OnboardingPermissionsPage: View {
         .onChange(of: viewModel.cameraPermissionStatus) { _, newStatus in
             switch newStatus {
             case .authorized:
-                postFeedback("Kamera izni verildi.", color: .green)
+                postFeedback(String(localized: "Kamera izni verildi."), color: .green)
             case .denied, .restricted:
-                postFeedback("Kamera izni verilmedi.", color: .orange)
+                postFeedback(String(localized: "Kamera izni verilmedi."), color: .orange)
             default:
                 break
             }
@@ -259,16 +259,16 @@ private struct OnboardingPermissionsPage: View {
         .onChange(of: viewModel.microphonePermissionStatus) { _, newStatus in
             switch newStatus {
             case .authorized:
-                postFeedback("Mikrofon izni verildi.", color: .green)
+                postFeedback(String(localized: "Mikrofon izni verildi."), color: .green)
             case .denied, .restricted:
-                postFeedback("Mikrofon izni verilmedi.", color: .orange)
+                postFeedback(String(localized: "Mikrofon izni verilmedi."), color: .orange)
             default:
                 break
             }
         }
         .onChange(of: viewModel.screenPermissionNeedsRestart) { _, needsRestart in
             guard needsRestart else { return }
-            postFeedback("Ekran kaydı izni verildi. Uygulamayı yeniden açman gerekecek.", color: .green)
+            postFeedback(String(localized: "Ekran kaydı izni verildi. Uygulamayı yeniden açman gerekecek."), color: .green)
         }
     }
 
@@ -298,8 +298,8 @@ private struct PermissionRow: View {
     // Durum ve eylem accessibilityLabel + accessibilityAction ile iletilir.
 
     private var rowAccessibilityLabel: String {
-        let suffix = item.isRequired ? "" : String(localized: ", opsiyonel")
-        return String(localized: "\(item.title)\(suffix), \(item.statusLabel)")
+        let suffix: String = item.isRequired ? "" : String(localized: ", opsiyonel")
+        return "\(item.title)\(suffix), \(item.statusLabel)"
     }
 
     var body: some View {
@@ -319,7 +319,7 @@ private struct PermissionRow: View {
                     Text(item.title)
                         .font(.headline)
                     if !item.isRequired {
-                        Text("Opsiyonel")
+                        Text("Opsiyonel")  // LocalizedStringKey — "Opsiyonel" → "Optional"
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 8)
