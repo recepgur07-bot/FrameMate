@@ -1597,6 +1597,7 @@ final class RecorderViewModel {
     }
 
     func selectPreset(_ preset: RecordingPreset) {
+        guard canChangeRecordingSettings else { return }
         selectedPreset = preset
         applyPresetSelection(refresh: hasSetUp)
     }
@@ -1625,6 +1626,7 @@ final class RecorderViewModel {
     }
 
     func selectScreenCaptureSource(_ source: ScreenCaptureSource) {
+        guard canChangeRecordingSettings else { return }
         selectedScreenCaptureSource = source
         if selectedPreset.isScreenPreset {
             selectedRecordingSource = source.recordingSource
@@ -1635,8 +1637,13 @@ final class RecorderViewModel {
     }
 
     func toggleScreenCameraOverlay() {
+        guard canChangeRecordingSettings else { return }
         isScreenCameraOverlayEnabled.toggle()
         refreshDeviceState()
+    }
+
+    private var canChangeRecordingSettings: Bool {
+        !isRecording && !isPreparingRecording && !isCountingDown
     }
 
     private func startRecordingAsync() async {

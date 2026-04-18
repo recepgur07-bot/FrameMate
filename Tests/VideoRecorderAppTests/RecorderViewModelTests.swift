@@ -922,6 +922,86 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(overlayRecorder.stopCalled)
     }
 
+    func testRecordingSettingsDoNotChangeDuringActiveScreenOverlayRecording() async {
+        let permissions = RecorderPermissionsStub(
+            statuses: [.video: .authorized, .audio: .authorized]
+        )
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+        )
+        let screenProvider = MockScreenRecordingProvider(
+            status: .authorized,
+            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")],
+            windows: [ScreenWindowOption(id: "window-1", name: "Safari - Docs")]
+        )
+        let overlayRecorder = MockCameraOverlayRecorder()
+
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: screenProvider,
+            cameraOverlayRecorder: overlayRecorder,
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            microphoneAudioRecorder: MockMicrophoneAudioRecorder(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.selectScreenCaptureSource(.screen)
+        viewModel.toggleScreenCameraOverlay()
+        await viewModel.refreshScreenRecordingOptions()
+
+        viewModel.startRecording()
+        for _ in 0..<40 where overlayRecorder.startedURL == nil || !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertTrue(viewModel.isRecording, viewModel.errorText ?? viewModel.statusText)
+
+        viewModel.toggleScreenCameraOverlay()
+        viewModel.selectScreenCaptureSource(.window)
+        viewModel.selectPreset(.audioOnly)
+
+        XCTAssertTrue(viewModel.isScreenCameraOverlayEnabled)
+        XCTAssertEqual(viewModel.selectedScreenCaptureSource, .screen)
+        XCTAssertEqual(viewModel.selectedRecordingSource, .screen)
+        XCTAssertEqual(viewModel.selectedPreset, .horizontalScreen)
+
+        viewModel.stopRecording()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+
+        XCTAssertTrue(overlayRecorder.stopCalled)
+        XCTAssertTrue(screenProvider.stopCalled)
+        XCTAssertFalse(viewModel.isRecording)
+    }
+
+    func testRecordingSettingsDoNotChangeDuringCountdown() async {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.selectScreenCaptureSource(.screen)
+        viewModel.countdownRemaining = 3
+
+        viewModel.toggleScreenCameraOverlay()
+        viewModel.selectScreenCaptureSource(.window)
+        viewModel.selectPreset(.audioOnly)
+
+        XCTAssertFalse(viewModel.isScreenCameraOverlayEnabled)
+        XCTAssertEqual(viewModel.selectedScreenCaptureSource, .screen)
+        XCTAssertEqual(viewModel.selectedRecordingSource, .screen)
+        XCTAssertEqual(viewModel.selectedPreset, .horizontalScreen)
+    }
+
     func testScreenOverlayStartErrorShowsFriendlyCameraEffectsMessage() async {
         let permissions = RecorderPermissionsStub(
             statuses: [.video: .authorized, .audio: .authorized]
@@ -966,6 +1046,7 @@ final class RecorderViewModelTests: XCTestCase {
             "Kamera denetim merkezindeki video efektleri açık: Portre, Stüdyo Işığı. Bu efektleri kapatıp tekrar deneyin."
         )
         XCTAssertFalse(viewModel.isRecording)
+        XCTAssertFalse(viewModel.isPreparingRecording)
     }
 
     func testScreenRecordingUsesSeparateMicrophoneRecorderInsteadOfEmbeddedScreenMicrophone() async {
