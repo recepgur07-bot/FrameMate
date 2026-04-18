@@ -1,0 +1,1 @@
+FrameMate ile ekran, kamera ve mikrofon kayıtlarını Mac üzerinde sade ve erişilebilir bir akışla hazırlayın.

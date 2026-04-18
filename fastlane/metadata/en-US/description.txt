@@ -1,0 +1,37 @@
+FrameMate is a focused Mac video recorder for creating screen, camera, and microphone recordings with a clean local workflow.
+
+Use it for tutorials, presentations, walkthroughs, product demos, lessons, and quick explanation videos. Pick your recording mode, choose your inputs, start recording, and keep the exported video on your Mac.
+
+KEY FEATURES
+
+• SCREEN RECORDING
+Record your Mac screen with full-screen and window-focused capture flows.
+
+• CAMERA RECORDING
+Choose your camera and record in horizontal or vertical presets.
+
+• MICROPHONE AND SYSTEM AUDIO
+Select your microphone and create narrated videos. Supported recording flows can also include system audio.
+
+• CAMERA OVERLAY
+Add your camera as a picture-in-picture overlay for more personal tutorials and presentations.
+
+• FRAME COACH
+Get accessible spoken guidance to help keep your camera framing clear.
+
+• SHORTCUT AND VISUAL CUES
+Use keyboard shortcut overlays and cursor highlighting to make instructional videos easier to follow.
+
+• LOCAL AND PRIVACY-FOCUSED
+Your recordings are created on your Mac. FrameMate does not track you, does not include advertising SDKs, and does not upload your recording content to external servers.
+
+ACCESSIBILITY
+
+FrameMate is built with VoiceOver and keyboard-first workflows in mind. Main controls include clear labels, status text, and spoken guidance where helpful.
+
+PRIVACY NOTE
+
+Camera, microphone, and screen recording permissions are used only for the recording features you choose. Recording files are saved locally by default.
+
+Developer: Recep Gur
+Contact: seslerinizindeapps@outlook.com

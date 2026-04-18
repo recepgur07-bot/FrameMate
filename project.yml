@@ -26,6 +26,8 @@ targets:
         buildPhase: resources
       - path: Resources/Sounds/yeni-ses.wav
         buildPhase: resources
+      - path: Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
     dependencies:
       - framework: IOKit.framework
         embed: false

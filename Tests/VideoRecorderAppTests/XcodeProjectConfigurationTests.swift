@@ -215,6 +215,72 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         )
     }
 
+    func testProjectBundlesPrivacyManifest() throws {
+        let projectFileURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("VideoRecorder.xcodeproj/project.pbxproj")
+
+        let projectContents = try String(contentsOf: projectFileURL, encoding: .utf8)
+
+        XCTAssertTrue(
+            projectContents.contains("PrivacyInfo.xcprivacy in Resources"),
+            "The app target should bundle Apple's privacy manifest for App Store review."
+        )
+    }
+
+    func testPrivacyManifestDeclaresLocalOnlyAppBehaviorAndRequiredReasonAPIs() throws {
+        let manifestURL = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("Resources/PrivacyInfo.xcprivacy")
+
+        let manifestData = try Data(contentsOf: manifestURL)
+        let manifest = try XCTUnwrap(
+            PropertyListSerialization.propertyList(from: manifestData, format: nil) as? [String: Any]
+        )
+
+        XCTAssertEqual(manifest["NSPrivacyTracking"] as? Bool, false)
+        XCTAssertEqual((manifest["NSPrivacyTrackingDomains"] as? [Any])?.count, 0)
+        XCTAssertEqual((manifest["NSPrivacyCollectedDataTypes"] as? [Any])?.count, 0)
+
+        let accessedAPITypes = try XCTUnwrap(manifest["NSPrivacyAccessedAPITypes"] as? [[String: Any]])
+        let declaredTypes = Set(accessedAPITypes.compactMap { $0["NSPrivacyAccessedAPIType"] as? String })
+
+        XCTAssertTrue(declaredTypes.contains("NSPrivacyAccessedAPICategoryUserDefaults"))
+        XCTAssertTrue(declaredTypes.contains("NSPrivacyAccessedAPICategorySystemBootTime"))
+        XCTAssertTrue(declaredTypes.contains("NSPrivacyAccessedAPICategoryFileTimestamp"))
+    }
+
+    func testFastlaneMetadataIncludesRequiredPrivacyAndSupportURLs() throws {
+        let repositoryRoot = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+
+        for locale in ["tr", "en-US"] {
+            let metadataRoot = repositoryRoot
+                .appendingPathComponent("fastlane/metadata")
+                .appendingPathComponent(locale)
+
+            let privacyURL = try String(
+                contentsOf: metadataRoot.appendingPathComponent("privacy_url.txt"),
+                encoding: .utf8
+            ).trimmingCharacters(in: .whitespacesAndNewlines)
+            let supportURL = try String(
+                contentsOf: metadataRoot.appendingPathComponent("support_url.txt"),
+                encoding: .utf8
+            ).trimmingCharacters(in: .whitespacesAndNewlines)
+
+            XCTAssertTrue(privacyURL.hasPrefix("https://"))
+            XCTAssertTrue(supportURL.hasPrefix("https://"))
+            XCTAssertTrue(privacyURL.contains("framemate"))
+            XCTAssertTrue(supportURL.contains("framemate"))
+        }
+    }
+
     func testProjectIncludesAppAccessManagerSource() throws {
         let projectFileURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

@@ -1,0 +1,37 @@
+FrameMate, Mac üzerinde ekran, kamera ve mikrofon kayıtlarını hızlıca hazırlamak için tasarlanmış sade bir video kayıt uygulamasıdır.
+
+Ekran anlatımları, eğitim videoları, sunum kayıtları ve kısa açıklama videoları için tek yerden kayıt başlatın, durdurun ve dosyanızı yerel olarak kaydedin.
+
+TEMEL ÖZELLİKLER
+
+• EKRAN KAYDI
+Tam ekran veya pencere odaklı kayıt akışıyla Mac ekranınızı kaydedin.
+
+• KAMERA KAYDI
+Kameranızı seçin, yatay veya dikey kayıt moduyla videonuzu hazırlayın.
+
+• MİKROFON VE SİSTEM SESİ
+Mikrofon seçimi, sesli kayıt ve desteklenen akışlarda sistem sesi seçenekleriyle anlatım videoları oluşturun.
+
+• KAMERA KUTUSU
+Ekran kaydına kamera görüntünüzü ekleyerek eğitim ve sunum videolarını daha kişisel hale getirin.
+
+• KADRAJ KOÇU
+Kamera kadrajınız için sesli ve erişilebilir yönlendirmeler alın.
+
+• KLAVYE KISAYOLU VE GÖRSEL İPUÇLARI
+Kayıt sırasında klavye kısayolları ve imleç vurgusu gibi yardımcı görsellerle daha anlaşılır videolar oluşturun.
+
+• YEREL VE GİZLİLİK ODAKLI
+Kayıtlarınız Mac'inizde oluşturulur. FrameMate takip yapmaz, reklam SDK'sı kullanmaz ve kayıt içeriklerinizi harici sunuculara yüklemez.
+
+ERİŞİLEBİLİRLİK
+
+FrameMate, VoiceOver ve klavye kullanımını önemseyen bir akışla geliştirilmiştir. Ana kontroller metin etiketleri, durum açıklamaları ve sesli yönlendirmelerle desteklenir.
+
+GİZLİLİK NOTU
+
+Kamera, mikrofon ve ekran kaydı izinleri yalnızca seçtiğiniz kayıt işlevlerini çalıştırmak için kullanılır. Kayıt dosyaları varsayılan olarak Mac'inizde saklanır.
+
+Geliştirici: Recep Gür
+İletişim: seslerinizindeapps@outlook.com
