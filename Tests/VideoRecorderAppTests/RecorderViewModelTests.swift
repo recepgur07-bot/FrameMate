@@ -7,11 +7,15 @@ final class RecorderViewModelTests: XCTestCase {
     override func setUp() {
         super.setUp()
         UserDefaults.standard.removeObject(forKey: "recording.lastConfiguration")
+        UserDefaults.standard.removeObject(forKey: "recording.countdown")
+        UserDefaults.standard.removeObject(forKey: "recording.maxDuration")
         UserDefaults.standard.removeObject(forKey: "appAccess.trialStartDate")
     }
 
     override func tearDown() {
         UserDefaults.standard.removeObject(forKey: "recording.lastConfiguration")
+        UserDefaults.standard.removeObject(forKey: "recording.countdown")
+        UserDefaults.standard.removeObject(forKey: "recording.maxDuration")
         UserDefaults.standard.removeObject(forKey: "appAccess.trialStartDate")
         super.tearDown()
     }
@@ -72,6 +76,54 @@ final class RecorderViewModelTests: XCTestCase {
 
         XCTAssertFalse(viewModel.isPaywallPresented)
         XCTAssertTrue(microphoneRecorder.startCalled)
+    }
+
+    func testAudioShortcutUsesConfiguredCountdownBeforeStarting() async {
+        let microphoneRecorder = MockMicrophoneAudioRecorder()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            microphoneAudioRecorder: microphoneRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.recordingCountdown = .three
+        viewModel.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertEqual(viewModel.selectedRecordingSource, .audio)
+        XCTAssertTrue(viewModel.isCountingDown)
+        XCTAssertFalse(microphoneRecorder.startCalled)
+        XCTAssertFalse(viewModel.isRecording)
+    }
+
+    func testAudioShortcutCancelsAudioCountdownWhenPressedAgain() async {
+        let microphoneRecorder = MockMicrophoneAudioRecorder()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            microphoneAudioRecorder: microphoneRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.recordingCountdown = .three
+        viewModel.toggleAudioRecording()
+        viewModel.toggleAudioRecording()
+
+        XCTAssertEqual(viewModel.countdownRemaining, 0)
+        XCTAssertFalse(viewModel.isCountingDown)
+        XCTAssertFalse(microphoneRecorder.startCalled)
+        XCTAssertFalse(viewModel.isRecording)
     }
 
     func testDirectStartDoesNotBeginScreenRecordingWithoutScreenPermission() async {

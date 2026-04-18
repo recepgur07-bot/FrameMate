@@ -1604,7 +1604,11 @@ final class RecorderViewModel {
     func toggleAudioRecording() {
         if isRecording || isCountingDown {
             guard selectedRecordingSource == .audio else { return }
-            stopRecording()
+            if isCountingDown {
+                cancelCountdown()
+            } else {
+                stopRecording()
+            }
             return
         }
 
@@ -1612,7 +1616,12 @@ final class RecorderViewModel {
         selectPreset(.audioOnly)
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
-        startRecording()
+
+        if recordingCountdown == .none {
+            startRecording()
+        } else {
+            beginCountdown()
+        }
     }
 
     func selectScreenCaptureSource(_ source: ScreenCaptureSource) {
