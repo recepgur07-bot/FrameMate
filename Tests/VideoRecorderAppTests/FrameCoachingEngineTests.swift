@@ -1,7 +1,7 @@
 import AVFoundation
 import CoreGraphics
 import XCTest
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 final class FrameCoachingEngineTests: XCTestCase {
     func testScenarioMatrixCoversCoreTalkingHeadCases() {

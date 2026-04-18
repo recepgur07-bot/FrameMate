@@ -228,7 +228,6 @@ struct ContentView: View {
                     crop: viewModel.currentAutoReframeCrop
                 )
                 .aspectRatio(cameraPreviewAspectRatio, contentMode: .fit)
-                .frame(maxHeight: viewModel.selectedPreset == .verticalCamera ? 380 : nil)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
@@ -262,19 +261,6 @@ struct ContentView: View {
                         .stroke(Color.secondary.opacity(0.15), lineWidth: 1)
                 )
 
-                if viewModel.selectedPreset == .verticalScreen {
-                    HStack(alignment: .top, spacing: 6) {
-                        Image(systemName: "info.circle")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                        Text(String(localized: "Ekran içeriği dikey (9:16) kanvası dolduracak şekilde ortalanır; sol ve sağ kenarlar hafifçe kırpılabilir."))
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .padding(.top, 6)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
             }
             .accessibilityHidden(true)
         }
@@ -484,6 +470,15 @@ struct ContentView: View {
                             detail: String(localized: "Anlamlı kısayolları videoda kısa süre gösterir."),
                             isOn: $viewModel.isKeyboardShortcutOverlayEnabled
                         )
+
+                        if let warning = viewModel.keyboardShortcutAccessibilityWarning {
+                            permissionBanner(
+                                message: warning,
+                                buttonTitle: String(localized: "Ayarları Aç"),
+                                buttonHint: String(localized: "Erişilebilirlik ayarlarını açar."),
+                                action: viewModel.openAccessibilitySettings
+                            )
+                        }
                     }
                 }
 
@@ -855,16 +850,25 @@ struct ContentView: View {
                     .accessibilityHint(String(localized: "Kayıt dışa aktarılırken imlecin etrafında yumuşak bir vurgu ve tıklama halkası gösterir."))
             }
 
-            HStack(spacing: 8) {
-                Image(systemName: "keyboard")
-                    .foregroundStyle(.secondary)
-                    .frame(width: 20)
-                    .accessibilityHidden(true)
+                HStack(spacing: 8) {
+                    Image(systemName: "keyboard")
+                        .foregroundStyle(.secondary)
+                        .frame(width: 20)
+                        .accessibilityHidden(true)
                 Toggle(String(localized: "Klavye kısayollarını göster"), isOn: $viewModel.isKeyboardShortcutOverlayEnabled)
                     .accessibilityHint(String(localized: "Komut, kontrol ve option gibi anlamlı kısayolları videoda kısa süre gösterir."))
+                }
+
+                if let warning = viewModel.keyboardShortcutAccessibilityWarning {
+                    permissionBanner(
+                        message: warning,
+                        buttonTitle: String(localized: "Ayarları Aç"),
+                        buttonHint: String(localized: "Erişilebilirlik ayarlarını açar."),
+                        action: viewModel.openAccessibilitySettings
+                    )
+                }
             }
         }
-    }
 
     // MARK: - Camera Box Card
 
@@ -1168,6 +1172,20 @@ struct SettingsView: View {
                         Text(mode.label).tag(mode)
                     }
                 }
+
+                Picker("Yön sesi", selection: $viewModel.frameCoachSpatialAudioMode) {
+                    ForEach(FrameCoachSpatialAudioMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+
+                Toggle("Merkez onayı çal", isOn: $viewModel.playsFrameCoachCenterConfirmation)
+                    .disabled(viewModel.frameCoachSpatialAudioMode == .off)
+
+                Button("Yön sesini dene") {
+                    viewModel.previewFrameCoachSpatialCue()
+                }
+                .disabled(viewModel.frameCoachSpatialAudioMode == .off)
 
                 Picker("Geri bildirim sıklığı", selection: $viewModel.frameCoachFeedbackFrequency) {
                     ForEach(FrameCoachFeedbackFrequency.allCases) { frequency in

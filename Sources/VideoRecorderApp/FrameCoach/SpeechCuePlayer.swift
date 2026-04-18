@@ -86,7 +86,9 @@ final class SpeechCuePlayer {
             speechMode: .automatic,
             feedbackFrequency: .balanced,
             repeatInterval: cooldown <= 2 ? .short : (cooldown >= 8 ? .long : .medium),
-            showsOnScreenText: true
+            showsOnScreenText: true,
+            spatialAudioMode: .off,
+            playsCenterConfirmation: true
         )
         speakIfNeeded(instruction, isEnabled: isEnabled, key: key, settings: legacySettings, enforceFrequencyLimit: false)
     }

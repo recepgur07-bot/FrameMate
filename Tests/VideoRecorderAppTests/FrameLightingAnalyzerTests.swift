@@ -1,6 +1,6 @@
 import CoreVideo
 import XCTest
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 final class FrameLightingAnalyzerTests: XCTestCase {
     func testDarkBGRAFrameProducesLowAverageLuma() throws {

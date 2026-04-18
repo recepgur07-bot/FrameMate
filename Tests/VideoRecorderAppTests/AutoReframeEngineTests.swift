@@ -1,6 +1,6 @@
 import CoreGraphics
 import XCTest
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 final class AutoReframeEngineTests: XCTestCase {
     func testSinglePersonOffCenterProducesShiftedCrop() {

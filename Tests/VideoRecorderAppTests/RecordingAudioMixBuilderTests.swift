@@ -1,6 +1,6 @@
 import AVFoundation
 import XCTest
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 final class RecordingAudioMixBuilderTests: XCTestCase {
     func testBuilderAppliesSeparateVolumesToMicrophoneAndSystemAudioTracks() throws {

@@ -144,6 +144,12 @@ struct VideoRecorderApp: App {
                 }
                 .keyboardShortcut("d", modifiers: .command)
                 .disabled(!onboardingCompleted)
+
+                Button(String(localized: "Mevcut Ayarları Duyur")) {
+                    viewModel.announceCurrentSettings()
+                }
+                .keyboardShortcut("i", modifiers: .command)
+                .disabled(!onboardingCompleted)
             }
         }
 

@@ -4,6 +4,10 @@ import CoreMedia
 import Foundation
 import ScreenCaptureKit
 
+private struct UnsafeSendableBox<Value>: @unchecked Sendable {
+    let value: Value
+}
+
 final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, SCStreamDelegate, @unchecked Sendable {
     private static let finalizeDelay: DispatchTimeInterval = .milliseconds(250)
     private let systemProvider = SystemScreenRecordingProvider()
@@ -155,6 +159,8 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
         let currentVideoInput = videoInput
         let outputURL = outputURL
         let hasVideo = hasReceivedVideoFrame
+        let currentWriterBox = currentWriter.map(UnsafeSendableBox.init)
+        let currentVideoInputBox = currentVideoInput.map(UnsafeSendableBox.init)
 
         Task {
             do {
@@ -162,9 +168,9 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
             } catch {}
 
             writerQueue.asyncAfter(deadline: .now() + Self.finalizeDelay) {
-                currentVideoInput?.markAsFinished()
+                currentVideoInputBox?.value.markAsFinished()
 
-                guard let currentWriter, let outputURL else {
+                guard let currentWriter = currentWriterBox?.value, let outputURL else {
                     self.complete(.failure(ScreenRecordingError.cannotCreateWriter))
                     return
                 }
@@ -195,17 +201,20 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
         guard outputType == .screen else { return }
         guard CMSampleBufferIsValid(sampleBuffer) else { return }
         guard let writer, let videoInput else { return }
+        let writerBox = UnsafeSendableBox(value: writer)
+        let videoInputBox = UnsafeSendableBox(value: videoInput)
+        let sampleBufferBox = UnsafeSendableBox(value: sampleBuffer)
 
         writerQueue.async {
             if !self.hasStartedWriting {
-                writer.startWriting()
-                writer.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+                writerBox.value.startWriting()
+                writerBox.value.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value))
                 self.hasStartedWriting = true
             }
 
-            guard videoInput.isReadyForMoreMediaData else { return }
+            guard videoInputBox.value.isReadyForMoreMediaData else { return }
             self.hasReceivedVideoFrame = true
-            videoInput.append(sampleBuffer)
+            videoInputBox.value.append(sampleBufferBox.value)
         }
     }
 

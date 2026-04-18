@@ -1,6 +1,10 @@
 @preconcurrency import AVFoundation
 import Foundation
 
+private struct UnsafeSendableBox<Value>: @unchecked Sendable {
+    let value: Value
+}
+
 protocol MicrophoneAudioRecordingProviding: AnyObject {
     func startRecording(deviceID: String, to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws
     func stopRecording()
@@ -125,6 +129,8 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
         let currentWriter = writer
         let currentWriterInput = writerInput
         let outputURL = outputURL
+        let currentWriterBox = currentWriter.map(UnsafeSendableBox.init)
+        let currentWriterInputBox = currentWriterInput.map(UnsafeSendableBox.init)
 
         sessionQueue.async {
             if self.session.isRunning {
@@ -132,9 +138,9 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
             }
 
             self.writerQueue.asyncAfter(deadline: .now() + Self.finalizeDelay) {
-                currentWriterInput?.markAsFinished()
+                currentWriterInputBox?.value.markAsFinished()
 
-                guard let currentWriter, let outputURL else {
+                guard let currentWriter = currentWriterBox?.value, let outputURL else {
                     self.complete(.failure(MicrophoneAudioRecorderError.cannotCreateWriter))
                     return
                 }
@@ -164,17 +170,20 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
     ) {
         guard CMSampleBufferIsValid(sampleBuffer) else { return }
         guard let writer, let writerInput else { return }
+        let writerBox = UnsafeSendableBox(value: writer)
+        let writerInputBox = UnsafeSendableBox(value: writerInput)
+        let sampleBufferBox = UnsafeSendableBox(value: sampleBuffer)
 
         writerQueue.async {
             if !self.hasStartedWriting {
-                writer.startWriting()
-                writer.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+                writerBox.value.startWriting()
+                writerBox.value.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value))
                 self.hasStartedWriting = true
             }
 
-            guard writerInput.isReadyForMoreMediaData else { return }
+            guard writerInputBox.value.isReadyForMoreMediaData else { return }
             self.sampleTracker.markReceivedAudioSample()
-            writerInput.append(sampleBuffer)
+            writerInputBox.value.append(sampleBufferBox.value)
         }
     }
 

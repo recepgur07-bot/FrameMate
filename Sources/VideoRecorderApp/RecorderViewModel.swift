@@ -174,12 +174,18 @@ struct FrameCoachPreferences: Equatable {
     var feedbackFrequency: FrameCoachFeedbackFrequency
     var repeatInterval: FrameCoachRepeatInterval
     var showsOnScreenText: Bool
+    /// Spatial audio direction tones for frame coach guidance.
+    var spatialAudioMode: FrameCoachSpatialAudioMode
+    /// Whether to play a confirmation tone when the subject is centered.
+    var playsCenterConfirmation: Bool
 
     static let `default` = FrameCoachPreferences(
         speechMode: .automatic,
         feedbackFrequency: .balanced,
         repeatInterval: .medium,
-        showsOnScreenText: true
+        showsOnScreenText: true,
+        spatialAudioMode: .off,
+        playsCenterConfirmation: true
     )
 }
 
@@ -507,6 +513,19 @@ final class RecorderViewModel {
     var showsFrameCoachTextOnScreen = true {
         didSet { frameCoachSettingsStore.showsOnScreenText = showsFrameCoachTextOnScreen }
     }
+    var frameCoachSpatialAudioMode: FrameCoachSpatialAudioMode = .off {
+        didSet { UserDefaults.standard.set(frameCoachSpatialAudioMode.rawValue, forKey: "frameCoach.spatialAudioMode") }
+    }
+    var playsFrameCoachCenterConfirmation = true {
+        didSet { UserDefaults.standard.set(playsFrameCoachCenterConfirmation, forKey: "frameCoach.playsCenterConfirmation") }
+    }
+
+    /// Plays a sample spatial cue so the user can preview the current direction-tone setting.
+    func previewFrameCoachSpatialCue() {
+        let cue = FrameCoachSpatialCue(direction: .left, severity: .strong, confirmsCentered: false)
+        spatialCuePlayer.play(cue, preferences: frameCoachPreferences)
+    }
+
     var currentAutoReframeCrop: AutoReframeCrop = .fullFrame
     var lastAutoReframeKeyframeCount = 0
     var lastAutoReframeUsedVideoComposition = false
@@ -598,6 +617,9 @@ final class RecorderViewModel {
                         : String(localized: "imleç vurgusu kapalı")
                 )
             }
+            if isKeyboardShortcutOverlayEnabled {
+                parts.append(String(localized: "klavye kısayolları açık"))
+            }
             if isScreenCameraOverlayEnabled {
                 parts.append(String(localized: "kamera kutusu açık"))
             }
@@ -616,9 +638,25 @@ final class RecorderViewModel {
         guard hasBlockingPermissionIssue else { return nil }
         let pendingTitles = requiredPermissionItems
             .filter { !$0.isSatisfied }
+            .sorted { permissionPriority($0.id) < permissionPriority($1.id) }
             .map { $0.title.lowercased() }
         guard !pendingTitles.isEmpty else { return nil }
         return String(localized: "Eksik izinler: \(pendingTitles.joined(separator: ", ")).")
+    }
+
+    private func permissionPriority(_ kind: PermissionKind) -> Int {
+        switch (selectedRecordingSource, kind) {
+        case (.screen, .screenRecording), (.window, .screenRecording):
+            return 0
+        case (.camera, .camera):
+            return 0
+        case (_, .camera):
+            return 1
+        case (_, .microphone):
+            return 2
+        case (_, .screenRecording):
+            return 3
+        }
     }
 
     var requiredPermissionItems: [PermissionHubItem] {
@@ -794,11 +832,13 @@ final class RecorderViewModel {
     private let screenCameraOverlayCompositionBuilder: ScreenCameraOverlayCompositionBuilder
     private let soundEffectPlayer: any SoundEffectPlaying
     private let speechCuePlayer: SpeechCuePlayer
+    private let spatialCuePlayer: any SpatialCuePlaying
     private let frameCoachSettingsStore: any FrameCoachSettingsStoring
     private let recordingOutputDirectoryStore: any RecordingOutputDirectoryStoring
     private let lastRecordingConfigurationStore: any LastRecordingConfigurationStoring
     private let permissionProvider: any MediaPermissionProviding
     private let appAccessManager: any AppAccessManaging
+    private let isAccessibilityPermissionGranted: () -> Bool
     private let openURL: (URL) -> Void
     private let revealInFinder: (URL) -> Void
     private let chooseOutputDirectory: (URL) -> URL?
@@ -857,6 +897,7 @@ final class RecorderViewModel {
         lastRecordingConfigurationStore: any LastRecordingConfigurationStoring = UserDefaultsLastRecordingConfigurationStore(),
         permissionProvider: any MediaPermissionProviding = SystemMediaPermissionProvider(),
         appAccessManager: (any AppAccessManaging)? = nil,
+        isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         revealInFinder: @escaping (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
         chooseOutputDirectory: @escaping (URL) -> URL? = { currentURL in
@@ -877,7 +918,8 @@ final class RecorderViewModel {
             panel.allowedContentTypes = suggestedURL.pathExtension.lowercased() == "m4a" ? [.audio] : [.mpeg4Movie]
             return panel.runModal() == .OK ? panel.url : nil
         },
-        speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer()
+        speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer(),
+        spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer()
     ) {
         self.recorder = recorder
         self.screenRecordingProvider = screenRecordingProvider
@@ -901,15 +943,21 @@ final class RecorderViewModel {
         self.lastRecordingConfigurationStore = lastRecordingConfigurationStore
         self.permissionProvider = permissionProvider
         self.appAccessManager = appAccessManager ?? AppAccessManager()
+        self.isAccessibilityPermissionGranted = isAccessibilityPermissionGranted
         self.openURL = openURL
         self.revealInFinder = revealInFinder
         self.chooseOutputDirectory = chooseOutputDirectory
         self.chooseSaveDestination = chooseSaveDestination
         self.speechCuePlayer = speechCuePlayer
+        self.spatialCuePlayer = spatialCuePlayer
         self.frameCoachSpeechMode = frameCoachSettingsStore.speechMode
         self.frameCoachFeedbackFrequency = frameCoachSettingsStore.feedbackFrequency
         self.frameCoachRepeatInterval = frameCoachSettingsStore.repeatInterval
         self.showsFrameCoachTextOnScreen = frameCoachSettingsStore.showsOnScreenText
+        self.frameCoachSpatialAudioMode = FrameCoachSpatialAudioMode(
+            rawValue: UserDefaults.standard.string(forKey: "frameCoach.spatialAudioMode") ?? ""
+        ) ?? .off
+        self.playsFrameCoachCenterConfirmation = UserDefaults.standard.object(forKey: "frameCoach.playsCenterConfirmation") as? Bool ?? true
         if let storedOutputPath = recordingOutputDirectoryStore.outputDirectoryPath {
             self.recordingOutputDirectoryURL = URL(fileURLWithPath: storedOutputPath, isDirectory: true)
         } else {
@@ -939,8 +987,10 @@ final class RecorderViewModel {
         soundEffectPlayer: any SoundEffectPlaying = SoundEffectPlayer(),
         frameCoachSettingsStore: any FrameCoachSettingsStoring = UserDefaultsFrameCoachSettingsStore(),
         permissionProvider: any MediaPermissionProviding = SystemMediaPermissionProvider(),
+        isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
-        speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer()
+        speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer(),
+        spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer()
     ) {
         self.init(
             recorder: recorder,
@@ -962,6 +1012,7 @@ final class RecorderViewModel {
             frameCoachSettingsStore: frameCoachSettingsStore,
             recordingOutputDirectoryStore: UserDefaultsRecordingOutputDirectoryStore(),
             permissionProvider: permissionProvider,
+            isAccessibilityPermissionGranted: isAccessibilityPermissionGranted,
             openURL: openURL,
             revealInFinder: { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
             chooseOutputDirectory: { currentURL in
@@ -982,7 +1033,8 @@ final class RecorderViewModel {
                 panel.allowedContentTypes = suggestedURL.pathExtension.lowercased() == "m4a" ? [.audio] : [.mpeg4Movie]
                 return panel.runModal() == .OK ? panel.url : nil
             },
-            speechCuePlayer: speechCuePlayer
+            speechCuePlayer: speechCuePlayer,
+            spatialCuePlayer: spatialCuePlayer
         )
     }
 
@@ -1005,6 +1057,7 @@ final class RecorderViewModel {
         frameCoachSettingsStore: any FrameCoachSettingsStoring = UserDefaultsFrameCoachSettingsStore(),
         recordingOutputDirectoryStore: any RecordingOutputDirectoryStoring = UserDefaultsRecordingOutputDirectoryStore(),
         permissionProvider: any MediaPermissionProviding = SystemMediaPermissionProvider(),
+        isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         revealInFinder: @escaping (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
         chooseOutputDirectory: @escaping (URL) -> URL? = { currentURL in
@@ -1025,7 +1078,8 @@ final class RecorderViewModel {
             panel.allowedContentTypes = suggestedURL.pathExtension.lowercased() == "m4a" ? [.audio] : [.mpeg4Movie]
             return panel.runModal() == .OK ? panel.url : nil
         },
-        speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer()
+        speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer(),
+        spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer()
     ) {
         self.init(
             recorder: recorder,
@@ -1047,11 +1101,13 @@ final class RecorderViewModel {
             frameCoachSettingsStore: frameCoachSettingsStore,
             recordingOutputDirectoryStore: recordingOutputDirectoryStore,
             permissionProvider: permissionProvider,
+            isAccessibilityPermissionGranted: isAccessibilityPermissionGranted,
             openURL: openURL,
             revealInFinder: revealInFinder,
             chooseOutputDirectory: chooseOutputDirectory,
             chooseSaveDestination: chooseSaveDestination,
-            speechCuePlayer: speechCuePlayer
+            speechCuePlayer: speechCuePlayer,
+            spatialCuePlayer: spatialCuePlayer
         )
     }
 
@@ -1073,8 +1129,10 @@ final class RecorderViewModel {
         soundEffectPlayer: any SoundEffectPlaying = SoundEffectPlayer(),
         frameCoachSettingsStore: any FrameCoachSettingsStoring = UserDefaultsFrameCoachSettingsStore(),
         permissionProvider: any MediaPermissionProviding = SystemMediaPermissionProvider(),
+        isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
-        speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer()
+        speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer(),
+        spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer()
     ) {
         self.init(
             recorder: recorder,
@@ -1095,6 +1153,7 @@ final class RecorderViewModel {
             frameCoachSettingsStore: frameCoachSettingsStore,
             recordingOutputDirectoryStore: UserDefaultsRecordingOutputDirectoryStore(),
             permissionProvider: permissionProvider,
+            isAccessibilityPermissionGranted: isAccessibilityPermissionGranted,
             openURL: openURL,
             revealInFinder: { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
             chooseOutputDirectory: { currentURL in
@@ -1115,7 +1174,8 @@ final class RecorderViewModel {
                 panel.allowedContentTypes = suggestedURL.pathExtension.lowercased() == "m4a" ? [.audio] : [.mpeg4Movie]
                 return panel.runModal() == .OK ? panel.url : nil
             },
-            speechCuePlayer: speechCuePlayer
+            speechCuePlayer: speechCuePlayer,
+            spatialCuePlayer: spatialCuePlayer
         )
     }
 
@@ -1124,8 +1184,23 @@ final class RecorderViewModel {
             speechMode: frameCoachSpeechMode,
             feedbackFrequency: frameCoachFeedbackFrequency,
             repeatInterval: frameCoachRepeatInterval,
-            showsOnScreenText: showsFrameCoachTextOnScreen
+            showsOnScreenText: showsFrameCoachTextOnScreen,
+            spatialAudioMode: frameCoachSpatialAudioMode,
+            playsCenterConfirmation: playsFrameCoachCenterConfirmation
         )
+    }
+
+    /// Warning message shown when keyboard shortcut overlay is enabled but
+    /// macOS Accessibility permission has not been granted.
+    var keyboardShortcutAccessibilityWarning: String? {
+        guard isKeyboardShortcutOverlayEnabled else { return nil }
+        guard !isAccessibilityPermissionGranted() else { return nil }
+        return String(localized: "Klavye kısayollarını görmek için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver.")
+    }
+
+    func openAccessibilitySettings() {
+        let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
+        openURL(url)
     }
 
     private var activeFileNamer: RecordingFileNamer {
@@ -3015,6 +3090,27 @@ final class RecorderViewModel {
             }
             permissionStatusText = lines.joined(separator: " ")
         }
+    }
+
+    /// Announces the current recording settings summary via VoiceOver.
+    func announceCurrentSettings() {
+        var parts = [String(localized: "Mod \(currentPresetReadinessLabel)."), accessibilitySetupSummary]
+        if let permissionSummary = accessibilityPermissionSummary {
+            parts.append(permissionSummary)
+        }
+        if let keyboardShortcutWarning = keyboardShortcutAccessibilityWarning {
+            parts.append(keyboardShortcutWarning)
+        }
+        let announcement = parts.joined(separator: " ")
+        let settings = FrameCoachPreferences(
+            speechMode: .appVoice,
+            feedbackFrequency: frameCoachFeedbackFrequency,
+            repeatInterval: frameCoachRepeatInterval,
+            showsOnScreenText: showsFrameCoachTextOnScreen,
+            spatialAudioMode: frameCoachSpatialAudioMode,
+            playsCenterConfirmation: playsFrameCoachCenterConfirmation
+        )
+        speechCuePlayer.speakIfNeeded(announcement, isEnabled: true, key: announcement, settings: settings)
     }
 
     func announceText(_ text: String) {

@@ -1,5 +1,5 @@
 import XCTest
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 final class RecordingPresetTests: XCTestCase {
     func testHorizontalCameraPresetMapsToHorizontalCameraConfiguration() {
@@ -8,14 +8,30 @@ final class RecordingPresetTests: XCTestCase {
         XCTAssertEqual(RecordingPreset.horizontalCamera.commandKey, "1")
     }
 
-    func testVerticalScreenPresetMapsToVerticalScreenConfiguration() {
-        XCTAssertTrue(RecordingPreset.verticalScreen.isScreenPreset)
-        XCTAssertEqual(RecordingPreset.verticalScreen.recordingMode, .vertical1080p)
-        XCTAssertEqual(RecordingPreset.verticalScreen.commandKey, "4")
+    func testHorizontalScreenPresetMapsToSecondShortcutSlot() {
+        XCTAssertTrue(RecordingPreset.horizontalScreen.isScreenPreset)
+        XCTAssertEqual(RecordingPreset.horizontalScreen.recordingMode, .horizontal1080p)
+        XCTAssertEqual(RecordingPreset.horizontalScreen.commandKey, "2")
+    }
+
+    func testAudioOnlyPresetUsesThirdShortcutSlot() {
+        XCTAssertTrue(RecordingPreset.audioOnly.isAudioPreset)
+        XCTAssertEqual(RecordingPreset.audioOnly.recordingMode, .horizontal1080p)
+        XCTAssertEqual(RecordingPreset.audioOnly.commandKey, "3")
     }
 
     func testCommandMenuLabelsStayShortAndReadable() {
         XCTAssertEqual(RecordingPreset.horizontalCamera.commandMenuLabel, "Yatay video kaydı")
-        XCTAssertEqual(RecordingPreset.verticalScreen.commandMenuLabel, "Dikey ekran kaydı")
+        XCTAssertEqual(RecordingPreset.horizontalScreen.commandMenuLabel, "Yatay ekran kaydı")
+        XCTAssertEqual(RecordingPreset.audioOnly.commandMenuLabel, "Ses kaydı")
+    }
+
+    func testAllCasesExposeOnlySupportedReleaseModes() {
+        XCTAssertEqual(RecordingPreset.allCases, [.horizontalCamera, .horizontalScreen, .audioOnly])
+    }
+
+    func testUnsupportedVerticalPresetsFallbackToSupportedReleasePresets() {
+        XCTAssertEqual(RecordingPreset.verticalCamera.supportedReleasePreset, .horizontalCamera)
+        XCTAssertEqual(RecordingPreset.verticalScreen.supportedReleasePreset, .horizontalScreen)
     }
 }

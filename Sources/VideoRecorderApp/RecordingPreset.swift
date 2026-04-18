@@ -1,11 +1,15 @@
 import Foundation
 
-enum RecordingPreset: String, CaseIterable, Identifiable, Codable {
+enum RecordingPreset: String, Identifiable, Codable, CaseIterable {
     case horizontalCamera
     case verticalCamera
     case horizontalScreen
     case verticalScreen
     case audioOnly
+
+    static var allCases: [RecordingPreset] {
+        [.horizontalCamera, .horizontalScreen, .audioOnly]
+    }
 
     var id: String { rawValue }
 
@@ -47,15 +51,15 @@ enum RecordingPreset: String, CaseIterable, Identifiable, Codable {
     var shortDescription: String {
         switch self {
         case .horizontalCamera:
-            return String(localized: "YouTube, Zoom ve genel paylaşım için 1920×1080 yatay kamera")
+            return String(localized: "Kamera ile yatay video çek")
         case .verticalCamera:
             return String(localized: "Reels, Shorts ve TikTok için 1080×1920 dikey kamera")
         case .horizontalScreen:
-            return String(localized: "Ekranını veya bir pencereyi yatay videoya kaydet")
+            return String(localized: "Yatay ekran veya pencere kaydet")
         case .verticalScreen:
             return String(localized: "Ekranını Reels, Shorts ve TikTok için dikey videoya kaydet")
         case .audioOnly:
-            return String(localized: "Görüntüsüz, yalnızca ses kaydı al")
+            return String(localized: "Sadece ses kaydı al")
         }
     }
 
@@ -112,15 +116,26 @@ enum RecordingPreset: String, CaseIterable, Identifiable, Codable {
         case .verticalCamera:
             return "2"
         case .horizontalScreen:
-            return "3"
+            return "2"
         case .verticalScreen:
             return "4"
         case .audioOnly:
-            return "5"
+            return "3"
         }
     }
 
     var readinessLabel: String {
         label
+    }
+
+    var supportedReleasePreset: RecordingPreset {
+        switch self {
+        case .horizontalCamera, .horizontalScreen, .audioOnly:
+            return self
+        case .verticalCamera:
+            return .horizontalCamera
+        case .verticalScreen:
+            return .horizontalScreen
+        }
     }
 }

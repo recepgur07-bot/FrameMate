@@ -1367,6 +1367,17 @@
         }
       }
     },
+    "Kapalı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off"
+          }
+        }
+      }
+    },
     "Kapat": {
       "extractionState": "manual",
       "localizations": {
@@ -1693,6 +1704,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Choose Folder"
+          }
+        }
+      }
+    },
+    "Klavye kısayollarını görmek için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To see keyboard shortcuts, allow FrameMate in System Settings > Privacy & Security > Accessibility."
           }
         }
       }
@@ -2269,6 +2291,17 @@
         }
       }
     },
+    "Sadece yön sesi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direction tones only"
+          }
+        }
+      }
+    },
     "Satın Alımları Geri Yükle": {
       "extractionState": "manual",
       "localizations": {
@@ -2826,6 +2859,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "None"
+          }
+        }
+      }
+    },
+    "Yön sesi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direction tones"
+          }
+        }
+      }
+    },
+    "Yön sesi ve konuşma": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direction tones and speech"
           }
         }
       }

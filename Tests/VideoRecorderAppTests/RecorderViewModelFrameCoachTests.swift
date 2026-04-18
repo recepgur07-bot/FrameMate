@@ -1,7 +1,7 @@
 import XCTest
 import AVFoundation
 import CoreVideo
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 @MainActor
 final class RecorderViewModelFrameCoachTests: XCTestCase {
@@ -54,6 +54,21 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
 
         XCTAssertNil(viewModel.currentFrameCoachInstruction)
         XCTAssertTrue(speaker.spokenTexts.isEmpty)
+    }
+
+    func testFrameCoachPlaysSpatialCueWhenEnabled() {
+        let speaker = MockInstructionSpeaker()
+        let spatialCuePlayer = MockSpatialCuePlayer()
+        let viewModel = makeViewModel(speaker: speaker, spatialCuePlayer: spatialCuePlayer)
+
+        viewModel.frameCoachSpatialAudioMode = .tonesAndSpeech
+        viewModel.toggleFrameCoach()
+        viewModel.processFrameCoachAnalysis(makeSinglePersonAnalysis(x: 0.14, y: 0.28))
+
+        XCTAssertEqual(
+            spatialCuePlayer.playedCues,
+            [FrameCoachSpatialCue(direction: .right, severity: .mild, confirmsCentered: false)]
+        )
     }
 
     func testFrameCoachAnnouncesSubjectCountOnlyWhenItChanges() {
@@ -372,20 +387,26 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
     private func makeViewModel(
         speaker: InstructionSpeaking,
         recorder: FrameCoachMockCaptureRecorder = FrameCoachMockCaptureRecorder(),
+        screenRecordingProvider: any ScreenRecordingProviding = MockScreenRecordingProvider(status: .authorized),
+        cameraOverlayRecorder: any CameraOverlayRecording = MockCameraOverlayRecorder(),
         frameAnalysisService: FrameAnalysisService = FrameAnalysisService(),
-        speechCuePlayer: SpeechCuePlayer? = nil
+        speechCuePlayer: SpeechCuePlayer? = nil,
+        spatialCuePlayer: (any SpatialCuePlaying)? = nil
     ) -> RecorderViewModel {
         let settingsStore = FrameCoachSettingsStoreStub()
         settingsStore.feedbackFrequency = .frequent
         return RecorderViewModel(
             recorder: recorder,
+            screenRecordingProvider: screenRecordingProvider,
+            cameraOverlayRecorder: cameraOverlayRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
             frameAnalysisService: frameAnalysisService,
             soundEffectPlayer: SoundEffectPlayer(),
             frameCoachSettingsStore: settingsStore,
             permissionProvider: FrameCoachMockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized]),
             openURL: { _ in },
-            speechCuePlayer: speechCuePlayer ?? SpeechCuePlayer(speaker: speaker, announcer: nil, isVoiceOverEnabled: { false })
+            speechCuePlayer: speechCuePlayer ?? SpeechCuePlayer(speaker: speaker, announcer: nil, isVoiceOverEnabled: { false }),
+            spatialCuePlayer: spatialCuePlayer ?? SilentSpatialCuePlayer()
         )
     }
 
@@ -500,4 +521,16 @@ private final class FrameCoachSettingsStoreStub: FrameCoachSettingsStoring {
     var feedbackFrequency: FrameCoachFeedbackFrequency = .frequent
     var repeatInterval: FrameCoachRepeatInterval = .short
     var showsOnScreenText = true
+    var spatialAudioMode: FrameCoachSpatialAudioMode = .off
+    var playsCenterConfirmation = true
+}
+
+private final class MockSpatialCuePlayer: SpatialCuePlaying {
+    private(set) var playedCues: [FrameCoachSpatialCue] = []
+
+    func play(_ cue: FrameCoachSpatialCue, preferences: FrameCoachPreferences) {
+        playedCues.append(cue)
+    }
+
+    func reset() {}
 }

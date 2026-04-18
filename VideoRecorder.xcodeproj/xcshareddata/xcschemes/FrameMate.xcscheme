@@ -4,7 +4,8 @@
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"
-      buildImplicitDependencies = "YES">
+      buildImplicitDependencies = "YES"
+      runPostActionsOnFailure = "NO">
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -14,9 +15,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
+               BlueprintIdentifier = "7536C9796568BC62B495DCAF"
                BuildableName = "FrameMate.app"
-               BlueprintName = "VideoRecorderApp"
+               BlueprintName = "FrameMate"
                ReferencedContainer = "container:VideoRecorder.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -26,13 +27,14 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      onlyGenerateCoverageForSpecifiedTargets = "NO">
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
+            BlueprintIdentifier = "7536C9796568BC62B495DCAF"
             BuildableName = "FrameMate.app"
-            BlueprintName = "VideoRecorderApp"
+            BlueprintName = "FrameMate"
             ReferencedContainer = "container:VideoRecorder.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -42,13 +44,15 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F240A6170620F7128E7E8FD4"
-               BuildableName = "VideoRecorderAppTests.xctest"
-               BlueprintName = "VideoRecorderAppTests"
+               BlueprintIdentifier = "9643D49FE2BDAB3C6E2C8153"
+               BuildableName = "FrameMateTests.xctest"
+               BlueprintName = "FrameMateTests"
                ReferencedContainer = "container:VideoRecorder.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
+      <CommandLineArguments>
+      </CommandLineArguments>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -64,12 +68,14 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
+            BlueprintIdentifier = "7536C9796568BC62B495DCAF"
             BuildableName = "FrameMate.app"
-            BlueprintName = "VideoRecorderApp"
+            BlueprintName = "FrameMate"
             ReferencedContainer = "container:VideoRecorder.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+      </CommandLineArguments>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -81,12 +87,14 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "B4066B2170C72E22BFDEC10B"
+            BlueprintIdentifier = "7536C9796568BC62B495DCAF"
             BuildableName = "FrameMate.app"
-            BlueprintName = "VideoRecorderApp"
+            BlueprintName = "FrameMate"
             ReferencedContainer = "container:VideoRecorder.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+      </CommandLineArguments>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

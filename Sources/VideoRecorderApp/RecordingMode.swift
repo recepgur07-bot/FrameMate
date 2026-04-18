@@ -1,9 +1,13 @@
 import CoreGraphics
 import Foundation
 
-enum RecordingMode: String, CaseIterable, Identifiable {
+enum RecordingMode: String, Identifiable, CaseIterable {
     case horizontal1080p
     case vertical1080p
+
+    static var allCases: [RecordingMode] {
+        [.horizontal1080p]
+    }
 
     var id: String { rawValue }
 

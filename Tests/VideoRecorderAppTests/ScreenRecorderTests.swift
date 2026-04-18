@@ -1,5 +1,5 @@
 import XCTest
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 final class ScreenRecorderTests: XCTestCase {
     func testFallbackStopResultReturnsSuccessForNonEmptyRecordingFile() throws {

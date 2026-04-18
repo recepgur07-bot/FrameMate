@@ -10,7 +10,7 @@ settings:
     SWIFT_VERSION: "5.0"
     MACOSX_DEPLOYMENT_TARGET: "14.0"
 targets:
-  VideoRecorderApp:
+  FrameMate:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
@@ -32,7 +32,7 @@ targets:
     settings:
       base:
         PRODUCT_NAME: FrameMate
-        PRODUCT_MODULE_NAME: VideoRecorderApp
+        PRODUCT_MODULE_NAME: FrameMate
         PRODUCT_BUNDLE_IDENTIFIER: com.recepgur.VideoRecorder
         INFOPLIST_FILE: Resources/Info.plist
         GENERATE_INFOPLIST_FILE: NO
@@ -64,18 +64,18 @@ targets:
         NSSpeechUsageDescription: "Kadraj koçluğu talimatlarını sesli olarak iletmek için ses sentezi kullanılır."
     scheme:
       testTargets:
-        - VideoRecorderAppTests
-  VideoRecorderAppTests:
+        - FrameMateTests
+  FrameMateTests:
     type: bundle.unit-test
     platform: macOS
     deploymentTarget: "14.0"
     sources:
       - path: Tests/VideoRecorderAppTests
     dependencies:
-      - target: VideoRecorderApp
+      - target: FrameMate
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.recepgur.VideoRecorderTests
+        PRODUCT_BUNDLE_IDENTIFIER: com.recepgur.FrameMateTests
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/FrameMate.app/Contents/MacOS/FrameMate"
         BUNDLE_LOADER: "$(TEST_HOST)"

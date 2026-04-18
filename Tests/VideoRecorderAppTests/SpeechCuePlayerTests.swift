@@ -1,5 +1,5 @@
 import XCTest
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 final class SpeechCuePlayerTests: XCTestCase {
     func testSpeaksFirstInstruction() {
@@ -130,7 +130,7 @@ final class SpeechCuePlayerTests: XCTestCase {
         player.speakIfNeeded(
             "Biraz sola",
             isEnabled: true,
-            settings: FrameCoachPreferences(speechMode: .appVoice, feedbackFrequency: .balanced, repeatInterval: .medium, showsOnScreenText: true)
+            settings: FrameCoachPreferences(speechMode: .appVoice, feedbackFrequency: .balanced, repeatInterval: .medium, showsOnScreenText: true, spatialAudioMode: .off, playsCenterConfirmation: true)
         )
 
         XCTAssertEqual(speaker.spokenTexts, ["Biraz sola"])
@@ -149,7 +149,7 @@ final class SpeechCuePlayerTests: XCTestCase {
         player.speakIfNeeded(
             "Biraz sola",
             isEnabled: true,
-            settings: FrameCoachPreferences(speechMode: .silent, feedbackFrequency: .balanced, repeatInterval: .medium, showsOnScreenText: true)
+            settings: FrameCoachPreferences(speechMode: .silent, feedbackFrequency: .balanced, repeatInterval: .medium, showsOnScreenText: true, spatialAudioMode: .off, playsCenterConfirmation: true)
         )
 
         XCTAssertTrue(speaker.spokenTexts.isEmpty)
@@ -191,7 +191,9 @@ final class SpeechCuePlayerTests: XCTestCase {
             speechMode: .appVoice,
             feedbackFrequency: .minimal,
             repeatInterval: .short,
-            showsOnScreenText: true
+            showsOnScreenText: true,
+            spatialAudioMode: .off,
+            playsCenterConfirmation: true
         )
 
         player.speakIfNeeded("Biraz sola", isEnabled: true, settings: settings)

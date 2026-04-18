@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Popup-style preset selector for the five recording modes.
+/// Popup-style preset selector for the currently supported recording modes.
 /// VoiceOver users hear a single selectable control instead of a grid, while
 /// sighted users still get a modern compact mode picker.
 struct FMModeSelector: View {
@@ -11,9 +11,7 @@ struct FMModeSelector: View {
 
     private let presets: [RecordingPreset] = [
         .horizontalCamera,
-        .verticalCamera,
         .horizontalScreen,
-        .verticalScreen,
         .audioOnly
     ]
 
@@ -98,7 +96,7 @@ struct FMModeSelector: View {
             .menuStyle(.borderlessButton)
             .accessibilityLabel(String(localized: "Kayıt modu"))
             .accessibilityValue(selectedPreset.label)
-            .accessibilityHint(String(localized: "Boşluk tuşuna basıp listeden seçim yapabilirsin. Kısayollar Komut 1 ile Komut 5 arasındadır."))
+            .accessibilityHint(String(localized: "Boşluk tuşuna basıp listeden seçim yapabilirsin. Kısayollar Komut 1 ile Komut 3 arasındadır."))
         }
     }
 }

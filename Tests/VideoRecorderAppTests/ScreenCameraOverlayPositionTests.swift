@@ -1,5 +1,5 @@
 import XCTest
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 final class ScreenCameraOverlayPositionTests: XCTestCase {
     func testTopLeftAnchorsToTopAndLeft() {
@@ -12,4 +12,3 @@ final class ScreenCameraOverlayPositionTests: XCTestCase {
         XCTAssertEqual(ScreenCameraOverlayPosition.bottomCenter.verticalAnchor, 1)
     }
 }
-

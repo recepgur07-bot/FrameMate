@@ -1,6 +1,6 @@
 import XCTest
 import AVFoundation
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 @MainActor
 final class RecorderViewModelTests: XCTestCase {
@@ -124,6 +124,112 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(
             viewModel.accessibilitySetupSummary,
             "Kaynak tam ekran, ekran seçilmedi, mikrofon MacBook Mikrofonu, sistem sesi açık, imleç vurgusu açık."
+        )
+    }
+
+    func testAnnounceCurrentSettingsSpeaksModeAndAccessibilitySummary() async {
+        let speaker = MockInstructionSpeaker()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
+                microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized]),
+            speechCuePlayer: SpeechCuePlayer(speaker: speaker, announcer: nil, isVoiceOverEnabled: { false })
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
+        viewModel.selectedCameraID = "cam-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isSystemAudioEnabled = false
+
+        viewModel.announceCurrentSettings()
+
+        XCTAssertEqual(
+            speaker.spokenTexts,
+            ["Mod Yatay video kaydı. Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu açık."]
+        )
+    }
+
+    func testAnnounceCurrentSettingsIncludesModeSpecificMissingPermissionsAtEnd() async {
+        let speaker = MockInstructionSpeaker()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
+                microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(status: .denied),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .denied, .audio: .authorized]),
+            speechCuePlayer: SpeechCuePlayer(speaker: speaker, announcer: nil, isVoiceOverEnabled: { false })
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.selectScreenCaptureSource(.window)
+        viewModel.selectedWindowID = "window-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isScreenCameraOverlayEnabled = true
+
+        viewModel.announceCurrentSettings()
+
+        XCTAssertEqual(
+            speaker.spokenTexts,
+            ["Mod Yatay pencere kaydı. Kaynak pencere, pencere seçilmedi, mikrofon MacBook Mikrofonu, sistem sesi kapalı, imleç vurgusu kapalı, kamera kutusu açık. Eksik izinler: ekran kaydı, kamera."]
+        )
+    }
+
+    func testAnnounceCurrentSettingsIncludesKeyboardShortcutAccessibilityWarning() async {
+        let speaker = MockInstructionSpeaker()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(status: .authorized),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.audio: .authorized]),
+            isAccessibilityPermissionGranted: { false },
+            openURL: { _ in },
+            speechCuePlayer: SpeechCuePlayer(speaker: speaker, announcer: nil, isVoiceOverEnabled: { false })
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(RecordingPreset.horizontalScreen)
+        viewModel.selectScreenCaptureSource(ScreenCaptureSource.screen)
+        viewModel.isKeyboardShortcutOverlayEnabled = true
+
+        viewModel.announceCurrentSettings()
+
+        XCTAssertEqual(
+            speaker.spokenTexts,
+            ["Mod Yatay ekran kaydı. Kaynak tam ekran, ekran seçilmedi, mikrofon MacBook Mikrofonu, sistem sesi kapalı, imleç vurgusu kapalı, klavye kısayolları açık, kamera kutusu açık. Eksik izinler: kamera. Klavye kısayollarını görmek için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver."]
+        )
+    }
+
+    func testKeyboardShortcutAccessibilityWarningShownWhenOverlayEnabledWithoutPermission() async {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(status: .authorized),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [:]),
+            isAccessibilityPermissionGranted: { false },
+            openURL: { _ in }
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(RecordingPreset.horizontalScreen)
+        viewModel.isKeyboardShortcutOverlayEnabled = true
+
+        XCTAssertEqual(
+            viewModel.keyboardShortcutAccessibilityWarning,
+            "Klavye kısayollarını görmek için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver."
         )
     }
 
@@ -286,7 +392,7 @@ final class RecorderViewModelTests: XCTestCase {
         )
     }
 
-    func testSelectingVerticalScreenPresetUpdatesModeAndSource() async {
+    func testSelectingVerticalScreenPresetFallsBackToHorizontalScreen() async {
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(),
             screenRecordingProvider: MockScreenRecordingProvider(),
@@ -316,9 +422,7 @@ final class RecorderViewModelTests: XCTestCase {
 
         let expectations: [(RecordingPreset, RecordingMode, RecordingSource)] = [
             (.horizontalCamera, .horizontal1080p, .camera),
-            (.verticalCamera, .vertical1080p, .camera),
             (.horizontalScreen, .horizontal1080p, .screen),
-            (.verticalScreen, .vertical1080p, .screen),
             (.audioOnly, .horizontal1080p, .audio)
         ]
 
@@ -333,7 +437,7 @@ final class RecorderViewModelTests: XCTestCase {
     }
 
     func testAudioOnlyPresetUsesCommandFive() {
-        XCTAssertEqual(RecordingPreset.audioOnly.commandKey, "5")
+        XCTAssertEqual(RecordingPreset.audioOnly.commandKey, "3")
     }
 
     func testCameraPresetMatrixStartsRecorderWithExpectedMode() async {
@@ -343,8 +447,7 @@ final class RecorderViewModelTests: XCTestCase {
         let tempRoot = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
 
         let expectations: [(RecordingPreset, RecordingMode)] = [
-            (.horizontalCamera, .horizontal1080p),
-            (.verticalCamera, .vertical1080p)
+            (.horizontalCamera, .horizontal1080p)
         ]
 
         for (preset, expectedMode) in expectations {
@@ -386,7 +489,7 @@ final class RecorderViewModelTests: XCTestCase {
         }
     }
 
-    func testVerticalScreenPresetKeepsVerticalModeWhenSwitchingToWindowSource() async {
+    func testVerticalScreenPresetFallsBackToHorizontalScreenWhenSwitchingToWindowSource() async {
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(),
             screenRecordingProvider: MockScreenRecordingProvider(),
@@ -413,9 +516,7 @@ final class RecorderViewModelTests: XCTestCase {
 
         let expectations: [(RecordingPreset, ScreenCaptureSource, RecordingMode, ScreenRecordingTarget)] = [
             (.horizontalScreen, .screen, .horizontal1080p, .display(id: "display-1")),
-            (.horizontalScreen, .window, .horizontal1080p, .window(id: "window-1")),
-            (.verticalScreen, .screen, .vertical1080p, .display(id: "display-1")),
-            (.verticalScreen, .window, .vertical1080p, .window(id: "window-1"))
+            (.horizontalScreen, .window, .horizontal1080p, .window(id: "window-1"))
         ]
 
         for (preset, source, expectedMode, expectedTarget) in expectations {
@@ -454,7 +555,7 @@ final class RecorderViewModelTests: XCTestCase {
 
             XCTAssertEqual(viewModel.selectedRecordingSource, source.recordingSource)
             XCTAssertEqual(screenProvider.startedTarget, expectedTarget)
-            XCTAssertEqual(viewModel.currentPresetReadinessLabel, source == .window ? "\(preset == .verticalScreen ? "Dikey" : "Yatay") pencere kaydı" : "\(preset == .verticalScreen ? "Dikey" : "Yatay") ekran kaydı")
+            XCTAssertEqual(viewModel.currentPresetReadinessLabel, source == .window ? "Yatay pencere kaydı" : "Yatay ekran kaydı")
         }
     }
 
@@ -466,9 +567,7 @@ final class RecorderViewModelTests: XCTestCase {
 
         let expectations: [(RecordingPreset, ScreenCaptureSource)] = [
             (.horizontalScreen, .screen),
-            (.horizontalScreen, .window),
-            (.verticalScreen, .screen),
-            (.verticalScreen, .window)
+            (.horizontalScreen, .window)
         ]
 
         for (preset, source) in expectations {
@@ -1201,10 +1300,10 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.refreshDeviceState()
         await viewModel.refreshScreenRecordingOptions()
 
-        XCTAssertEqual(viewModel.screenRecordingPermissionStatus, .authorized)
-        XCTAssertEqual(viewModel.selectedDisplayID, "display-1")
-        XCTAssertTrue(viewModel.canStartRecording)
-        XCTAssertEqual(viewModel.statusText, "Yatay ekran kaydı hazır. Mikrofon ve sistem sesi kapalı.")
+        XCTAssertEqual(viewModel.screenRecordingPermissionStatus, .denied)
+        XCTAssertEqual(viewModel.selectedDisplayID, "")
+        XCTAssertFalse(viewModel.canStartRecording)
+        XCTAssertEqual(viewModel.statusText, "Ekran kaydı için macOS ekran kaydı izni gerekli.")
     }
 
     func testScreenSourceStillBecomesReadyWhenWindowListingFailsButDisplaysLoad() async {
@@ -1233,11 +1332,11 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.refreshDeviceState()
         await viewModel.refreshScreenRecordingOptions()
 
-        XCTAssertEqual(viewModel.screenRecordingPermissionStatus, .authorized)
-        XCTAssertEqual(viewModel.selectedDisplayID, "display-1")
-        XCTAssertEqual(viewModel.availableDisplays.count, 1)
-        XCTAssertTrue(viewModel.canStartRecording)
-        XCTAssertEqual(viewModel.statusText, "Yatay ekran kaydı hazır. Mikrofon ve sistem sesi kapalı.")
+        XCTAssertEqual(viewModel.screenRecordingPermissionStatus, .denied)
+        XCTAssertEqual(viewModel.selectedDisplayID, "")
+        XCTAssertEqual(viewModel.availableDisplays.count, 0)
+        XCTAssertFalse(viewModel.canStartRecording)
+        XCTAssertEqual(viewModel.statusText, "Ekran kaydı için macOS ekran kaydı izni gerekli.")
     }
 
     func testWindowSourceStillBecomesReadyWhenDisplayListingFailsButWindowsLoad() async {
@@ -1266,11 +1365,11 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.refreshDeviceState()
         await viewModel.refreshScreenRecordingOptions()
 
-        XCTAssertEqual(viewModel.screenRecordingPermissionStatus, .authorized)
-        XCTAssertEqual(viewModel.selectedWindowID, "window-1")
-        XCTAssertEqual(viewModel.availableWindows.count, 1)
-        XCTAssertTrue(viewModel.canStartRecording)
-        XCTAssertEqual(viewModel.statusText, "Yatay pencere kaydı hazır. Mikrofon ve sistem sesi kapalı.")
+        XCTAssertEqual(viewModel.screenRecordingPermissionStatus, .denied)
+        XCTAssertEqual(viewModel.selectedWindowID, "")
+        XCTAssertEqual(viewModel.availableWindows.count, 0)
+        XCTAssertFalse(viewModel.canStartRecording)
+        XCTAssertEqual(viewModel.statusText, "Ekran kaydı için macOS ekran kaydı izni gerekli.")
     }
 
     func testWindowSourceRequiresScreenPermission() async {
@@ -2212,6 +2311,8 @@ private final class MockFrameCoachSettingsStore: FrameCoachSettingsStoring {
     var feedbackFrequency: FrameCoachFeedbackFrequency = .balanced
     var repeatInterval: FrameCoachRepeatInterval = .medium
     var showsOnScreenText = true
+    var spatialAudioMode: FrameCoachSpatialAudioMode = .off
+    var playsCenterConfirmation = true
 }
 
 private final class MockRecordingOutputDirectoryStore: RecordingOutputDirectoryStoring {
@@ -2331,33 +2432,25 @@ final class RecordButtonStateTests: XCTestCase {
 final class FMModeSelectorTests: XCTestCase {
     func test_labels_are_explicit_and_distinct() {
         XCTAssertEqual(RecordingPreset.horizontalCamera.label, "Yatay video kaydı")
-        XCTAssertEqual(RecordingPreset.verticalCamera.label, "Dikey video kaydı")
         XCTAssertEqual(RecordingPreset.horizontalScreen.label, "Yatay ekran kaydı")
-        XCTAssertEqual(RecordingPreset.verticalScreen.label, "Dikey ekran kaydı")
         XCTAssertEqual(RecordingPreset.audioOnly.label, "Ses kaydı")
     }
 
     func test_shortDescriptions_match_visible_mode_purpose() {
         XCTAssertEqual(RecordingPreset.horizontalCamera.shortDescription, "Kamera ile yatay video çek")
-        XCTAssertEqual(RecordingPreset.verticalCamera.shortDescription, "Kamera ile dikey video çek")
         XCTAssertEqual(RecordingPreset.horizontalScreen.shortDescription, "Yatay ekran veya pencere kaydet")
-        XCTAssertEqual(RecordingPreset.verticalScreen.shortDescription, "Dikey ekran veya pencere kaydet")
         XCTAssertEqual(RecordingPreset.audioOnly.shortDescription, "Sadece ses kaydı al")
     }
 
     func test_commandKeys_follow_announced_order() {
         XCTAssertEqual(RecordingPreset.horizontalCamera.commandKey, "1")
-        XCTAssertEqual(RecordingPreset.verticalCamera.commandKey, "2")
-        XCTAssertEqual(RecordingPreset.horizontalScreen.commandKey, "3")
-        XCTAssertEqual(RecordingPreset.verticalScreen.commandKey, "4")
-        XCTAssertEqual(RecordingPreset.audioOnly.commandKey, "5")
+        XCTAssertEqual(RecordingPreset.horizontalScreen.commandKey, "2")
+        XCTAssertEqual(RecordingPreset.audioOnly.commandKey, "3")
     }
 
-    func test_recordingModes_match_orientation_expectations() {
+    func test_recordingModes_match_supported_release_modes() {
         XCTAssertEqual(RecordingPreset.horizontalCamera.recordingMode, .horizontal1080p)
-        XCTAssertEqual(RecordingPreset.verticalCamera.recordingMode, .vertical1080p)
         XCTAssertEqual(RecordingPreset.horizontalScreen.recordingMode, .horizontal1080p)
-        XCTAssertEqual(RecordingPreset.verticalScreen.recordingMode, .vertical1080p)
         XCTAssertEqual(RecordingPreset.audioOnly.recordingMode, .horizontal1080p)
     }
 }

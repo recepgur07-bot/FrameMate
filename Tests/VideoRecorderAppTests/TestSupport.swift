@@ -1,6 +1,6 @@
 import AVFoundation
 import Foundation
-@testable import VideoRecorderApp
+@testable import FrameMate
 
 final class MockInstructionSpeaker: InstructionSpeaking {
     private(set) var spokenTexts: [String] = []

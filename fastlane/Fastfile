@@ -101,7 +101,7 @@ platform :mac do
     # buildlog_path: çıktı /tmp/gym_build.log dosyasına yazılır.
     build_options = {
       project: "VideoRecorder.xcodeproj",
-      scheme: "VideoRecorderApp",
+      scheme: "FrameMate",
       configuration: "Release",
       clean: true,
       xcodebuild_formatter: "",

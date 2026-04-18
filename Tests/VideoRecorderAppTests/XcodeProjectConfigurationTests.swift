@@ -70,7 +70,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         )
     }
 
-    func testAppTargetKeepsVideoRecorderAppModuleName() throws {
+    func testAppTargetUsesFrameMateModuleName() throws {
         let projectFileURL = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
             .deletingLastPathComponent()
@@ -80,8 +80,8 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         let projectContents = try String(contentsOf: projectFileURL, encoding: .utf8)
 
         XCTAssertTrue(
-            projectContents.contains("PRODUCT_MODULE_NAME = VideoRecorderApp;"),
-            "The Xcode target should expose the same module name as the Swift package target."
+            projectContents.contains("PRODUCT_MODULE_NAME = FrameMate;"),
+            "The Xcode target should expose the FrameMate module name consistently."
         )
     }
 
@@ -90,7 +90,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
             .deletingLastPathComponent()
             .deletingLastPathComponent()
             .deletingLastPathComponent()
-            .appendingPathComponent("VideoRecorder.xcodeproj/xcshareddata/xcschemes/VideoRecorderApp.xcscheme")
+            .appendingPathComponent("VideoRecorder.xcodeproj/xcshareddata/xcschemes/FrameMate.xcscheme")
 
         let schemeContents = try String(contentsOf: schemeFileURL, encoding: .utf8)
 

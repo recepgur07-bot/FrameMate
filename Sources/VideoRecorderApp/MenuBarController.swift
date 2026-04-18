@@ -165,7 +165,9 @@ final class MenuBarController {
     private func startPulsing() {
         guard pulseTimer == nil else { return }
         let timer = Timer(timeInterval: 0.8, repeats: true) { [weak self] _ in
-            self?.pulse()
+            Task { @MainActor [weak self] in
+                self?.pulse()
+            }
         }
         RunLoop.main.add(timer, forMode: .common)
         pulseTimer = timer
