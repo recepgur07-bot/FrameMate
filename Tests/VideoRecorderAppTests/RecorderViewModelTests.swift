@@ -285,6 +285,35 @@ final class RecorderViewModelTests: XCTestCase {
         )
     }
 
+    func testAnnounceCurrentSettingsUsesVoiceOverWhenRunning() async {
+        let speaker = MockInstructionSpeaker()
+        let announcer = MockInstructionAnnouncer()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
+                microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized]),
+            speechCuePlayer: SpeechCuePlayer(speaker: speaker, announcer: announcer, isVoiceOverEnabled: { true })
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
+        viewModel.selectedCameraID = "cam-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+
+        viewModel.announceCurrentSettings()
+
+        XCTAssertTrue(speaker.spokenTexts.isEmpty)
+        XCTAssertEqual(
+            announcer.announcements,
+            ["Mod Yatay video kaydı. Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu açık."]
+        )
+    }
+
     func testAnnounceCurrentSettingsIncludesModeSpecificMissingPermissionsAtEnd() async {
         let speaker = MockInstructionSpeaker()
         let viewModel = RecorderViewModel(
@@ -333,6 +362,7 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.selectPreset(RecordingPreset.horizontalScreen)
         viewModel.selectScreenCaptureSource(ScreenCaptureSource.screen)
         viewModel.isKeyboardShortcutOverlayEnabled = true
+        viewModel.isScreenCameraOverlayEnabled = true
 
         viewModel.announceCurrentSettings()
 

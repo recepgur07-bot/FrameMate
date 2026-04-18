@@ -3126,7 +3126,7 @@ final class RecorderViewModel {
         }
         let announcement = parts.joined(separator: " ")
         let settings = FrameCoachPreferences(
-            speechMode: .appVoice,
+            speechMode: .automatic,
             feedbackFrequency: frameCoachFeedbackFrequency,
             repeatInterval: frameCoachRepeatInterval,
             showsOnScreenText: showsFrameCoachTextOnScreen,
