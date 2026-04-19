@@ -6,10 +6,18 @@ enum MainWindowPresentationAction: Equatable {
 }
 
 struct MainWindowPresentationPolicy {
+    let showWindowWhenRecordingStops: Bool
+
+    init(showWindowWhenRecordingStops: Bool = true) {
+        self.showWindowWhenRecordingStops = showWindowWhenRecordingStops
+    }
+
     func actionForRecordingStateChange(from previous: Bool, to current: Bool) -> MainWindowPresentationAction? {
         switch (previous, current) {
+        case (false, true):
+            return .hide
         case (true, false):
-            return .show
+            return showWindowWhenRecordingStops ? .show : nil
         default:
             return nil
         }

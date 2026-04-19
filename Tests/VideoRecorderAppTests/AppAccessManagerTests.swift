@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class AppAccessManagerTests: XCTestCase {
-    func testRefreshStartsFourteenDayTrialWhenNoPurchaseExists() async {
+    func testRefreshLocksRecordingWhenNoPurchaseExists() async {
         let now = Date(timeIntervalSince1970: 1_750_000_000)
         let store = MockAppStorePurchasing(
             productsToReturn: [
@@ -26,27 +26,8 @@ final class AppAccessManagerTests: XCTestCase {
             storeKit: store,
             trialStore: trialStore,
             clock: FixedDateProvider(now: now),
-            calendar: Calendar(identifier: .gregorian)
-        )
-
-        await manager.refresh()
-
-        XCTAssertEqual(manager.state.accessKind, .trial)
-        XCTAssertEqual(manager.state.trialDaysRemaining, 14)
-        XCTAssertTrue(manager.state.canStartRecording)
-        XCTAssertEqual(manager.state.offers.map(\.plan), [.yearly, .lifetime])
-        XCTAssertEqual(trialStore.startDate, now)
-    }
-
-    func testRefreshLocksRecordingWhenTrialExpiredAndNoEntitlementExists() async {
-        let now = Date(timeIntervalSince1970: 1_750_000_000)
-        let calendar = Calendar(identifier: .gregorian)
-        let expiredStart = calendar.date(byAdding: .day, value: -14, to: now)
-        let manager = AppAccessManager(
-            storeKit: MockAppStorePurchasing(),
-            trialStore: MockTrialStartDateStore(startDate: expiredStart),
-            clock: FixedDateProvider(now: now),
-            calendar: calendar
+            calendar: Calendar(identifier: .gregorian),
+            allowsUnitTestAccessFallback: false
         )
 
         await manager.refresh()
@@ -54,6 +35,43 @@ final class AppAccessManagerTests: XCTestCase {
         XCTAssertEqual(manager.state.accessKind, .expired)
         XCTAssertEqual(manager.state.trialDaysRemaining, 0)
         XCTAssertFalse(manager.state.canStartRecording)
+        XCTAssertEqual(manager.state.offers.map(\.plan), [.yearly, .lifetime])
+        XCTAssertNil(trialStore.startDate)
+    }
+
+    func testRefreshKeepsRecordingLockedWhenLegacyLocalTrialExists() async {
+        let now = Date(timeIntervalSince1970: 1_750_000_000)
+        let calendar = Calendar(identifier: .gregorian)
+        let legacyStart = calendar.date(byAdding: .day, value: -1, to: now)
+        let manager = AppAccessManager(
+            storeKit: MockAppStorePurchasing(),
+            trialStore: MockTrialStartDateStore(startDate: legacyStart),
+            clock: FixedDateProvider(now: now),
+            calendar: calendar,
+            allowsUnitTestAccessFallback: false
+        )
+
+        await manager.refresh()
+
+        XCTAssertEqual(manager.state.accessKind, .expired)
+        XCTAssertEqual(manager.state.trialDaysRemaining, 0)
+        XCTAssertFalse(manager.state.canStartRecording)
+    }
+
+    func testRefreshAllowsYearlyEntitlementFromSubscriptionOrAppleTrial() async {
+        let store = MockAppStorePurchasing(
+            entitlementProductIDs: [AppAccessProduct.yearly.rawValue]
+        )
+        let manager = AppAccessManager(
+            storeKit: store,
+            trialStore: MockTrialStartDateStore(),
+            allowsUnitTestAccessFallback: false
+        )
+
+        await manager.refresh()
+
+        XCTAssertEqual(manager.state.accessKind, .yearly)
+        XCTAssertTrue(manager.state.canStartRecording)
     }
 
     func testRefreshPrefersLifetimeEntitlementOverExpiredTrial() async {
@@ -67,7 +85,8 @@ final class AppAccessManagerTests: XCTestCase {
             storeKit: store,
             trialStore: MockTrialStartDateStore(startDate: expiredStart),
             clock: FixedDateProvider(now: now),
-            calendar: calendar
+            calendar: calendar,
+            allowsUnitTestAccessFallback: false
         )
 
         await manager.refresh()

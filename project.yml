@@ -28,6 +28,8 @@ targets:
         buildPhase: resources
       - path: Resources/PrivacyInfo.xcprivacy
         buildPhase: resources
+      - path: Resources/AppIcon.icns
+        buildPhase: resources
     dependencies:
       - framework: IOKit.framework
         embed: false
@@ -67,12 +69,15 @@ targets:
     scheme:
       testTargets:
         - FrameMateTests
+        - FrameMateProjectTests
   FrameMateTests:
     type: bundle.unit-test
     platform: macOS
     deploymentTarget: "14.0"
     sources:
       - path: Tests/VideoRecorderAppTests
+        excludes:
+          - XcodeProjectConfigurationTests.swift
     dependencies:
       - target: FrameMate
     settings:
@@ -81,5 +86,39 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/FrameMate.app/Contents/MacOS/FrameMate"
         BUNDLE_LOADER: "$(TEST_HOST)"
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: "-"
+  FrameMateProjectTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests/VideoRecorderProjectTests
+      - path: Tests/VideoRecorderProjectTests/Fixtures/AppInfoFixture.plist
+        buildPhase: resources
+      - path: Resources/PrivacyInfo.xcprivacy
+        buildPhase: resources
+      - path: VideoRecorder.entitlements
+        buildPhase: resources
+      - path: VideoRecorder.xcodeproj/project.pbxproj
+        buildPhase: resources
+      - path: VideoRecorder.xcodeproj/xcshareddata/xcschemes/FrameMate.xcscheme
+        buildPhase: resources
+      - path: Tests/VideoRecorderProjectTests/Fixtures/VideoRecorderApp.txt
+        buildPhase: resources
+      - path: Tests/VideoRecorderProjectTests/Fixtures/fastlane-metadata-tr-privacy-url.txt
+        buildPhase: resources
+      - path: Tests/VideoRecorderProjectTests/Fixtures/fastlane-metadata-tr-support-url.txt
+        buildPhase: resources
+      - path: Tests/VideoRecorderProjectTests/Fixtures/fastlane-metadata-en-US-privacy-url.txt
+        buildPhase: resources
+      - path: Tests/VideoRecorderProjectTests/Fixtures/fastlane-metadata-en-US-support-url.txt
+        buildPhase: resources
+    dependencies:
+      - target: FrameMate
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.recepgur.FrameMateProjectTests
+        GENERATE_INFOPLIST_FILE: YES
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: "-"

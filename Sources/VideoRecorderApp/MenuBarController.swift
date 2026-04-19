@@ -11,9 +11,11 @@ final class MenuBarController {
     private var isPaused = false
     private var hasLastRecording = false
     private var lastRecordingName: String?
+    private var recordingDuration: TimeInterval?
     private var onToggle: (() -> Void)?
     private var onAudioToggle: (() -> Void)?
     private var onPauseResumeToggle: (() -> Void)?
+    private var onSelectPreset: ((RecordingPreset) -> Void)?
     private var onShow: (() -> Void)?
     private var onOpenLastRecording: (() -> Void)?
     private var onRevealLastRecording: (() -> Void)?
@@ -26,6 +28,7 @@ final class MenuBarController {
         onToggle: @escaping () -> Void,
         onAudioToggle: @escaping () -> Void,
         onPauseResumeToggle: @escaping () -> Void = {},
+        onSelectPreset: @escaping (RecordingPreset) -> Void = { _ in },
         onShow: @escaping () -> Void,
         onOpenLastRecording: @escaping () -> Void,
         onRevealLastRecording: @escaping () -> Void,
@@ -35,6 +38,7 @@ final class MenuBarController {
         self.onToggle = onToggle
         self.onAudioToggle = onAudioToggle
         self.onPauseResumeToggle = onPauseResumeToggle
+        self.onSelectPreset = onSelectPreset
         self.onShow = onShow
         self.onOpenLastRecording = onOpenLastRecording
         self.onRevealLastRecording = onRevealLastRecording
@@ -66,6 +70,7 @@ final class MenuBarController {
             onToggle: onToggle,
             onAudioToggle: onAudioToggle,
             onPauseResumeToggle: {},
+            onSelectPreset: { _ in },
             onShow: onShow,
             onOpenLastRecording: onOpenLastRecording,
             onRevealLastRecording: onRevealLastRecording,
@@ -79,6 +84,7 @@ final class MenuBarController {
             onToggle: onStop,
             onAudioToggle: {},
             onPauseResumeToggle: {},
+            onSelectPreset: { _ in },
             onShow: onShow,
             onOpenLastRecording: {},
             onRevealLastRecording: {},
@@ -88,11 +94,18 @@ final class MenuBarController {
         update(isRecording: true, isPaused: false, hasLastRecording: hasLastRecording)
     }
 
-    func update(isRecording: Bool, isPaused: Bool = false, hasLastRecording: Bool, lastRecordingName: String? = nil) {
+    func update(
+        isRecording: Bool,
+        isPaused: Bool = false,
+        hasLastRecording: Bool,
+        lastRecordingName: String? = nil,
+        recordingDuration: TimeInterval? = nil
+    ) {
         self.isRecording = isRecording
         self.isPaused = isRecording && isPaused
         self.hasLastRecording = hasLastRecording
         self.lastRecordingName = lastRecordingName
+        self.recordingDuration = isRecording ? recordingDuration : nil
         rebuildMenu()
         updateAppearance()
     }
@@ -102,7 +115,8 @@ final class MenuBarController {
             isRecording: isRecording,
             isPaused: false,
             hasLastRecording: hasLastRecording,
-            lastRecordingName: lastRecordingName
+            lastRecordingName: lastRecordingName,
+            recordingDuration: nil
         )
     }
 
@@ -115,6 +129,7 @@ final class MenuBarController {
         onToggle = nil
         onAudioToggle = nil
         onPauseResumeToggle = nil
+        onSelectPreset = nil
         onShow = nil
         onOpenLastRecording = nil
         onRevealLastRecording = nil
@@ -188,6 +203,11 @@ final class MenuBarController {
         let statusItem = makeMenuItem(title: currentStatusLine, action: nil)
         statusItem.isEnabled = false
         menu.addItem(statusItem)
+        if let recordingDurationLine {
+            let durationItem = makeMenuItem(title: recordingDurationLine, action: nil)
+            durationItem.isEnabled = false
+            menu.addItem(durationItem)
+        }
         menu.addItem(.separator())
 
         let toggleItem = NSMenuItem(
@@ -222,6 +242,22 @@ final class MenuBarController {
         menu.addItem(pauseResumeItem)
         menu.addItem(.separator())
 
+        let presetsItem = NSMenuItem(title: "Hazır Çalışma Modları", action: nil, keyEquivalent: "")
+        let presetsMenu = NSMenu()
+        for preset in RecordingPreset.allCases {
+            let item = NSMenuItem(
+                title: preset.menuLabel,
+                action: #selector(selectPresetTapped(_:)),
+                keyEquivalent: ""
+            )
+            item.target = self
+            item.representedObject = preset.rawValue
+            presetsMenu.addItem(item)
+        }
+        presetsItem.submenu = presetsMenu
+        menu.addItem(presetsItem)
+        menu.addItem(.separator())
+
         menu.addItem(makeMenuItem(title: "Ana Pencereyi Göster", action: #selector(showTapped)))
 
         let openLastItem = makeMenuItem(title: "Son Kaydı Aç", action: #selector(openLastRecordingTapped))
@@ -251,6 +287,14 @@ final class MenuBarController {
         return "Durum: Hazır"
     }
 
+    private var recordingDurationLine: String? {
+        guard isRecording, let recordingDuration else { return nil }
+        let totalSeconds = max(0, Int(recordingDuration.rounded(.down)))
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "Kayıt süresi: %02d:%02d", minutes, seconds)
+    }
+
     private func makeMenuItem(title: String, action: Selector?) -> NSMenuItem {
         let item = NSMenuItem(title: title, action: action, keyEquivalent: "")
         item.target = self
@@ -272,6 +316,16 @@ final class MenuBarController {
     @objc private nonisolated func showTapped() {
         Task { @MainActor in
             self.onShow?()
+        }
+    }
+
+    @objc private nonisolated func selectPresetTapped(_ sender: NSMenuItem) {
+        Task { @MainActor in
+            guard
+                let rawValue = sender.representedObject as? String,
+                let preset = RecordingPreset(rawValue: rawValue)
+            else { return }
+            self.onSelectPreset?(preset)
         }
     }
 
@@ -326,4 +380,14 @@ final class MenuBarController {
 
     var debugToolTip: String? { statusItem?.button?.toolTip }
     var debugMenuTitles: [String] { statusItem?.menu?.items.map(\.title) ?? [] }
+    var debugAllMenuTitles: [String] {
+        flattenedTitles(for: statusItem?.menu)
+    }
+
+    private func flattenedTitles(for menu: NSMenu?) -> [String] {
+        guard let menu else { return [] }
+        return menu.items.flatMap { item in
+            [item.title] + flattenedTitles(for: item.submenu)
+        }
+    }
 }

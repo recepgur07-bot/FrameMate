@@ -133,4 +133,47 @@ final class MenuBarControllerTests: XCTestCase {
         XCTAssertTrue(controller.debugMenuTitles.contains("Devam Et (\(GlobalHotkeyMonitor.pauseResumeToggleDisplay))"))
         XCTAssertEqual(controller.debugMenuTitles.first, "Durum: Kayıt duraklatıldı")
     }
+
+    func testRecordingMenuShowsElapsedDuration() {
+        let controller = MenuBarController()
+        controller.install(
+            onToggle: {},
+            onAudioToggle: {},
+            onPauseResumeToggle: {},
+            onShow: {},
+            onOpenLastRecording: {},
+            onRevealLastRecording: {},
+            onOpenSettings: {},
+            onQuit: {}
+        )
+
+        controller.update(
+            isRecording: true,
+            isPaused: false,
+            hasLastRecording: false,
+            recordingDuration: 65
+        )
+
+        XCTAssertTrue(controller.debugMenuTitles.contains("Kayıt süresi: 01:05"))
+    }
+
+    func testMenuIncludesQuickPresetSection() {
+        let controller = MenuBarController()
+        controller.install(
+            onToggle: {},
+            onAudioToggle: {},
+            onPauseResumeToggle: {},
+            onSelectPreset: { _ in },
+            onShow: {},
+            onOpenLastRecording: {},
+            onRevealLastRecording: {},
+            onOpenSettings: {},
+            onQuit: {}
+        )
+
+        XCTAssertTrue(controller.debugAllMenuTitles.contains("Hazır Çalışma Modları"))
+        XCTAssertTrue(controller.debugAllMenuTitles.contains("Yatay video kaydı modu"))
+        XCTAssertTrue(controller.debugAllMenuTitles.contains("Yatay ekran kaydı modu"))
+        XCTAssertTrue(controller.debugAllMenuTitles.contains("Ses kaydı modu"))
+    }
 }

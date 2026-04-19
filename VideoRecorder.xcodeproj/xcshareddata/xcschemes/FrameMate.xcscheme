@@ -50,6 +50,17 @@
                ReferencedContainer = "container:VideoRecorder.xcodeproj">
             </BuildableReference>
          </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "62B326A6F44E8AE5993ABA68"
+               BuildableName = "FrameMateProjectTests.xctest"
+               BlueprintName = "FrameMateProjectTests"
+               ReferencedContainer = "container:VideoRecorder.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>

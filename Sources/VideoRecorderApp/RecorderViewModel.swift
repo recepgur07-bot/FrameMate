@@ -552,6 +552,13 @@ final class RecorderViewModel {
         recordingOutputDirectoryURL.path
     }
 
+    var currentRecordingDuration: TimeInterval? {
+        guard isRecording, let recordingStartUptime else { return nil }
+        let elapsed = ProcessInfo.processInfo.systemUptime - recordingStartUptime
+        let pausedOffset = currentPauseStartOffset.map { max(0, elapsed - $0) } ?? 0
+        return max(0, elapsed - recordingPauseTimeline.totalPausedDuration - pausedOffset)
+    }
+
     var cameraPermissionStatus: AVAuthorizationStatus {
         permissionProvider.authorizationStatus(for: .video)
     }
@@ -1521,6 +1528,7 @@ final class RecorderViewModel {
         lightingAnalysis: FrameLightingAnalysis?
     ) {
         guard isFrameCoachEnabled else { return }
+        let spatialCueResolver = FrameCoachSpatialCueResolver()
 
         guard let analysis else {
             if lightingAnalysis?.isLowLight == true {
@@ -1547,6 +1555,9 @@ final class RecorderViewModel {
             mode: selectedMode,
             profile: automaticFrameCoachingProfile(for: analysis)
         )
+        if let cue = spatialCueResolver.cue(for: analysis, guidance: guidance, mode: selectedMode) {
+            spatialCuePlayer.play(cue, preferences: frameCoachPreferences)
+        }
 
         if guidance == CaptureCoachingEngine.lowLightInstruction {
             currentFrameCoachInstruction = guidance
@@ -2559,7 +2570,7 @@ final class RecorderViewModel {
         case .lifetime:
             return String(localized: "Pro: ömür boyu erişim aktif")
         case .expired:
-            return String(localized: "Deneme sona erdi")
+            return String(localized: "Pro plan gerekli")
         }
     }
 
@@ -2568,11 +2579,11 @@ final class RecorderViewModel {
         case .trial:
             return String(localized: "Şimdilik tüm kayıt özellikleri açık. Süre bitince plan seçebilirsin.")
         case .yearly:
-            return String(localized: "Yıllık planla tüm Pro kayıt özellikleri açık.")
+            return String(localized: "Yıllık plan veya Apple deneme süresiyle tüm Pro kayıt özellikleri açık.")
         case .lifetime:
             return String(localized: "Tek seferlik satın alımla tüm Pro kayıt özellikleri açık.")
         case .expired:
-            return String(localized: "Yeni kayıt başlatmak için bir plan seçmen gerekiyor.")
+            return String(localized: "14 günlük ücretsiz deneme için yıllık planı veya kalıcı erişim için ömür boyu planı seç.")
         }
     }
 
@@ -2685,7 +2696,7 @@ final class RecorderViewModel {
             isPaywallPresented = true
             paywallMessageText = nil
             errorText = nil
-            statusText = String(localized: "14 günlük deneme sona erdi")
+            statusText = String(localized: "Kayıt başlatmak için Pro plan seç")
             return false
         }
 

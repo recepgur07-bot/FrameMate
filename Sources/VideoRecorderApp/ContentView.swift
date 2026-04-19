@@ -1141,6 +1141,10 @@ struct ContentView: View {
 
 struct SettingsView: View {
     @Bindable var viewModel: RecorderViewModel
+    @AppStorage(AppBehaviorPreferenceKey.hideWindowOnRecordingStart) private var hideWindowOnRecordingStart = true
+    @AppStorage(AppBehaviorPreferenceKey.showWindowWhenRecordingStops) private var showWindowWhenRecordingStops = true
+    @AppStorage(AppBehaviorPreferenceKey.activationPolicy) private var activationPolicyPreference = AppActivationPolicyPreference.regular.rawValue
+    @AppStorage(AppBehaviorPreferenceKey.launchAtLogin) private var launchAtLogin = false
 
     var body: some View {
         Form {
@@ -1221,6 +1225,18 @@ struct SettingsView: View {
                     }
                 }
                 .accessibilityHint(String(localized: "Bu süre dolunca kayıt otomatik olarak durur."))
+
+                Toggle("Kayıt başlarken pencereyi gizle", isOn: $hideWindowOnRecordingStart)
+
+                Toggle("Kayıt bitince pencereyi geri aç", isOn: $showWindowWhenRecordingStops)
+
+                Picker("Uygulama görünümü", selection: $activationPolicyPreference) {
+                    ForEach(AppActivationPolicyPreference.allCases) { policy in
+                        Text(policy.label).tag(policy.rawValue)
+                    }
+                }
+
+                Toggle("Girişte otomatik başlat", isOn: $launchAtLogin)
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Varsayılan kayıt klasörü")
@@ -1375,10 +1391,10 @@ private struct AppPaywallSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
-            Text(String(localized: "14 Günlük Deneme Bitti"))
+            Text(String(localized: "Pro erişim seç"))
                 .font(.title2.weight(.semibold))
 
-            Text(String(localized: "Kayıt başlatmaya devam etmek için bir plan seç."))
+            Text(String(localized: "Yıllık planda 14 günlük ücretsiz deneme başlar. İstersen tek seferlik ömür boyu erişim de seçebilirsin."))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -1435,7 +1451,7 @@ private struct AppPaywallSheet: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Button(isBusy ? String(localized: "İşleniyor…") : String(localized: "Seç")) {
+            Button(isBusy ? String(localized: "İşleniyor…") : buttonTitle(for: plan)) {
                 Task {
                     await viewModel.purchaseAccess(plan: plan)
                 }
@@ -1449,5 +1465,14 @@ private struct AppPaywallSheet: View {
                 .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+
+    private func buttonTitle(for plan: AppAccessPlan) -> String {
+        switch plan {
+        case .yearly:
+            return String(localized: "14 Gün Ücretsiz Dene")
+        case .lifetime:
+            return String(localized: "Ömür Boyu Satın Al")
+        }
     }
 }

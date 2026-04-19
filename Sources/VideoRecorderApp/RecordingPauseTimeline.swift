@@ -22,6 +22,10 @@ struct RecordingPauseTimeline: Equatable {
         ranges.isEmpty
     }
 
+    var totalPausedDuration: TimeInterval {
+        normalizedRanges(clippedTo: ranges.map(\.end).max() ?? 0).reduce(0) { $0 + $1.duration }
+    }
+
     static let empty = RecordingPauseTimeline()
 
     func segments(for sourceDuration: CMTime) -> [RecordingSegment] {

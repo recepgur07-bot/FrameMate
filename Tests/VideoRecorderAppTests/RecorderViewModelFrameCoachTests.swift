@@ -67,7 +67,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
 
         XCTAssertEqual(
             spatialCuePlayer.playedCues,
-            [FrameCoachSpatialCue(direction: .right, severity: .mild, confirmsCentered: false)]
+            [FrameCoachSpatialCue(direction: .right, severity: .strong, confirmsCentered: false)]
         )
     }
 
