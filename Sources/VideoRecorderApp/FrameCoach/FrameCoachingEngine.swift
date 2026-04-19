@@ -175,14 +175,14 @@ final class FrameCoachingEngine {
 
             if severity == .severe,
                (averageFaceWidth > severeWidthThreshold || averageFaceHeight > severeHeightThreshold) {
-                return String(localized: "kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün")
+                return String(localized: "çok yakınsın, biraz uzaklaş — omuzların ve göğsün de görünsün")
             }
 
             if severity == .advisory,
                let advisoryWidthThreshold,
                let advisoryHeightThreshold,
                (averageFaceWidth > advisoryWidthThreshold || averageFaceHeight > advisoryHeightThreshold) {
-                return String(localized: "kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün")
+                return String(localized: "çok yakınsın, biraz uzaklaş — omuzların ve göğsün de görünsün")
             }
 
             if severity == .severe, averageFaceWidth < farThreshold {

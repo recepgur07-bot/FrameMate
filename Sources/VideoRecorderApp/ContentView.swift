@@ -752,7 +752,7 @@ struct ContentView: View {
                     .frame(width: 20)
                     .accessibilityHidden(true)
                 Toggle(String(localized: "Sistem sesini dahil et"), isOn: $viewModel.isSystemAudioEnabled)
-                    .accessibilityHint(String(localized: "Mac'te calan uygulama ve sistem seslerini kayda ekler."))
+                    .accessibilityHint(String(localized: "Mac'te çalan uygulama ve sistem seslerini kayda ekler."))
             }
 
             // Screen recording permission banner (system audio capture requires screen recording).

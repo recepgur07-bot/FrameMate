@@ -3551,7 +3551,7 @@ final class RecorderViewModel {
 
     func autoReframeExportSummary(keyframeCount: Int, usedVideoComposition: Bool) -> String {
         guard usedVideoComposition else {
-            return String(localized: "normal export tamamlandı")
+            return String(localized: "dışa aktarım tamamlandı")
         }
 
         return String(localized: "otomatik kadraj uygulandı, \(keyframeCount) ana kare kullanıldı")

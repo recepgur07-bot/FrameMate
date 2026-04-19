@@ -136,7 +136,7 @@ private struct OnboardingWelcomePage: View {
         }
         .padding(.horizontal, 32)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(String(localized: "Adım 1 / 3, FrameMate'e Hoş Geldin"))
+        .accessibilityLabel(String(localized: "Adım 1 / 3: FrameMate'e Hoş Geldin"))
     }
 }
 
@@ -192,7 +192,7 @@ private struct OnboardingModesPage: View {
         }
         .padding(.horizontal, 32)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel(String(localized: "Adım 2 / 3, Kayıt Modları"))
+        .accessibilityLabel(String(localized: "Adım 2 / 3: Kayıt Modları"))
     }
 }
 
