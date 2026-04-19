@@ -197,6 +197,7 @@ final class AppAccessManager: AppAccessManaging {
     private let calendar: Calendar
     private let trialLengthInDays: Int
     private let allowsUnitTestAccessFallback: Bool
+    private let allowsDebugAccessFallback: Bool
 
     private(set) var state: AppAccessState = .default
 
@@ -206,7 +207,8 @@ final class AppAccessManager: AppAccessManaging {
         clock: any DateProviding = SystemDateProvider(),
         calendar: Calendar = .current,
         trialLengthInDays: Int = 14,
-        allowsUnitTestAccessFallback: Bool = true
+        allowsUnitTestAccessFallback: Bool = true,
+        allowsDebugAccessFallback: Bool = true
     ) {
         self.storeKit = storeKit
         self.trialStore = trialStore
@@ -214,6 +216,7 @@ final class AppAccessManager: AppAccessManaging {
         self.calendar = calendar
         self.trialLengthInDays = trialLengthInDays
         self.allowsUnitTestAccessFallback = allowsUnitTestAccessFallback
+        self.allowsDebugAccessFallback = allowsDebugAccessFallback
     }
 
     func refresh() async {
@@ -228,6 +231,8 @@ final class AppAccessManager: AppAccessManaging {
         } else if allowsUnitTestAccessFallback && ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
             // Keep existing recording-flow unit tests focused on capture behavior.
             // Real app, TestFlight, and App Store builds do not run with this XCTest environment.
+            accessKind = .yearly
+        } else if allowsDebugAccessFallback && isDebugBuild && !isRunningUnitTests {
             accessKind = .yearly
         } else {
             accessKind = .expired
@@ -292,6 +297,18 @@ final class AppAccessManager: AppAccessManaging {
                 )
             }
         }
+    }
+
+    private var isRunningUnitTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
+
+    private var isDebugBuild: Bool {
+#if DEBUG
+        true
+#else
+        false
+#endif
     }
 
 }
