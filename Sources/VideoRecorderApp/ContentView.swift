@@ -1389,7 +1389,7 @@ private struct AppPaywallSheet: View {
             Text(String(localized: "Pro erişim seç"))
                 .font(.title2.weight(.semibold))
 
-            Text(String(localized: "14 günlük ücretsiz deneme yalnızca yıllık plan için geçerliyse uygulanır. Ömür boyu planı istersen doğrudan tek seferde satın alabilirsin."))
+            Text(String(localized: "Yıllık plan 14 gün ücretsiz deneme ile başlar. Bu deneme, App Store hesabın daha önce kullanmadıysa görünür. Ömür boyu planı istersen doğrudan tek seferde satın alabilirsin."))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 

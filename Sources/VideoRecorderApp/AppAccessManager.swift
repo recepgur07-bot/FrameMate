@@ -29,7 +29,7 @@ enum AppAccessPlan: String, CaseIterable, Equatable {
     var defaultDescription: String {
         switch self {
         case .yearly:
-            return String(localized: "Yıllık abonelik. Uygunsa 14 günlük ücretsiz deneme App Store tarafından uygulanır.")
+            return String(localized: "14 gün ücretsiz deneme ile başlar, ardından yıllık abonelik olarak devam eder. Deneme, App Store hesabın daha önce kullanmadıysa gösterilir.")
         case .lifetime:
             return String(localized: "Tek seferlik satın alımla kalıcı erişim. Önce yıllık plan alman gerekmez.")
         }
