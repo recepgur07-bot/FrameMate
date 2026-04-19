@@ -78,23 +78,19 @@ struct ContentView: View {
             AppPaywallSheet(viewModel: viewModel)
         }
         .sheet(
-            isPresented: Binding(
-                get: { viewModel.completedRecording != nil },
-                set: { isPresented in
-                    if !isPresented { viewModel.dismissCompletedRecordingSummary() }
-                }
+            item: Binding(
+                get: { viewModel.completedRecording },
+                set: { if $0 == nil { viewModel.dismissCompletedRecordingSummary() } }
             )
-        ) {
-            if let completedRecording = viewModel.completedRecording {
-                CompletedRecordingSheet(
-                    completedRecording: completedRecording,
-                    onOpen: viewModel.openCompletedRecording,
-                    onReveal: viewModel.revealCompletedRecording,
-                    onRename: viewModel.renameCompletedRecording(to:),
-                    onSaveAs: viewModel.saveCompletedRecordingAs(to:),
-                    onClose: viewModel.dismissCompletedRecordingSummary
-                )
-            }
+        ) { completedRecording in
+            CompletedRecordingSheet(
+                completedRecording: completedRecording,
+                onOpen: viewModel.openCompletedRecording,
+                onReveal: viewModel.revealCompletedRecording,
+                onRename: viewModel.renameCompletedRecording(to:),
+                onSaveAs: viewModel.saveCompletedRecordingAs(to:),
+                onClose: viewModel.dismissCompletedRecordingSummary
+            )
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
@@ -105,11 +101,12 @@ struct ContentView: View {
         // doesn't have to navigate to the status elements to hear what happened.
         .onChange(of: currentStatus) { oldStatus, newStatus in
             let message: String
-            switch newStatus {
-            case .recording:  message = String(localized: "Kayıt başladı")
-            case .paused:     message = String(localized: "Kayıt duraklatıldı")
-            case .preparing:  message = String(localized: "Kayıt hazırlanıyor")
-            case .ready:      message = String(localized: "Kayıt durduruldu")
+            switch (oldStatus, newStatus) {
+            case (.paused, .recording): message = String(localized: "Kayıt devam ediyor")
+            case (_, .recording):       message = String(localized: "Kayıt başladı")
+            case (_, .paused):          message = String(localized: "Kayıt duraklatıldı")
+            case (_, .preparing):       message = String(localized: "Kayıt hazırlanıyor")
+            case (_, .ready):           message = String(localized: "Kayıt durduruldu")
             }
             NSAccessibility.post(
                 element: NSApp.mainWindow as Any,
@@ -132,6 +129,22 @@ struct ContentView: View {
             default:
                 break
             }
+        }
+        .onChange(of: viewModel.completedRecording) { _, newRecording in
+            guard let recording = newRecording else { return }
+            NSAccessibility.post(
+                element: NSApp.mainWindow as Any,
+                notification: .announcementRequested,
+                userInfo: [
+                    NSAccessibility.NotificationUserInfoKey.announcement:
+                        String(localized: "Kayıt tamamlandı: \(recording.url.lastPathComponent)"),
+                    NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                ]
+            )
+            toastQueue.post(
+                message: String(localized: "Kayıt tamamlandı: \(recording.url.lastPathComponent)"),
+                style: .success
+            )
         }
         .onChange(of: viewModel.errorText) { _, newError in
             guard let error = newError else { return }

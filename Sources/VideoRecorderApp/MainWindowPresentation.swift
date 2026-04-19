@@ -7,15 +7,17 @@ enum MainWindowPresentationAction: Equatable {
 
 struct MainWindowPresentationPolicy {
     let showWindowWhenRecordingStops: Bool
+    let hideWindowOnRecordingStart: Bool
 
-    init(showWindowWhenRecordingStops: Bool = true) {
+    init(showWindowWhenRecordingStops: Bool = true, hideWindowOnRecordingStart: Bool = true) {
         self.showWindowWhenRecordingStops = showWindowWhenRecordingStops
+        self.hideWindowOnRecordingStart = hideWindowOnRecordingStart
     }
 
     func actionForRecordingStateChange(from previous: Bool, to current: Bool) -> MainWindowPresentationAction? {
         switch (previous, current) {
         case (false, true):
-            return .hide
+            return hideWindowOnRecordingStart ? .hide : nil
         case (true, false):
             return showWindowWhenRecordingStops ? .show : nil
         default:
@@ -42,8 +44,8 @@ final class MainWindowController {
         mainWindowProvider: @escaping () -> NSWindow? = {
             NSApp.mainWindow
                 ?? NSApp.keyWindow
-                ?? NSApp.windows.first(where: { $0.isVisible })
-                ?? NSApp.windows.first
+                ?? NSApp.windows.first(where: { $0.isVisible && $0.canBecomeKey })
+                ?? NSApp.windows.first(where: { $0.canBecomeKey })
         },
         activateApp: @escaping () -> Void = {
             NSApp.activate(ignoringOtherApps: true)

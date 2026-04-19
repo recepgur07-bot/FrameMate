@@ -132,8 +132,11 @@ struct VideoRecorderApp: App {
                 .onChange(of: viewModel.isRecording) { wasRecording, isRecording in
                     updateMenuBarRefreshTimer(isRecording: isRecording)
                     updateMenuBarState()
+                    let isScreenMode = viewModel.selectedRecordingSource == .screen
+                        || viewModel.selectedRecordingSource == .window
                     guard let action = MainWindowPresentationPolicy(
-                        showWindowWhenRecordingStops: showWindowWhenRecordingStops
+                        showWindowWhenRecordingStops: showWindowWhenRecordingStops,
+                        hideWindowOnRecordingStart: hideWindowOnRecordingStart && isScreenMode
                     ).actionForRecordingStateChange(
                         from: wasRecording,
                         to: isRecording
@@ -141,12 +144,14 @@ struct VideoRecorderApp: App {
 
                     switch action {
                     case .hide:
-                        if hideWindowOnRecordingStart {
-                            mainWindowController.hideMainWindow()
-                        }
+                        mainWindowController.hideMainWindow()
                     case .show:
                         mainWindowController.showMainWindow()
                     }
+                }
+                .onChange(of: viewModel.completedRecording) { _, newRecording in
+                    guard newRecording != nil, showWindowWhenRecordingStops else { return }
+                    mainWindowController.showMainWindow()
                 }
                 .onChange(of: viewModel.lastSavedURL) { _, _ in
                     updateMenuBarState()
