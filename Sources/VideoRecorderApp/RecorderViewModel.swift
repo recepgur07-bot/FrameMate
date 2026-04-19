@@ -1478,6 +1478,9 @@ final class RecorderViewModel {
             lastGoodFrameAt = nil
             lastGoodInstruction = nil
             speechCuePlayer.speakIfNeeded(String(localized: "Kadraj koçu açık"), isEnabled: true, settings: frameCoachPreferences)
+            // "Kadraj koçu açık" duyurulduktan sonra frekans kapısını sıfırla ki
+            // ilk analiz talimatı gecikme yaşamadan hemen söylensin.
+            speechCuePlayer.resetFrequencyGate()
             Task {
                 await prepareAnalysisPreviewIfPossible()
             }

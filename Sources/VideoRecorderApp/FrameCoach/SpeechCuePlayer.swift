@@ -144,6 +144,12 @@ final class SpeechCuePlayer {
         lastAnnouncementAt = nil
     }
 
+    /// Frekans limitini sıfırlar ama dedup durumunu korur.
+    /// Koç açıldıktan hemen sonra ilk talimatın frekans kısıtına takılmaması için kullanılır.
+    func resetFrequencyGate() {
+        lastAnnouncementAt = nil
+    }
+
     private func outputRoute(for speechMode: FrameCoachSpeechMode) -> SpeechOutputRoute {
         switch speechMode {
         case .automatic:
