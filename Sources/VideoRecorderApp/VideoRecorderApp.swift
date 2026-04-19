@@ -1,5 +1,9 @@
 import SwiftUI
 
+extension Notification.Name {
+    static let openMainWindowRequested = Notification.Name("openMainWindowRequested")
+}
+
 final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
     static var shouldTerminateAfterLastWindowClosed: () -> Bool = { true }
 
@@ -38,6 +42,30 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
     }
 }
 
+private struct MainWindowRootView: View {
+    @Environment(\.openWindow) private var openWindow
+
+    let viewModel: RecorderViewModel
+    let mainWindowController: MainWindowController
+    @Binding var hasInstalledMainWindowOpenAction: Bool
+
+    var body: some View {
+        ContentView(viewModel: viewModel)
+            .onAppear {
+                guard !hasInstalledMainWindowOpenAction else { return }
+                hasInstalledMainWindowOpenAction = true
+                NotificationCenter.default.addObserver(
+                    forName: .openMainWindowRequested,
+                    object: nil,
+                    queue: .main
+                ) { notification in
+                    guard let id = notification.object as? String else { return }
+                    openWindow(id: id)
+                }
+            }
+    }
+}
+
 @main
 struct VideoRecorderApp: App {
     @NSApplicationDelegateAdaptor(VideoRecorderAppDelegate.self) private var appDelegate
@@ -48,15 +76,25 @@ struct VideoRecorderApp: App {
     @AppStorage(AppBehaviorPreferenceKey.launchAtLogin) private var launchAtLogin = false
     @State private var viewModel: RecorderViewModel
     @State private var menuBarRefreshTimer: Timer?
+    @State private var hasInstalledMainWindowOpenAction = false
     private let hotkeyMonitor: GlobalHotkeyMonitor
     @MainActor private let menuBarController = MenuBarController()
-    @MainActor private let mainWindowController = MainWindowController()
+    @MainActor private let mainWindowController: MainWindowController
     private let launchAtLoginController: any LaunchAtLoginControlling
 
     init() {
         NSApplication.shared.setActivationPolicy(.regular)
         let vm = RecorderViewModel()
         _viewModel = State(initialValue: vm)
+        let mainWindowID = "main"
+        mainWindowController = MainWindowController(
+            openMainWindow: {
+                NotificationCenter.default.post(
+                    name: .openMainWindowRequested,
+                    object: mainWindowID
+                )
+            }
+        )
         launchAtLoginController = SMAppLaunchAtLoginController()
         hotkeyMonitor = GlobalHotkeyMonitor(
             onToggle: { vm.toggleRecording() },
@@ -71,7 +109,11 @@ struct VideoRecorderApp: App {
 
     var body: some Scene {
         Window("FrameMate", id: "main") {
-            ContentView(viewModel: viewModel)
+            MainWindowRootView(
+                viewModel: viewModel,
+                mainWindowController: mainWindowController,
+                hasInstalledMainWindowOpenAction: $hasInstalledMainWindowOpenAction
+            )
                 .onAppear {
                     applyActivationPolicy()
                     syncLaunchAtLogin()
