@@ -2721,3 +2721,407 @@ final class FMModeSelectorTests: XCTestCase {
         XCTAssertEqual(RecordingPreset.audioOnly.recordingMode, .horizontal1080p)
     }
 }
+
+// MARK: - Recording lifecycle scenario tests
+@MainActor
+final class RecordingLifecycleTests: XCTestCase {
+
+    // MARK: Helpers
+
+    private func makeAudioViewModel() -> (RecorderViewModel, MockMicrophoneAudioRecorder, MockSystemAudioRecorder, MockAudioRecordingExporter) {
+        let mic = MockMicrophoneAudioRecorder()
+        let sys = MockSystemAudioRecorder()
+        let exporter = MockAudioRecordingExporter()
+        let permissions = RecorderPermissionsStub(statuses: [.audio: .authorized])
+        let tempRoot = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let vm = RecorderViewModel(
+            recorder: RecorderCaptureStub(cameras: [], microphones: [InputDevice(id: "mic-1", name: "USB Mic")]),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            systemAudioRecorder: sys,
+            microphoneAudioRecorder: mic,
+            audioRecordingExporter: exporter,
+            fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+        return (vm, mic, sys, exporter)
+    }
+
+    private func makeCameraViewModel() -> (RecorderViewModel, RecorderCaptureStub) {
+        let stub = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
+            microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]
+        )
+        let permissions = RecorderPermissionsStub(statuses: [.video: .authorized, .audio: .authorized])
+        let tempRoot = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let vm = RecorderViewModel(
+            recorder: stub,
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+        return (vm, stub)
+    }
+
+    private func makeScreenViewModel() -> (RecorderViewModel, MockScreenRecordingProvider) {
+        let provider = MockScreenRecordingProvider(
+            status: .authorized,
+            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+        )
+        provider.shouldCompleteOnStop = true
+        let permissions = RecorderPermissionsStub(statuses: [.video: .authorized, .audio: .authorized])
+        let tempRoot = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let vm = RecorderViewModel(
+            recorder: RecorderCaptureStub(),
+            screenRecordingProvider: provider,
+            fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+        return (vm, provider)
+    }
+
+    private func waitForRecording(_ vm: RecorderViewModel) async {
+        for _ in 0..<20 where !vm.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+    }
+
+    private func waitForIdle(_ vm: RecorderViewModel) async {
+        try? await Task.sleep(nanoseconds: 150_000_000)
+    }
+
+    // MARK: Audio: start → stop
+
+    func testAudioStartStop_setsCompletedRecording() async {
+        let (vm, _, _, _) = makeAudioViewModel()
+        await vm.setup()
+        vm.selectPreset(.audioOnly)
+        vm.refreshDeviceState()
+
+        XCTAssertNil(vm.completedRecording)
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        XCTAssertTrue(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertNil(vm.completedRecording)
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertNotNil(vm.completedRecording)
+        XCTAssertEqual(vm.completedRecording?.fileExtension, "m4a")
+    }
+
+    // MARK: Audio: start → pause → stop
+
+    func testAudioStartPauseStop_setsCompletedRecording() async {
+        let (vm, _, _, _) = makeAudioViewModel()
+        await vm.setup()
+        vm.selectPreset(.audioOnly)
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        vm.togglePauseResume()
+        XCTAssertTrue(vm.isPaused)
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertNotNil(vm.completedRecording)
+    }
+
+    // MARK: Audio: start → pause → resume → stop
+
+    func testAudioStartPauseResumeStop_setsCompletedRecording() async {
+        let (vm, _, _, _) = makeAudioViewModel()
+        await vm.setup()
+        vm.selectPreset(.audioOnly)
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        vm.togglePauseResume()
+        XCTAssertTrue(vm.isPaused)
+
+        vm.togglePauseResume()
+        try? await Task.sleep(nanoseconds: 60_000_000)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertTrue(vm.isRecording)
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertNotNil(vm.completedRecording)
+    }
+
+    // MARK: Audio: multi-cycle pause/resume → stop
+
+    func testAudioMultiCyclePauseResume_setsCompletedRecording() async {
+        let (vm, _, _, _) = makeAudioViewModel()
+        await vm.setup()
+        vm.selectPreset(.audioOnly)
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        for _ in 0..<3 {
+            vm.togglePauseResume()
+            XCTAssertTrue(vm.isPaused)
+            vm.togglePauseResume()
+            try? await Task.sleep(nanoseconds: 60_000_000)
+            XCTAssertFalse(vm.isPaused)
+        }
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertNotNil(vm.completedRecording)
+    }
+
+    // MARK: Audio: completedRecording nil before and during recording
+
+    func testAudioCompletedRecordingIsNilBeforeAndDuringRecording() async {
+        let (vm, _, _, _) = makeAudioViewModel()
+        await vm.setup()
+        vm.selectPreset(.audioOnly)
+        vm.refreshDeviceState()
+
+        XCTAssertNil(vm.completedRecording, "Should be nil before recording starts")
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        XCTAssertNil(vm.completedRecording, "Should be nil while recording is active")
+    }
+
+    // MARK: Audio: second start clears previous completedRecording
+
+    func testAudioSecondStart_clearsPreviousCompletedRecording() async {
+        let (vm, _, _, _) = makeAudioViewModel()
+        await vm.setup()
+        vm.selectPreset(.audioOnly)
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertNotNil(vm.completedRecording)
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        XCTAssertNil(vm.completedRecording, "Should be cleared when new recording starts")
+    }
+
+    // MARK: Camera: start → stop
+
+    func testCameraStartStop_stateIsCleanAfterStop() async {
+        let (vm, _) = makeCameraViewModel()
+        await vm.setup()
+        vm.selectPreset(.horizontalCamera)
+        vm.selectedCameraID = "cam-1"
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        XCTAssertTrue(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertFalse(vm.isPreparingRecording)
+    }
+
+    // MARK: Camera: start → pause → stop
+
+    func testCameraStartPauseStop_stateIsCleanAfterStop() async {
+        let (vm, _) = makeCameraViewModel()
+        await vm.setup()
+        vm.selectPreset(.horizontalCamera)
+        vm.selectedCameraID = "cam-1"
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        vm.togglePauseResume()
+        XCTAssertTrue(vm.isPaused)
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertFalse(vm.isPreparingRecording)
+    }
+
+    // MARK: Camera: start → pause → resume → stop
+
+    func testCameraStartPauseResumeStop_stateIsCleanAfterStop() async {
+        let (vm, _) = makeCameraViewModel()
+        await vm.setup()
+        vm.selectPreset(.horizontalCamera)
+        vm.selectedCameraID = "cam-1"
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        vm.togglePauseResume()
+        XCTAssertTrue(vm.isPaused)
+
+        vm.togglePauseResume()
+        try? await Task.sleep(nanoseconds: 60_000_000)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertTrue(vm.isRecording)
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertFalse(vm.isPreparingRecording)
+    }
+
+    // MARK: Camera: multi-cycle pause/resume → stop
+
+    func testCameraMultiCyclePauseResume_stateIsCleanAfterStop() async {
+        let (vm, _) = makeCameraViewModel()
+        await vm.setup()
+        vm.selectPreset(.horizontalCamera)
+        vm.selectedCameraID = "cam-1"
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        for _ in 0..<3 {
+            vm.togglePauseResume()
+            XCTAssertTrue(vm.isPaused)
+            vm.togglePauseResume()
+            try? await Task.sleep(nanoseconds: 60_000_000)
+            XCTAssertFalse(vm.isPaused)
+        }
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertFalse(vm.isPreparingRecording)
+    }
+
+    // MARK: Screen: start → stop
+
+    func testScreenStartStop_stateIsCleanAfterStop() async {
+        let (vm, _) = makeScreenViewModel()
+        await vm.setup()
+        vm.selectPreset(.horizontalScreen)
+        vm.selectScreenCaptureSource(.screen)
+        await vm.refreshScreenRecordingOptions()
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        XCTAssertTrue(vm.isRecording)
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertFalse(vm.isPreparingRecording)
+    }
+
+    // MARK: Screen: start → pause → resume → stop
+
+    func testScreenStartPauseResumeStop_stateIsCleanAfterStop() async {
+        let (vm, _) = makeScreenViewModel()
+        await vm.setup()
+        vm.selectPreset(.horizontalScreen)
+        vm.selectScreenCaptureSource(.screen)
+        await vm.refreshScreenRecordingOptions()
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        vm.togglePauseResume()
+        XCTAssertTrue(vm.isPaused)
+
+        vm.togglePauseResume()
+        try? await Task.sleep(nanoseconds: 60_000_000)
+        XCTAssertFalse(vm.isPaused)
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertFalse(vm.isPreparingRecording)
+    }
+
+    // MARK: State integrity
+
+    func testStateFullyResetAfterAudioStop() async {
+        let (vm, _, _, _) = makeAudioViewModel()
+        await vm.setup()
+        vm.selectPreset(.audioOnly)
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+        vm.togglePauseResume()
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording)
+        XCTAssertFalse(vm.isPaused)
+        XCTAssertFalse(vm.isPreparingRecording)
+        XCTAssertFalse(vm.isCountingDown)
+    }
+
+    // MARK: Guard: toggleAudioRecording ignored when camera is active
+
+    func testAudioToggleIsGuardedWhenCameraRecordingIsActive() async {
+        let (vm, _) = makeCameraViewModel()
+        await vm.setup()
+        vm.selectPreset(.horizontalCamera)
+        vm.selectedCameraID = "cam-1"
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        XCTAssertTrue(vm.isRecording)
+        XCTAssertEqual(vm.selectedRecordingSource, .camera)
+
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 60_000_000)
+
+        XCTAssertEqual(vm.selectedRecordingSource, .camera)
+        XCTAssertTrue(vm.isRecording)
+    }
+}
