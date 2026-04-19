@@ -1484,6 +1484,7 @@ final class RecorderViewModel {
         } else {
             currentFrameCoachInstruction = nil
             speechCuePlayer.reset()
+            spatialCuePlayer.reset()
             consecutiveMissingFaceAnalyses = 0
             lastGoodFrameAt = nil
             lastGoodInstruction = nil

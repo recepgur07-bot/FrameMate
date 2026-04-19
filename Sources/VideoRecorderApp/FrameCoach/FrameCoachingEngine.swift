@@ -303,11 +303,11 @@ final class FrameCoachingEngine {
         guard let averageY = analysis.averageFaceCenterY else { return nil }
 
         if averageY > 0.52 {
-            return String(localized: "kamerayı biraz yukarı al")
+            return String(localized: "kamerayı biraz aşağı indir")
         }
 
         if averageY < 0.24 {
-            return String(localized: "kamerayı biraz aşağı indir")
+            return String(localized: "kamerayı biraz yukarı al")
         }
 
         return nil

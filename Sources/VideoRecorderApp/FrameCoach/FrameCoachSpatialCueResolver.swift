@@ -64,15 +64,17 @@ struct FrameCoachSpatialCueResolver {
         let bottomStrong = mode == .vertical1080p ? 0.66 : 0.50
         let bottomMild = mode == .vertical1080p ? 0.58 : 0.43
 
-        if analysis.bottomCoverageRatio >= bottomMild || centerDelta >= mildCenterThreshold {
+        // Yüz çerçevede YUKARI (alta çok boşluk) veya hedefin üstünde → kamerayı yukarı çevir
+        if analysis.bottomCoverageRatio >= bottomMild || centerDelta <= -mildCenterThreshold {
             let severity: FrameCoachSpatialSeverity =
-                (analysis.bottomCoverageRatio >= bottomStrong || centerDelta >= strongCenterThreshold) ? .strong : .mild
+                (analysis.bottomCoverageRatio >= bottomStrong || centerDelta <= -strongCenterThreshold) ? .strong : .mild
             return FrameCoachSpatialCue(direction: .up, severity: severity, confirmsCentered: false)
         }
 
-        if analysis.headroomRatio >= headroomMild || centerDelta <= -mildCenterThreshold {
+        // Yüz çerçevede AŞAĞI (üstte çok boşluk) veya hedefin altında → kamerayı aşağı çevir
+        if analysis.headroomRatio >= headroomMild || centerDelta >= mildCenterThreshold {
             let severity: FrameCoachSpatialSeverity =
-                (analysis.headroomRatio >= headroomStrong || centerDelta <= -strongCenterThreshold) ? .strong : .mild
+                (analysis.headroomRatio >= headroomStrong || centerDelta >= strongCenterThreshold) ? .strong : .mild
             return FrameCoachSpatialCue(direction: .down, severity: severity, confirmsCentered: false)
         }
 
