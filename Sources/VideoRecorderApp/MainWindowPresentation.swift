@@ -34,6 +34,8 @@ struct AppTerminationPolicy {
 final class MainWindowController {
     private let mainWindowProvider: () -> NSWindow?
     private let activateApp: () -> Void
+    private let hideApp: () -> Void
+    private let unhideApp: () -> Void
     private let openMainWindow: () -> Void
 
     init(
@@ -46,24 +48,35 @@ final class MainWindowController {
         activateApp: @escaping () -> Void = {
             NSApp.activate(ignoringOtherApps: true)
         },
+        hideApp: @escaping () -> Void = {
+            NSApp.hide(nil)
+        },
+        unhideApp: @escaping () -> Void = {
+            NSApp.unhide(nil)
+        },
         openMainWindow: @escaping () -> Void = {}
     ) {
         self.mainWindowProvider = mainWindowProvider
         self.activateApp = activateApp
+        self.hideApp = hideApp
+        self.unhideApp = unhideApp
         self.openMainWindow = openMainWindow
     }
 
     func hideMainWindow() {
         mainWindow()?.orderOut(nil)
+        hideApp()
     }
 
     func showMainWindow() {
+        unhideApp()
         activateApp()
         guard let window = mainWindow() else {
             openMainWindow()
             return
         }
         window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
     }
 
     private func mainWindow() -> NSWindow? {

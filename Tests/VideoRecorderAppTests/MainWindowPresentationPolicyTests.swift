@@ -8,7 +8,7 @@ final class MainWindowPresentationPolicyTests: XCTestCase {
         XCTAssertNil(policy.actionForRecordingStateChange(from: false, to: false))
     }
 
-    func testRecordingStartKeepsWindowVisible() {
+    func testRecordingStartRequestsHide() {
         let policy = MainWindowPresentationPolicy()
 
         XCTAssertEqual(

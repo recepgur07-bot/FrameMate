@@ -37,7 +37,10 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private static func showMainWindowIfAvailable() {
-        guard let window = NSApp.windows.first(where: \.canBecomeKey) ?? NSApp.windows.first else { return }
+        guard let window = NSApp.windows.first(where: \.canBecomeKey) ?? NSApp.windows.first else {
+            NotificationCenter.default.post(name: .openMainWindowRequested, object: "main")
+            return
+        }
         window.makeKeyAndOrderFront(nil)
     }
 }
