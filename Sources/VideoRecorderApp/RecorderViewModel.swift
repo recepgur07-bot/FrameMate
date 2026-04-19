@@ -1678,7 +1678,7 @@ final class RecorderViewModel {
             resetAutoReframeDebugState()
 
             let captureURL = fileNamer.temporaryMovieURL()
-            let finalURL = fileNamer.recordingURL()
+            let finalURL = fileNamer.recordingURL(source: .camera)
             let systemAudioURL = fileNamer.temporaryAudioURL(stem: "system-audio")
             try removeExistingFileIfNeeded(at: captureURL)
             try removeExistingFileIfNeeded(at: finalURL)
@@ -1863,7 +1863,7 @@ final class RecorderViewModel {
         let fileNamer = try resolvedActiveFileNamer()
 
         let captureURL = fileNamer.temporaryMovieURL()
-        let finalURL = fileNamer.recordingURL()
+        let finalURL = fileNamer.recordingURL(source: selectedRecordingSource)
         let overlayCaptureURL = fileNamer.temporaryMovieURL(stem: "camera-overlay")
         let microphoneCaptureURL = fileNamer.temporaryAudioURL(stem: "screen-microphone")
         let systemAudioCaptureURL = fileNamer.temporaryAudioURL(stem: "screen-system-audio")
