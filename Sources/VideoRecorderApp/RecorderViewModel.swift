@@ -182,7 +182,7 @@ struct FrameCoachPreferences: Equatable {
     static let `default` = FrameCoachPreferences(
         speechMode: .automatic,
         feedbackFrequency: .balanced,
-        repeatInterval: .medium,
+        repeatInterval: .short,
         showsOnScreenText: true,
         spatialAudioMode: .off,
         playsCenterConfirmation: true
@@ -1542,7 +1542,10 @@ final class RecorderViewModel {
             consecutiveMissingFaceAnalyses += 1
             guard consecutiveMissingFaceAnalyses >= 3 else { return }
             currentFrameCoachInstruction = String(localized: "Yüz algılanamıyor")
-            speechCuePlayer.speakIfNeeded(String(localized: "Yüz algılanamıyor"), isEnabled: true, settings: frameCoachPreferences)
+            // Yüz kaybolunca kısa aralıkla tekrar et (2s) — kör kullanıcı hızlıca uyarılmalı.
+            var urgentPreferences = frameCoachPreferences
+            urgentPreferences.repeatInterval = .short
+            speechCuePlayer.speakIfNeeded(String(localized: "Yüz algılanamıyor"), isEnabled: true, settings: urgentPreferences)
             return
         }
 
@@ -1569,9 +1572,10 @@ final class RecorderViewModel {
             lastGoodInstruction = guidance
         }
 
-        // "İyi duruma kilitle": son 10 saniyede kadraj iyiydi ve şu anki şikayet hafifse — sessiz kal.
+        // "İyi duruma kilitle": son 3 saniyede kadraj iyiydi ve şu anki şikayet hafifse — sessiz kal.
+        // 3 saniye: kör kullanıcı pozisyon değişikliğini hızlıca öğrenmeli.
         let isLockedGood: Bool
-        if let lastGood = lastGoodFrameAt, !isGood, Date().timeIntervalSince(lastGood) < 10 {
+        if let lastGood = lastGoodFrameAt, !isGood, Date().timeIntervalSince(lastGood) < 3 {
             isLockedGood = !isHardFrameCoachInstruction(guidance)
         } else {
             isLockedGood = false
@@ -1589,7 +1593,15 @@ final class RecorderViewModel {
             return
         }
 
-        speechCuePlayer.speakIfNeeded(guidance.sentenceCased, isEnabled: true, key: guidance.sentenceCased, settings: frameCoachPreferences)
+        // İyi konumdayken periyodik sesli onay: kör kullanıcı hâlâ doğru yerde olduğunu bilmeli.
+        // "Kadraj uygun" için repeatInterval'ı kısalt (3s), yönlendirme için varsayılanı kullan.
+        if isGood {
+            var confirmPreferences = frameCoachPreferences
+            confirmPreferences.repeatInterval = .short
+            speechCuePlayer.speakIfNeeded(guidance.sentenceCased, isEnabled: true, key: guidance.sentenceCased, settings: confirmPreferences)
+        } else {
+            speechCuePlayer.speakIfNeeded(guidance.sentenceCased, isEnabled: true, key: guidance.sentenceCased, settings: frameCoachPreferences)
+        }
     }
 
     /// Matches against Turkish coaching phrases produced by the frame coach engine.

@@ -289,11 +289,17 @@ final class FrameCoachingEngine {
         }
 
         if analysis.bottomCoverageRatio >= bottomThreshold {
-            return String(localized: "kamerayı biraz yukarı al")
+            let isStrong = analysis.bottomCoverageRatio >= bottomThreshold + 0.12
+            return isStrong
+                ? String(localized: "kamerayı belirgin şekilde yukarı al")
+                : String(localized: "kamerayı biraz yukarı al")
         }
 
         if analysis.headroomRatio >= topThreshold {
-            return String(localized: "kamerayı biraz aşağı indir")
+            let isStrong = analysis.headroomRatio >= topThreshold + 0.12
+            return isStrong
+                ? String(localized: "kamerayı belirgin şekilde aşağı indir")
+                : String(localized: "kamerayı biraz aşağı indir")
         }
 
         return nil
@@ -303,11 +309,17 @@ final class FrameCoachingEngine {
         guard let averageY = analysis.averageFaceCenterY else { return nil }
 
         if averageY > 0.52 {
-            return String(localized: "kamerayı biraz aşağı indir")
+            let isStrong = averageY > 0.64
+            return isStrong
+                ? String(localized: "kamerayı belirgin şekilde aşağı indir")
+                : String(localized: "kamerayı biraz aşağı indir")
         }
 
         if averageY < 0.24 {
-            return String(localized: "kamerayı biraz yukarı al")
+            let isStrong = averageY < 0.14
+            return isStrong
+                ? String(localized: "kamerayı belirgin şekilde yukarı al")
+                : String(localized: "kamerayı biraz yukarı al")
         }
 
         return nil
@@ -316,22 +328,34 @@ final class FrameCoachingEngine {
     private func groupHorizontalInstruction(in analysis: FrameAnalysis) -> String? {
         let leftThreshold = analysis.subjectCount == .one ? 0.34 : 0.42
         let rightThreshold = analysis.subjectCount == .one ? 0.66 : 0.58
+        let strongLeftThreshold = analysis.subjectCount == .one ? 0.22 : 0.30
+        let strongRightThreshold = analysis.subjectCount == .one ? 0.78 : 0.70
 
         if analysis.groupCenterX < leftThreshold {
+            let isStrong = analysis.groupCenterX < strongLeftThreshold
             switch analysis.subjectCount {
             case .one:
-                return String(localized: "biraz sağa geç")
+                return isStrong
+                    ? String(localized: "belirgin şekilde sağa geç")
+                    : String(localized: "biraz sağa geç")
             case .two, .three:
-                return String(localized: "grup biraz solda kalmış, biraz sağa kayın")
+                return isStrong
+                    ? String(localized: "grup çok solda kalmış, belirgin şekilde sağa kayın")
+                    : String(localized: "grup biraz solda kalmış, biraz sağa kayın")
             }
         }
 
         if analysis.groupCenterX > rightThreshold {
+            let isStrong = analysis.groupCenterX > strongRightThreshold
             switch analysis.subjectCount {
             case .one:
-                return String(localized: "biraz sola geç")
+                return isStrong
+                    ? String(localized: "belirgin şekilde sola geç")
+                    : String(localized: "biraz sola geç")
             case .two, .three:
-                return String(localized: "grup biraz sağda kalmış, biraz sola kayın")
+                return isStrong
+                    ? String(localized: "grup çok sağda kalmış, belirgin şekilde sola kayın")
+                    : String(localized: "grup biraz sağda kalmış, biraz sola kayın")
             }
         }
 
