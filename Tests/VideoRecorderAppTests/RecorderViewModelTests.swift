@@ -224,8 +224,34 @@ final class RecorderViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             viewModel.accessibilitySetupSummary,
-            "Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu açık."
+            "Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu kapalı."
         )
+    }
+
+    func testAccessibilitySetupSummaryUsesFrameCoachToggleInsteadOfAutoReframeToggle() async {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
+                microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.verticalCamera)
+        viewModel.selectedCameraID = "cam-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isAutoReframeEnabled = true
+        viewModel.isFrameCoachEnabled = false
+
+        XCTAssertTrue(viewModel.accessibilitySetupSummary.contains("kadraj koçu kapalı"))
+
+        viewModel.isFrameCoachEnabled = true
+
+        XCTAssertTrue(viewModel.accessibilitySetupSummary.contains("kadraj koçu açık"))
     }
 
     func testAccessibilitySetupSummaryForHorizontalScreenDescribesSourceAndEnabledOptions() async {
@@ -281,7 +307,7 @@ final class RecorderViewModelTests: XCTestCase {
 
         XCTAssertEqual(
             speaker.spokenTexts,
-            ["Mod Yatay video kaydı. Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu açık."]
+            ["Mod Yatay video kaydı. Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu kapalı."]
         )
     }
 
@@ -310,7 +336,7 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(speaker.spokenTexts.isEmpty)
         XCTAssertEqual(
             announcer.announcements,
-            ["Mod Yatay video kaydı. Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu açık."]
+            ["Mod Yatay video kaydı. Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu kapalı."]
         )
     }
 

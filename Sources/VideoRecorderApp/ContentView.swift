@@ -1186,11 +1186,6 @@ struct SettingsView: View {
                 Toggle("Merkez onayı çal", isOn: $viewModel.playsFrameCoachCenterConfirmation)
                     .disabled(viewModel.frameCoachSpatialAudioMode == .off)
 
-                Button("Yön sesini dene") {
-                    viewModel.previewFrameCoachSpatialCue()
-                }
-                .disabled(viewModel.frameCoachSpatialAudioMode == .off)
-
                 Picker("Geri bildirim sıklığı", selection: $viewModel.frameCoachFeedbackFrequency) {
                     ForEach(FrameCoachFeedbackFrequency.allCases) { frequency in
                         Text(frequency.label).tag(frequency)
@@ -1394,7 +1389,7 @@ private struct AppPaywallSheet: View {
             Text(String(localized: "Pro erişim seç"))
                 .font(.title2.weight(.semibold))
 
-            Text(String(localized: "Yıllık planda 14 günlük ücretsiz deneme başlar. İstersen tek seferlik ömür boyu erişim de seçebilirsin."))
+            Text(String(localized: "14 günlük ücretsiz deneme yalnızca yıllık plan için geçerliyse uygulanır. Ömür boyu planı istersen doğrudan tek seferde satın alabilirsin."))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -1470,7 +1465,7 @@ private struct AppPaywallSheet: View {
     private func buttonTitle(for plan: AppAccessPlan) -> String {
         switch plan {
         case .yearly:
-            return String(localized: "14 Gün Ücretsiz Dene")
+            return String(localized: "Yıllık Planı Seç")
         case .lifetime:
             return String(localized: "Ömür Boyu Satın Al")
         }

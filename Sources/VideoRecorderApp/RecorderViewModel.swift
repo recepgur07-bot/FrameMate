@@ -520,12 +520,6 @@ final class RecorderViewModel {
         didSet { UserDefaults.standard.set(playsFrameCoachCenterConfirmation, forKey: "frameCoach.playsCenterConfirmation") }
     }
 
-    /// Plays a sample spatial cue so the user can preview the current direction-tone setting.
-    func previewFrameCoachSpatialCue() {
-        let cue = FrameCoachSpatialCue(direction: .left, severity: .strong, confirmsCentered: false)
-        spatialCuePlayer.play(cue, preferences: frameCoachPreferences)
-    }
-
     var currentAutoReframeCrop: AutoReframeCrop = .fullFrame
     var lastAutoReframeKeyframeCount = 0
     var lastAutoReframeUsedVideoComposition = false
@@ -594,7 +588,7 @@ final class RecorderViewModel {
             ]
             if showsFrameCoachControls {
                 parts.append(
-                    isAutoReframeEnabled
+                    isFrameCoachEnabled
                         ? String(localized: "kadraj koçu açık")
                         : String(localized: "kadraj koçu kapalı")
                 )
