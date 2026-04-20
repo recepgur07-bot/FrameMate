@@ -568,6 +568,12 @@ final class RecorderViewModel {
         return screenRecordingProvider.authorizationStatus()
     }
 
+    /// Step-by-step instructions announced via VoiceOver when screen recording permission is not granted.
+    var screenRecordingPermissionGuide: String? {
+        guard screenRecordingPermissionStatus == .denied, !screenPermissionNeedsRestart else { return nil }
+        return String(localized: "Ekran kaydı izni gerekli. Adımlar: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat.")
+    }
+
     var permissionHubItems: [PermissionHubItem] {
         [
             makeCameraPermissionItem(),
@@ -875,6 +881,10 @@ final class RecorderViewModel {
     private var recordingStartUptime: TimeInterval?
     private var currentPauseStartOffset: TimeInterval?
     private var recordingPauseTimeline = RecordingPauseTimeline()
+    @ObservationIgnored private var elapsedTimeAnnouncer = RecordingElapsedTimeAnnouncer()
+    /// Duration of the most recently completed recording, set just before stopping so
+    /// ContentView can include it in the VoiceOver completion announcement.
+    var lastCompletedRecordingDuration: TimeInterval?
 
     init(
         recorder: any CaptureRecording = CaptureRecorder(),
@@ -1740,12 +1750,15 @@ final class RecorderViewModel {
             statusText = String(localized: "Kayıt yapılıyor")
             sleepPreventer.prevent(reason: "Video kaydı devam ediyor")
             startMaxDurationTimer()
+            startElapsedAnnouncer()
         } catch {
             report(error)
         }
     }
 
     func stopRecording() {
+        lastCompletedRecordingDuration = currentRecordingDuration
+        elapsedTimeAnnouncer.stop()
         finishCurrentPauseRange()
         if selectedRecordingSource == .audio {
             if pendingAudioMicrophoneCaptureResult == nil {
@@ -1782,6 +1795,10 @@ final class RecorderViewModel {
         sleepPreventer.allow()
         recordingDurationTask?.cancel()
         recordingDurationTask = nil
+    }
+
+    private func startElapsedAnnouncer() {
+        elapsedTimeAnnouncer.start { [weak self] in self?.currentRecordingDuration }
     }
 
     private func startMaxDurationTimer() {
@@ -1873,6 +1890,7 @@ final class RecorderViewModel {
         statusText = String(localized: "Ses kaydı yapılıyor")
         sleepPreventer.prevent(reason: "Ses kaydı devam ediyor")
         startMaxDurationTimer()
+        startElapsedAnnouncer()
     }
 
     private func startScreenRecording() async throws {
@@ -1987,8 +2005,9 @@ final class RecorderViewModel {
         completedRecording = nil
         errorText = nil
         statusText = String(localized: "Kayıt yapılıyor")
-            sleepPreventer.prevent(reason: "Ekran kaydı devam ediyor")
-            startMaxDurationTimer()
+        sleepPreventer.prevent(reason: "Ekran kaydı devam ediyor")
+        startMaxDurationTimer()
+        startElapsedAnnouncer()
     }
 
     private func handleCameraRecordingCompletion(_ result: Result<URL, Error>, finalURL: URL) {
@@ -3104,7 +3123,7 @@ final class RecorderViewModel {
                 title: PermissionKind.screenRecording.title,
                 detail: detail,
                 statusLabel: String(localized: "Gerekli"),
-                helperText: String(localized: "Sağdaki düğmeler izin istemek veya Sistem Ayarları'nı açmak içindir."),
+                helperText: String(localized: "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin."),
                 isRequired: isRequired,
                 isSatisfied: !isRequired,
                 isRequestInFlight: false,

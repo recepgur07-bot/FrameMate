@@ -132,12 +132,22 @@ struct ContentView: View {
         }
         .onChange(of: viewModel.completedRecording) { _, newRecording in
             guard let recording = newRecording else { return }
+            let durationText: String
+            if let secs = viewModel.lastCompletedRecordingDuration, secs > 0 {
+                let m = Int(secs) / 60
+                let s = Int(secs) % 60
+                durationText = m > 0
+                    ? String(localized: ", \(m) dakika \(s) saniye")
+                    : String(localized: ", \(s) saniye")
+            } else {
+                durationText = ""
+            }
+            let announcement = String(localized: "Kayıt tamamlandı: \(recording.url.lastPathComponent)\(durationText)")
             NSAccessibility.post(
                 element: NSApp.mainWindow as Any,
                 notification: .announcementRequested,
                 userInfo: [
-                    NSAccessibility.NotificationUserInfoKey.announcement:
-                        String(localized: "Kayıt tamamlandı: \(recording.url.lastPathComponent)"),
+                    NSAccessibility.NotificationUserInfoKey.announcement: announcement,
                     NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
                 ]
             )
@@ -191,6 +201,19 @@ struct ContentView: View {
                 toastQueue.post(message: String(localized: "Kamera izni reddedildi — Sistem Ayarları'ndan etkinleştirebilirsin"), style: .error)
             default:
                 break
+            }
+        }
+        // VoiceOver: step-by-step guide when screen recording permission is denied
+        .onChange(of: viewModel.screenRecordingPermissionStatus) { _, _ in
+            if let guide = viewModel.screenRecordingPermissionGuide {
+                NSAccessibility.post(
+                    element: NSApp.mainWindow as Any,
+                    notification: .announcementRequested,
+                    userInfo: [
+                        NSAccessibility.NotificationUserInfoKey.announcement: guide,
+                        NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                    ]
+                )
             }
         }
         // Toast: screen recording permission — always needs restart after grant
@@ -627,7 +650,6 @@ struct ContentView: View {
             Text(hint)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
