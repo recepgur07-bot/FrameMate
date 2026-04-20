@@ -1213,29 +1213,35 @@ struct SettingsView: View {
                         Text(mode.label).tag(mode)
                     }
                 }
+                .accessibilityHint(String(localized: "Kadraj koçunun yönlendirmeyi nasıl ileteceğini seçer. Otomatik modda VoiceOver açıksa erişilebilirlik anonsu, kapalıysa uygulama sesi kullanılır. Sessiz modda ses çıkmaz."))
 
                 Picker("Yön sesi", selection: $viewModel.frameCoachSpatialAudioMode) {
                     ForEach(FrameCoachSpatialAudioMode.allCases) { mode in
                         Text(mode.label).tag(mode)
                     }
                 }
+                .accessibilityHint(String(localized: "Yönlendirme sesinin hangi kulaklıktan geleceğini belirler. Uzamsal modda ses, yüzünün bulunduğu tarafa göre sağ veya sol kulaktan gelir. Mono modda ses her zaman ortadan gelir."))
 
                 Toggle("Merkez onayı çal", isOn: $viewModel.playsFrameCoachCenterConfirmation)
                     .disabled(viewModel.frameCoachSpatialAudioMode == .off)
+                    .accessibilityHint(String(localized: "Yüzün tam ortaya geldiğinde kısa bir onay sesi çalar. Hangi pozisyonun doğru olduğunu anlamak için kullanışlıdır."))
 
                 Picker("Geri bildirim sıklığı", selection: $viewModel.frameCoachFeedbackFrequency) {
                     ForEach(FrameCoachFeedbackFrequency.allCases) { frequency in
                         Text(frequency.label).tag(frequency)
                     }
                 }
+                .accessibilityHint(String(localized: "Kadraj koçunun ne sıklıkta yönlendirme vereceğini ayarlar. Sık seçilirse her birkaç saniyede bir uyarı gelir; seyrek seçilirse yalnızca büyük sapmalar bildirilir."))
 
                 Picker("Aynı uyarıyı tekrarla", selection: $viewModel.frameCoachRepeatInterval) {
                     ForEach(FrameCoachRepeatInterval.allCases) { interval in
                         Text(interval.label).tag(interval)
                     }
                 }
+                .accessibilityHint(String(localized: "Aynı yönlendirme mesajı kaç saniyede bir tekrarlanacağını belirler. Kısa aralıkta daha sık hatırlatma alırsın; uzun aralıkta tek bir uyarıdan sonra bir süre sessizlik olur."))
 
                 Toggle("Ekranda yönlendirme metnini göster", isOn: $viewModel.showsFrameCoachTextOnScreen)
+                    .accessibilityHint(String(localized: "Kayıt sırasında yön metinlerini ekranda görünür yapar. Kapalıysa yalnızca ses çıkar, ekranda yazı görünmez."))
 
                 Text(settingsDescription)
                     .font(.footnote)
@@ -1259,16 +1265,20 @@ struct SettingsView: View {
                 .accessibilityHint(String(localized: "Bu süre dolunca kayıt otomatik olarak durur."))
 
                 Toggle("Kayıt başlarken pencereyi gizle", isOn: $hideWindowOnRecordingStart)
+                    .accessibilityHint(String(localized: "Kayıt başladığında uygulama penceresi ekrandan kaybolur, böylece ekran kaydında uygulamanın arayüzü görünmez."))
 
                 Toggle("Kayıt bitince pencereyi geri aç", isOn: $showWindowWhenRecordingStops)
+                    .accessibilityHint(String(localized: "Kayıt durduğunda uygulama penceresi otomatik olarak geri gelir. Kapalıysa pencereyi kendin açman gerekir."))
 
                 Picker("Uygulama görünümü", selection: $activationPolicyPreference) {
                     ForEach(AppActivationPolicyPreference.allCases) { policy in
                         Text(policy.label).tag(policy.rawValue)
                     }
                 }
+                .accessibilityHint(String(localized: "Uygulamanın Dock ve menü çubuğundaki görünümünü belirler. Dock'ta görün seçeneği standart uygulama gibi davranır; yalnızca menü çubuğu seçeneği arka planda çalışır."))
 
                 Toggle("Girişte otomatik başlat", isOn: $launchAtLogin)
+                    .accessibilityHint(String(localized: "Mac açıldığında uygulama otomatik olarak başlar. Sık kullanıyorsan zaman kazandırır."))
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Varsayılan kayıt klasörü")
