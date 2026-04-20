@@ -242,6 +242,19 @@ struct ContentView: View {
 
             Spacer()
 
+            if viewModel.isRecording {
+                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                    let duration = viewModel.currentRecordingDuration ?? 0
+                    let mins = Int(duration) / 60
+                    let secs = Int(duration) % 60
+                    Text(String(format: "%02d:%02d", mins, secs))
+                        .font(.system(.body, design: .monospaced).weight(.semibold))
+                        .foregroundStyle(viewModel.isPaused ? Color.secondary : Color.fmAccent)
+                        .accessibilityLabel(String(localized: "Geçen süre \(mins) dakika \(secs) saniye"))
+                }
+                .padding(.trailing, 8)
+            }
+
             StatusPill(status: currentStatus)
         }
     }

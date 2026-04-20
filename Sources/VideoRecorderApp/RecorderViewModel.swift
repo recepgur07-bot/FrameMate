@@ -2248,8 +2248,20 @@ final class RecorderViewModel {
                         }
                     }
                 } catch {
-                    await MainActor.run {
-                        report(error)
+                    await MainActor.run { [weak self] in
+                        guard let self else { return }
+                        // Announce the error via VoiceOver regardless of recording state
+                        NSAccessibility.post(
+                            element: NSApp as AnyObject,
+                            notification: .announcementRequested,
+                            userInfo: [
+                                NSAccessibility.NotificationUserInfoKey.announcement: "Ses kaydı dışa aktarılamadı: \(error.localizedDescription)",
+                                NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                            ]
+                        )
+                        // Don't clobber state if a new recording has already started
+                        guard !self.isRecording, self.pendingAudioRecordingFinalURL == nil else { return }
+                        self.report(error)
                     }
                 }
             }
@@ -2852,6 +2864,14 @@ final class RecorderViewModel {
         if error is CaptureRecorderError {
             isRecorderConfigured = false
         }
+        NSAccessibility.post(
+            element: NSApp as AnyObject,
+            notification: .announcementRequested,
+            userInfo: [
+                NSAccessibility.NotificationUserInfoKey.announcement: "Hata: \(error.localizedDescription)",
+                NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+            ]
+        )
     }
 
     func openPrivacySettings(for mediaType: AVMediaType) {
