@@ -3292,6 +3292,39 @@
           }
         }
       }
+    },
+    "90 saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 seconds"
+          }
+        }
+      }
+    },
+    "2 dakika": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 minutes"
+          }
+        }
+      }
+    },
+    "3 dakika": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 minutes"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

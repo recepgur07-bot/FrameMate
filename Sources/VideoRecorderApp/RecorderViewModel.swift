@@ -209,6 +209,9 @@ enum RecordingCountdown: Int, CaseIterable, Identifiable {
 
 enum MaxRecordingDuration: Int, CaseIterable, Identifiable {
     case unlimited = 0
+    case ninetySeconds = 91  // sentinel — saniye cinsinden, rawValue * 60 değil
+    case two = 2
+    case three = 3
     case five = 5
     case ten = 10
     case fifteen = 15
@@ -219,17 +222,24 @@ enum MaxRecordingDuration: Int, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .unlimited: return String(localized: "Sınırsız")
-        case .five: return String(localized: "5 dakika")
-        case .ten: return String(localized: "10 dakika")
-        case .fifteen: return String(localized: "15 dakika")
-        case .thirty: return String(localized: "30 dakika")
-        case .sixty: return String(localized: "60 dakika")
+        case .unlimited:      return String(localized: "Sınırsız")
+        case .ninetySeconds:  return String(localized: "90 saniye")
+        case .two:            return String(localized: "2 dakika")
+        case .three:          return String(localized: "3 dakika")
+        case .five:           return String(localized: "5 dakika")
+        case .ten:            return String(localized: "10 dakika")
+        case .fifteen:        return String(localized: "15 dakika")
+        case .thirty:         return String(localized: "30 dakika")
+        case .sixty:          return String(localized: "60 dakika")
         }
     }
 
     var seconds: TimeInterval? {
-        rawValue == 0 ? nil : TimeInterval(rawValue * 60)
+        switch self {
+        case .unlimited:     return nil
+        case .ninetySeconds: return 90
+        default:             return TimeInterval(rawValue * 60)
+        }
     }
 }
 
