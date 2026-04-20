@@ -27,8 +27,8 @@ struct FMCard<Content: View>: View {
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityHint(
                     isExpanded
-                        ? String(localized: "Daraltmak için dokun")
-                        : String(localized: "Genişletmek için dokun")
+                        ? String(localized: "Daraltmak için tıkla")
+                        : String(localized: "Genişletmek için tıkla")
                 )
             } else {
                 headerRow

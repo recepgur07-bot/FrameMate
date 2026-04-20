@@ -663,6 +663,7 @@ struct ContentView: View {
                 Text(title)
                     .font(.subheadline.weight(.semibold))
             }
+            .accessibilityHint(detail)
             Text(detail)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -690,6 +691,7 @@ struct ContentView: View {
             Slider(value: value, in: 0...1.5)
                 .accessibilityLabel(title)
                 .accessibilityValue(valueText)
+                .accessibilityHint(String(localized: "Aralık: %0 ile %150. Sol/sağ ok tuşlarıyla ayarla."))
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1390,25 +1392,32 @@ private struct CompletedRecordingSheet: View {
                     "Dosya adı",
                     text: $editableName
                 )
+                .accessibilityLabel(String(localized: "Dosya adı"))
+                .accessibilityHint(String(localized: "Dosyanın adını düzenle. Uzantı otomatik eklenir."))
                 Button("Yeniden Adlandır") {
                     onRename(editableName)
                 }
+                .accessibilityHint(String(localized: "Yukarıdaki alandaki adı kaydeder"))
             }
 
             HStack {
                 Button("Aç") {
                     onOpen()
                 }
+                .accessibilityHint(String(localized: "Kaydı varsayılan uygulamayla açar"))
                 Button("Klasörde Göster") {
                     onReveal()
                 }
+                .accessibilityHint(String(localized: "Finder'da dosyanın bulunduğu klasörü gösterir"))
                 Button("Farklı Kaydet") {
                     onSaveAs(editableName)
                 }
+                .accessibilityHint(String(localized: "Kaydı farklı bir konuma kopyalar"))
                 Spacer()
                 Button("Kapat") {
                     onClose()
                 }
+                .accessibilityHint(String(localized: "Bu pencereyi kapatır"))
             }
         }
         .padding(24)
