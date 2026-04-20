@@ -209,6 +209,9 @@ enum RecordingCountdown: Int, CaseIterable, Identifiable {
 
 enum MaxRecordingDuration: Int, CaseIterable, Identifiable {
     case unlimited = 0
+    case ninetySeconds = 91  // sentinel — saniye cinsinden, rawValue * 60 değil
+    case two = 2
+    case three = 3
     case five = 5
     case ten = 10
     case fifteen = 15
@@ -219,17 +222,24 @@ enum MaxRecordingDuration: Int, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .unlimited: return String(localized: "Sınırsız")
-        case .five: return String(localized: "5 dakika")
-        case .ten: return String(localized: "10 dakika")
-        case .fifteen: return String(localized: "15 dakika")
-        case .thirty: return String(localized: "30 dakika")
-        case .sixty: return String(localized: "60 dakika")
+        case .unlimited:      return String(localized: "Sınırsız")
+        case .ninetySeconds:  return String(localized: "90 saniye")
+        case .two:            return String(localized: "2 dakika")
+        case .three:          return String(localized: "3 dakika")
+        case .five:           return String(localized: "5 dakika")
+        case .ten:            return String(localized: "10 dakika")
+        case .fifteen:        return String(localized: "15 dakika")
+        case .thirty:         return String(localized: "30 dakika")
+        case .sixty:          return String(localized: "60 dakika")
         }
     }
 
     var seconds: TimeInterval? {
-        rawValue == 0 ? nil : TimeInterval(rawValue * 60)
+        switch self {
+        case .unlimited:     return nil
+        case .ninetySeconds: return 90
+        default:             return TimeInterval(rawValue * 60)
+        }
     }
 }
 
@@ -568,6 +578,12 @@ final class RecorderViewModel {
         return screenRecordingProvider.authorizationStatus()
     }
 
+    /// Step-by-step instructions announced via VoiceOver when screen recording permission is not granted.
+    var screenRecordingPermissionGuide: String? {
+        guard screenRecordingPermissionStatus == .denied, !screenPermissionNeedsRestart else { return nil }
+        return String(localized: "Ekran kaydı izni gerekli. Adımlar: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat.")
+    }
+
     var permissionHubItems: [PermissionHubItem] {
         [
             makeCameraPermissionItem(),
@@ -875,6 +891,10 @@ final class RecorderViewModel {
     private var recordingStartUptime: TimeInterval?
     private var currentPauseStartOffset: TimeInterval?
     private var recordingPauseTimeline = RecordingPauseTimeline()
+    @ObservationIgnored private var elapsedTimeAnnouncer = RecordingElapsedTimeAnnouncer()
+    /// Duration of the most recently completed recording, set just before stopping so
+    /// ContentView can include it in the VoiceOver completion announcement.
+    var lastCompletedRecordingDuration: TimeInterval?
 
     init(
         recorder: any CaptureRecording = CaptureRecorder(),
@@ -1732,6 +1752,7 @@ final class RecorderViewModel {
             }
 
             isRecording = true
+            soundEffectPlayer.playPauseResume()
             beginPauseTracking()
             isPreparingRecording = false
             lastSavedURL = nil
@@ -1740,12 +1761,15 @@ final class RecorderViewModel {
             statusText = String(localized: "Kayıt yapılıyor")
             sleepPreventer.prevent(reason: "Video kaydı devam ediyor")
             startMaxDurationTimer()
+            startElapsedAnnouncer()
         } catch {
             report(error)
         }
     }
 
     func stopRecording() {
+        lastCompletedRecordingDuration = currentRecordingDuration
+        elapsedTimeAnnouncer.stop()
         finishCurrentPauseRange()
         if selectedRecordingSource == .audio {
             if pendingAudioMicrophoneCaptureResult == nil {
@@ -1782,6 +1806,10 @@ final class RecorderViewModel {
         sleepPreventer.allow()
         recordingDurationTask?.cancel()
         recordingDurationTask = nil
+    }
+
+    private func startElapsedAnnouncer() {
+        elapsedTimeAnnouncer.start { [weak self] in self?.currentRecordingDuration }
     }
 
     private func startMaxDurationTimer() {
@@ -1865,6 +1893,7 @@ final class RecorderViewModel {
         }
 
         isRecording = true
+        soundEffectPlayer.playPauseResume()
         beginPauseTracking()
         isPreparingRecording = false
         lastSavedURL = nil
@@ -1873,6 +1902,7 @@ final class RecorderViewModel {
         statusText = String(localized: "Ses kaydı yapılıyor")
         sleepPreventer.prevent(reason: "Ses kaydı devam ediyor")
         startMaxDurationTimer()
+        startElapsedAnnouncer()
     }
 
     private func startScreenRecording() async throws {
@@ -1981,14 +2011,16 @@ final class RecorderViewModel {
         }
 
         isRecording = true
+        soundEffectPlayer.playPauseResume()
         beginPauseTracking()
         isPreparingRecording = false
         lastSavedURL = nil
         completedRecording = nil
         errorText = nil
         statusText = String(localized: "Kayıt yapılıyor")
-            sleepPreventer.prevent(reason: "Ekran kaydı devam ediyor")
-            startMaxDurationTimer()
+        sleepPreventer.prevent(reason: "Ekran kaydı devam ediyor")
+        startMaxDurationTimer()
+        startElapsedAnnouncer()
     }
 
     private func handleCameraRecordingCompletion(_ result: Result<URL, Error>, finalURL: URL) {
@@ -3104,7 +3136,7 @@ final class RecorderViewModel {
                 title: PermissionKind.screenRecording.title,
                 detail: detail,
                 statusLabel: String(localized: "Gerekli"),
-                helperText: String(localized: "Sağdaki düğmeler izin istemek veya Sistem Ayarları'nı açmak içindir."),
+                helperText: String(localized: "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin."),
                 isRequired: isRequired,
                 isSatisfied: !isRequired,
                 isRequestInFlight: false,

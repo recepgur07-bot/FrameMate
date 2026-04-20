@@ -1,4 +1,5 @@
 // Sources/VideoRecorderApp/FMToastOverlay.swift
+import AppKit
 import SwiftUI
 
 // MARK: - Toast Model
@@ -126,7 +127,10 @@ private struct FMToastBanner: View {
         .accessibilityAddTraits(.isStaticText)
         .task {
             guard toast.style.autoDismiss else { return }
-            try? await Task.sleep(for: .seconds(3))
+            // Give VoiceOver users extra time to hear the announcement before it disappears.
+            let delay: Double = NSWorkspace.shared.runningApplications
+                .contains(where: { $0.bundleIdentifier == "com.apple.VoiceOver" }) ? 6 : 3
+            try? await Task.sleep(for: .seconds(delay))
             onDismiss()
         }
     }

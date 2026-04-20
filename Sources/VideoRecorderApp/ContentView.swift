@@ -132,12 +132,22 @@ struct ContentView: View {
         }
         .onChange(of: viewModel.completedRecording) { _, newRecording in
             guard let recording = newRecording else { return }
+            let durationText: String
+            if let secs = viewModel.lastCompletedRecordingDuration, secs > 0 {
+                let m = Int(secs) / 60
+                let s = Int(secs) % 60
+                durationText = m > 0
+                    ? String(localized: ", \(m) dakika \(s) saniye")
+                    : String(localized: ", \(s) saniye")
+            } else {
+                durationText = ""
+            }
+            let announcement = String(localized: "Kayıt tamamlandı: \(recording.url.lastPathComponent)\(durationText)")
             NSAccessibility.post(
                 element: NSApp.mainWindow as Any,
                 notification: .announcementRequested,
                 userInfo: [
-                    NSAccessibility.NotificationUserInfoKey.announcement:
-                        String(localized: "Kayıt tamamlandı: \(recording.url.lastPathComponent)"),
+                    NSAccessibility.NotificationUserInfoKey.announcement: announcement,
                     NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
                 ]
             )
@@ -191,6 +201,19 @@ struct ContentView: View {
                 toastQueue.post(message: String(localized: "Kamera izni reddedildi — Sistem Ayarları'ndan etkinleştirebilirsin"), style: .error)
             default:
                 break
+            }
+        }
+        // VoiceOver: step-by-step guide when screen recording permission is denied
+        .onChange(of: viewModel.screenRecordingPermissionStatus) { _, _ in
+            if let guide = viewModel.screenRecordingPermissionGuide {
+                NSAccessibility.post(
+                    element: NSApp.mainWindow as Any,
+                    notification: .announcementRequested,
+                    userInfo: [
+                        NSAccessibility.NotificationUserInfoKey.announcement: guide,
+                        NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                    ]
+                )
             }
         }
         // Toast: screen recording permission — always needs restart after grant
@@ -627,7 +650,6 @@ struct ContentView: View {
             Text(hint)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .accessibilityHidden(true)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -641,6 +663,7 @@ struct ContentView: View {
                 Text(title)
                     .font(.subheadline.weight(.semibold))
             }
+            .accessibilityHint(detail)
             Text(detail)
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -668,6 +691,7 @@ struct ContentView: View {
             Slider(value: value, in: 0...1.5)
                 .accessibilityLabel(title)
                 .accessibilityValue(valueText)
+                .accessibilityHint(String(localized: "Aralık: %0 ile %150. Sol/sağ ok tuşlarıyla ayarla."))
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1189,29 +1213,35 @@ struct SettingsView: View {
                         Text(mode.label).tag(mode)
                     }
                 }
+                .accessibilityHint(String(localized: "Kadraj koçunun yönlendirmeyi nasıl ileteceğini seçer. Otomatik modda VoiceOver açıksa erişilebilirlik anonsu, kapalıysa uygulama sesi kullanılır. Sessiz modda ses çıkmaz."))
 
                 Picker("Yön sesi", selection: $viewModel.frameCoachSpatialAudioMode) {
                     ForEach(FrameCoachSpatialAudioMode.allCases) { mode in
                         Text(mode.label).tag(mode)
                     }
                 }
+                .accessibilityHint(String(localized: "Yönlendirme sesinin hangi kulaklıktan geleceğini belirler. Uzamsal modda ses, yüzünün bulunduğu tarafa göre sağ veya sol kulaktan gelir. Mono modda ses her zaman ortadan gelir."))
 
                 Toggle("Merkez onayı çal", isOn: $viewModel.playsFrameCoachCenterConfirmation)
                     .disabled(viewModel.frameCoachSpatialAudioMode == .off)
+                    .accessibilityHint(String(localized: "Yüzün tam ortaya geldiğinde kısa bir onay sesi çalar. Hangi pozisyonun doğru olduğunu anlamak için kullanışlıdır."))
 
                 Picker("Geri bildirim sıklığı", selection: $viewModel.frameCoachFeedbackFrequency) {
                     ForEach(FrameCoachFeedbackFrequency.allCases) { frequency in
                         Text(frequency.label).tag(frequency)
                     }
                 }
+                .accessibilityHint(String(localized: "Kadraj koçunun ne sıklıkta yönlendirme vereceğini ayarlar. Sık seçilirse her birkaç saniyede bir uyarı gelir; seyrek seçilirse yalnızca büyük sapmalar bildirilir."))
 
                 Picker("Aynı uyarıyı tekrarla", selection: $viewModel.frameCoachRepeatInterval) {
                     ForEach(FrameCoachRepeatInterval.allCases) { interval in
                         Text(interval.label).tag(interval)
                     }
                 }
+                .accessibilityHint(String(localized: "Aynı yönlendirme mesajı kaç saniyede bir tekrarlanacağını belirler. Kısa aralıkta daha sık hatırlatma alırsın; uzun aralıkta tek bir uyarıdan sonra bir süre sessizlik olur."))
 
                 Toggle("Ekranda yönlendirme metnini göster", isOn: $viewModel.showsFrameCoachTextOnScreen)
+                    .accessibilityHint(String(localized: "Kayıt sırasında yön metinlerini ekranda görünür yapar. Kapalıysa yalnızca ses çıkar, ekranda yazı görünmez."))
 
                 Text(settingsDescription)
                     .font(.footnote)
@@ -1235,16 +1265,20 @@ struct SettingsView: View {
                 .accessibilityHint(String(localized: "Bu süre dolunca kayıt otomatik olarak durur."))
 
                 Toggle("Kayıt başlarken pencereyi gizle", isOn: $hideWindowOnRecordingStart)
+                    .accessibilityHint(String(localized: "Kayıt başladığında uygulama penceresi ekrandan kaybolur, böylece ekran kaydında uygulamanın arayüzü görünmez."))
 
                 Toggle("Kayıt bitince pencereyi geri aç", isOn: $showWindowWhenRecordingStops)
+                    .accessibilityHint(String(localized: "Kayıt durduğunda uygulama penceresi otomatik olarak geri gelir. Kapalıysa pencereyi kendin açman gerekir."))
 
                 Picker("Uygulama görünümü", selection: $activationPolicyPreference) {
                     ForEach(AppActivationPolicyPreference.allCases) { policy in
                         Text(policy.label).tag(policy.rawValue)
                     }
                 }
+                .accessibilityHint(String(localized: "Uygulamanın Dock ve menü çubuğundaki görünümünü belirler. Dock'ta görün seçeneği standart uygulama gibi davranır; yalnızca menü çubuğu seçeneği arka planda çalışır."))
 
                 Toggle("Girişte otomatik başlat", isOn: $launchAtLogin)
+                    .accessibilityHint(String(localized: "Mac açıldığında uygulama otomatik olarak başlar. Sık kullanıyorsan zaman kazandırır."))
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Varsayılan kayıt klasörü")
@@ -1368,25 +1402,32 @@ private struct CompletedRecordingSheet: View {
                     "Dosya adı",
                     text: $editableName
                 )
+                .accessibilityLabel(String(localized: "Dosya adı"))
+                .accessibilityHint(String(localized: "Dosyanın adını düzenle. Uzantı otomatik eklenir."))
                 Button("Yeniden Adlandır") {
                     onRename(editableName)
                 }
+                .accessibilityHint(String(localized: "Yukarıdaki alandaki adı kaydeder"))
             }
 
             HStack {
                 Button("Aç") {
                     onOpen()
                 }
+                .accessibilityHint(String(localized: "Kaydı varsayılan uygulamayla açar"))
                 Button("Klasörde Göster") {
                     onReveal()
                 }
+                .accessibilityHint(String(localized: "Finder'da dosyanın bulunduğu klasörü gösterir"))
                 Button("Farklı Kaydet") {
                     onSaveAs(editableName)
                 }
+                .accessibilityHint(String(localized: "Kaydı farklı bir konuma kopyalar"))
                 Spacer()
                 Button("Kapat") {
                     onClose()
                 }
+                .accessibilityHint(String(localized: "Bu pencereyi kapatır"))
             }
         }
         .padding(24)

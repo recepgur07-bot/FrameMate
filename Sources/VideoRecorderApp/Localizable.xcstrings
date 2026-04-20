@@ -3017,6 +3017,314 @@
           }
         }
       }
+    },
+    "Daraltmak için tıkla": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse"
+          }
+        }
+      }
+    },
+    "Genişletmek için tıkla": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand"
+          }
+        }
+      }
+    },
+    "Dosyanın adını düzenle. Uzantı otomatik eklenir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit the file name. The extension is added automatically."
+          }
+        }
+      }
+    },
+    "Yukarıdaki alandaki adı kaydeder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saves the name entered in the field above"
+          }
+        }
+      }
+    },
+    "Kaydı varsayılan uygulamayla açar": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the recording with the default application"
+          }
+        }
+      }
+    },
+    "Finder'da dosyanın bulunduğu klasörü gösterir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows the folder containing the file in Finder"
+          }
+        }
+      }
+    },
+    "Kaydı farklı bir konuma kopyalar": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copies the recording to a different location"
+          }
+        }
+      }
+    },
+    "Bu pencereyi kapatır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closes this window"
+          }
+        }
+      }
+    },
+    "Aralık: %0 ile %150. Sol/sağ ok tuşlarıyla ayarla.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Range: 0% to 150%. Adjust with left/right arrow keys."
+          }
+        }
+      }
+    },
+    "Kayıt süresi: %lld dakika %lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording duration: %lld minutes %lld seconds"
+          }
+        }
+      }
+    },
+    "Kayıt süresi: %lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording duration: %lld seconds"
+          }
+        }
+      }
+    },
+    ", %lld dakika %lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", %lld minutes %lld seconds"
+          }
+        }
+      }
+    },
+    ", %lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", %lld seconds"
+          }
+        }
+      }
+    },
+    "Ekran kaydı izni gerekli. Adımlar: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen recording permission required. Steps: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. Enable this application. 5. Restart the application."
+          }
+        }
+      }
+    },
+    "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To grant permission: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. Enable this application. 5. Restart the application. You can use the 'Open Settings' or 'Request Permission' buttons below."
+          }
+        }
+      }
+    },
+    "Kadraj koçunun yönlendirmeyi nasıl ileteceğini seçer. Otomatik modda VoiceOver açıksa erişilebilirlik anonsu, kapalıysa uygulama sesi kullanılır. Sessiz modda ses çıkmaz.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selects how the framing coach delivers guidance. In automatic mode, accessibility announcements are used when VoiceOver is on, otherwise app audio. Silent mode disables all sound."
+          }
+        }
+      }
+    },
+    "Yönlendirme sesinin hangi kulaklıktan geleceğini belirler. Uzamsal modda ses, yüzünün bulunduğu tarafa göre sağ veya sol kulaktan gelir. Mono modda ses her zaman ortadan gelir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Determines which ear the guidance audio comes from. In spatial mode, sound comes from the left or right ear depending on where your face is. In mono mode, sound always comes from the center."
+          }
+        }
+      }
+    },
+    "Yüzün tam ortaya geldiğinde kısa bir onay sesi çalar. Hangi pozisyonun doğru olduğunu anlamak için kullanışlıdır.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plays a short confirmation sound when your face reaches the center. Useful for knowing when you've found the correct position."
+          }
+        }
+      }
+    },
+    "Kadraj koçunun ne sıklıkta yönlendirme vereceğini ayarlar. Sık seçilirse her birkaç saniyede bir uyarı gelir; seyrek seçilirse yalnızca büyük sapmalar bildirilir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sets how often the framing coach gives guidance. Frequent means a prompt every few seconds; infrequent means only large deviations are announced."
+          }
+        }
+      }
+    },
+    "Aynı yönlendirme mesajı kaç saniyede bir tekrarlanacağını belirler. Kısa aralıkta daha sık hatırlatma alırsın; uzun aralıkta tek bir uyarıdan sonra bir süre sessizlik olur.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Determines how many seconds before the same guidance message repeats. A short interval gives more frequent reminders; a long interval leaves silence after one prompt."
+          }
+        }
+      }
+    },
+    "Kayıt sırasında yön metinlerini ekranda görünür yapar. Kapalıysa yalnızca ses çıkar, ekranda yazı görünmez.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Makes direction text visible on screen during recording. When off, only audio plays with no on-screen text."
+          }
+        }
+      }
+    },
+    "Kayıt başladığında uygulama penceresi ekrandan kaybolur, böylece ekran kaydında uygulamanın arayüzü görünmez.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app window disappears when recording starts, so the app's interface is not visible in the screen recording."
+          }
+        }
+      }
+    },
+    "Kayıt durduğunda uygulama penceresi otomatik olarak geri gelir. Kapalıysa pencereyi kendin açman gerekir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app window automatically returns when recording stops. When off, you need to open it yourself."
+          }
+        }
+      }
+    },
+    "Uygulamanın Dock ve menü çubuğundaki görünümünü belirler. Dock'ta görün seçeneği standart uygulama gibi davranır; yalnızca menü çubuğu seçeneği arka planda çalışır.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Determines the app's presence in the Dock and menu bar. 'Show in Dock' behaves like a standard app; 'menu bar only' runs in the background."
+          }
+        }
+      }
+    },
+    "Mac açıldığında uygulama otomatik olarak başlar. Sık kullanıyorsan zaman kazandırır.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The app launches automatically when your Mac starts. Saves time if you use it frequently."
+          }
+        }
+      }
+    },
+    "90 saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 seconds"
+          }
+        }
+      }
+    },
+    "2 dakika": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 minutes"
+          }
+        }
+      }
+    },
+    "3 dakika": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 minutes"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
