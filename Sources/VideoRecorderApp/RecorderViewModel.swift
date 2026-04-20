@@ -1742,6 +1742,7 @@ final class RecorderViewModel {
             }
 
             isRecording = true
+            soundEffectPlayer.playPauseResume()
             beginPauseTracking()
             isPreparingRecording = false
             lastSavedURL = nil
@@ -1882,6 +1883,7 @@ final class RecorderViewModel {
         }
 
         isRecording = true
+        soundEffectPlayer.playPauseResume()
         beginPauseTracking()
         isPreparingRecording = false
         lastSavedURL = nil
@@ -1999,6 +2001,7 @@ final class RecorderViewModel {
         }
 
         isRecording = true
+        soundEffectPlayer.playPauseResume()
         beginPauseTracking()
         isPreparingRecording = false
         lastSavedURL = nil
