@@ -3017,6 +3017,171 @@
           }
         }
       }
+    },
+    "Daraltmak için tıkla": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collapse"
+          }
+        }
+      }
+    },
+    "Genişletmek için tıkla": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expand"
+          }
+        }
+      }
+    },
+    "Dosyanın adını düzenle. Uzantı otomatik eklenir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit the file name. The extension is added automatically."
+          }
+        }
+      }
+    },
+    "Yukarıdaki alandaki adı kaydeder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saves the name entered in the field above"
+          }
+        }
+      }
+    },
+    "Kaydı varsayılan uygulamayla açar": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens the recording with the default application"
+          }
+        }
+      }
+    },
+    "Finder'da dosyanın bulunduğu klasörü gösterir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows the folder containing the file in Finder"
+          }
+        }
+      }
+    },
+    "Kaydı farklı bir konuma kopyalar": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copies the recording to a different location"
+          }
+        }
+      }
+    },
+    "Bu pencereyi kapatır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Closes this window"
+          }
+        }
+      }
+    },
+    "Aralık: %0 ile %150. Sol/sağ ok tuşlarıyla ayarla.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Range: 0% to 150%. Adjust with left/right arrow keys."
+          }
+        }
+      }
+    },
+    "Kayıt süresi: %lld dakika %lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording duration: %lld minutes %lld seconds"
+          }
+        }
+      }
+    },
+    "Kayıt süresi: %lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording duration: %lld seconds"
+          }
+        }
+      }
+    },
+    ", %lld dakika %lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", %lld minutes %lld seconds"
+          }
+        }
+      }
+    },
+    ", %lld saniye": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", %lld seconds"
+          }
+        }
+      }
+    },
+    "Ekran kaydı izni gerekli. Adımlar: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen recording permission required. Steps: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. Enable this application. 5. Restart the application."
+          }
+        }
+      }
+    },
+    "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To grant permission: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. Enable this application. 5. Restart the application. You can use the 'Open Settings' or 'Request Permission' buttons below."
+          }
+        }
+      }
     }
   },
   "version": "1.0"
