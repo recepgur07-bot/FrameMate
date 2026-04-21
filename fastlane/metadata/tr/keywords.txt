@@ -1,1 +1,1 @@
-ekran kaydi,video,kamera,mikrofon,mac,kayit,egitim,sunum,screen recorder
+ekran kaydı,video kaydedici,kamera,sunum,eğitim,ses kaydı,screencast,voiceover,ekran yakalama

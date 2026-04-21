@@ -1,1 +1,1 @@
-Initial Mac App Store release of FrameMate.
+First release of FrameMate — screen, camera, and audio recording for Mac with Frame Coach framing guidance and keyboard shortcut overlays.

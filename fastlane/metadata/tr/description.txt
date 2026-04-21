@@ -1,37 +1,42 @@
-FrameMate, Mac üzerinde ekran, kamera ve mikrofon kayıtlarını hızlıca hazırlamak için tasarlanmış sade bir video kayıt uygulamasıdır.
+Eğitim videoları, demolar ve sunumlar — karmaşıklık olmadan, tek ekrandan.
 
-Ekran anlatımları, eğitim videoları, sunum kayıtları ve kısa açıklama videoları için tek yerden kayıt başlatın, durdurun ve dosyanızı yerel olarak kaydedin.
+FrameMate, ekranınızı, kameranızı ve mikrofonunuzu tek akışta kaydeder; dosya doğrudan Mac'inizde hazır olur. Hesap gerekmez. Bulut yükleme yok. Gereksizlik yok.
 
-TEMEL ÖZELLİKLER
+NE KAYDEDEBİLİRSİNİZ
 
-• EKRAN KAYDI
-Tam ekran veya pencere odaklı kayıt akışıyla Mac ekranınızı kaydedin.
+• EKRAN + ANLATIM
+Tam ekran veya tek pencere kaydı; mikrofon ve isteğe bağlı sistem sesiyle. Nasıl yapılır videoları, anlatımlı demolar ve ürün tanıtımları için.
 
-• KAMERA KAYDI
-Kameranızı seçin, yatay veya dikey kayıt moduyla videonuzu hazırlayın.
+• EKRAN + KAMERA
+Kamera görüntünüzü ekran kaydının üstünde resim içinde resim olarak ekleyin — sunum, ders ve açıklama videoları için ideal.
 
-• MİKROFON VE SİSTEM SESİ
-Mikrofon seçimi, sesli kayıt ve desteklenen akışlarda sistem sesi seçenekleriyle anlatım videoları oluşturun.
+• SADECE KAMERA
+Dikey veya yatay, bağımsız kamera kaydı. Konuşma klipleri ve ders içerikleri için.
 
-• KAMERA KUTUSU
-Ekran kaydına kamera görüntünüzü ekleyerek eğitim ve sunum videolarını daha kişisel hale getirin.
+• SADECE SES
+Podcast, sesli not ve toplantı kaydı için temiz mikrofon kaydı.
 
-• KADRAJ KOÇU
-Kamera kadrajınız için sesli ve erişilebilir yönlendirmeler alın.
+YOLUNUZU AÇIK BIRAKMAK İÇİN TASARLANDI
 
-• KLAVYE KISAYOLU VE GÖRSEL İPUÇLARI
-Kayıt sırasında klavye kısayolları ve imleç vurgusu gibi yardımcı görsellerle daha anlaşılır videolar oluşturun.
+Tek pencere. Modu seçin, kaynakları seçin, kayıt başlatın. Bittiğinde dosya Mac'inizde hazır.
 
-• YEREL VE GİZLİLİK ODAKLI
-Kayıtlarınız Mac'inizde oluşturulur. FrameMate takip yapmaz, reklam SDK'sı kullanmaz ve kayıt içeriklerinizi harici sunuculara yüklemez.
+Klavye kısayolları, iş akışınızdan çıkmadan kayıt başlatmanıza, duraklatmanıza ve durdurmanıza imkân tanır. Geri sayım sayacı başlangıçları temiz tutar.
+
+KADRAJ KOÇU
+
+Yüzünüzü ortalı ve iyi aydınlatılmış tutmanıza yardımcı olan gerçek zamanlı sesli yönlendirme sistemi. Kameraya yeni başlayanlar için de, tutarlı kayıt kalitesi arayanlar için de kullanışlı.
+
+KLAVYE KISAYOLU VE İMLEÇ VURGUSUKlavye kısayollarını ve imleç hareketlerini doğrudan kayıt içinde gösterin — öğretici içerikleri daha anlaşılır yapmanın en hızlı yolu.
+
+GİZLİLİK
+
+Kamera, mikrofon ve ekran izinleri yalnızca kayıt için kullanılır. Analitik SDK yok, takip yok, harici yükleme yok. İçerikleriniz Mac'inizde kalır.
 
 ERİŞİLEBİLİRLİK
 
-FrameMate, VoiceOver ve klavye kullanımını önemseyen bir akışla geliştirilmiştir. Ana kontroller metin etiketleri, durum açıklamaları ve sesli yönlendirmelerle desteklenir.
+VoiceOver ve klavye öncelikli navigasyon gözetilerek baştan tasarlandı. Her kontrol açıklayıcı etiket ve canlı durum bilgisi içerir. Kadraj Koçu'nun sesli yönlendirmeleri, kör ve az gören içerik üreticileri için de erişilebilirlik aracı işlevi görür.
 
-GİZLİLİK NOTU
-
-Kamera, mikrofon ve ekran kaydı izinleri yalnızca seçtiğiniz kayıt işlevlerini çalıştırmak için kullanılır. Kayıt dosyaları varsayılan olarak Mac'inizde saklanır.
+14 gün ücretsiz deneyin, ardından yıllık abonelik veya tek seferlik ömür boyu satın alımla devam edin.
 
 Geliştirici: Recep Gür
 İletişim: seslerinizindeapps@outlook.com

@@ -1,1 +1,1 @@
-Screen, Camera, Audio Capture
+Record Screen, Camera & Audio

@@ -26,6 +26,8 @@
 	<string>public.app-category.video</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
+	<key>LSUIElement</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Kadraj yönlendirmesi ve video kaydı için kameraya erişim gerekiyor.</string>
 	<key>NSHumanReadableCopyright</key>
@@ -34,7 +36,5 @@
 	<string>Videoları sesli kaydetmek için mikrofona erişim gerekiyor.</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>Ekranı kaydetmek için ekran yakalama iznine ihtiyaç var.</string>
-	<key>NSSpeechUsageDescription</key>
-	<string>Kadraj koçluğu talimatlarını sesli olarak iletmek için ses sentezi kullanılır.</string>
 </dict>
 </plist>

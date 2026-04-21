@@ -1,37 +1,44 @@
-FrameMate is a focused Mac video recorder for creating screen, camera, and microphone recordings with a clean local workflow.
+Ship polished tutorials, demos, and presentations — without the complexity.
 
-Use it for tutorials, presentations, walkthroughs, product demos, lessons, and quick explanation videos. Pick your recording mode, choose your inputs, start recording, and keep the exported video on your Mac.
+FrameMate records your screen, webcam, and microphone in one clean workflow, straight to your Mac. No account required. No cloud upload. No bloat.
 
-KEY FEATURES
+WHAT YOU CAN RECORD
 
-• SCREEN RECORDING
-Record your Mac screen with full-screen and window-focused capture flows.
+• SCREEN + NARRATION
+Full screen or a single window, with your microphone and optional system audio. Perfect for walkthroughs, how-to videos, and product demos.
 
-• CAMERA RECORDING
-Choose your camera and record in horizontal or vertical presets.
+• SCREEN + CAMERA
+Picture-in-picture overlay puts your face alongside the content — ideal for presentations, lessons, and explainer videos.
 
-• MICROPHONE AND SYSTEM AUDIO
-Select your microphone and create narrated videos. Supported recording flows can also include system audio.
+• CAMERA ONLY
+Portrait or landscape, standalone webcam recording for talking-head clips and course content.
 
-• CAMERA OVERLAY
-Add your camera as a picture-in-picture overlay for more personal tutorials and presentations.
+• AUDIO ONLY
+Clean microphone recording for podcasts, voice memos, and meeting notes.
 
-• FRAME COACH
-Get accessible spoken guidance to help keep your camera framing clear.
+DESIGNED TO STAY OUT OF YOUR WAY
 
-• SHORTCUT AND VISUAL CUES
-Use keyboard shortcut overlays and cursor highlighting to make instructional videos easier to follow.
+One window. Pick your mode, pick your inputs, press record. When you're done, the file is on your Mac.
 
-• LOCAL AND PRIVACY-FOCUSED
-Your recordings are created on your Mac. FrameMate does not track you, does not include advertising SDKs, and does not upload your recording content to external servers.
+Keyboard shortcuts let you start, pause, and stop without leaving your workflow. A countdown timer keeps starts smooth.
+
+FRAME COACH
+
+An on-screen framing assistant that gives you real-time spoken guidance to keep your face centered and well-lit. Useful whether you're new to camera or just want consistency across recordings.
+
+SHORTCUT AND CURSOR OVERLAYS
+
+Show keyboard shortcuts and highlight cursor movements directly in your recording — the fastest way to make instructional content easier to follow.
+
+PRIVACY
+
+Camera, microphone, and screen permissions are used only for recording. No analytics SDK, no tracking, no external uploads. Your content stays on your Mac.
 
 ACCESSIBILITY
 
-FrameMate is built with VoiceOver and keyboard-first workflows in mind. Main controls include clear labels, status text, and spoken guidance where helpful.
+Built with VoiceOver and keyboard-first navigation throughout. Every control carries a descriptive label and live status. Frame Coach's spoken guidance also works as an accessibility tool for blind and low-vision creators making camera recordings.
 
-PRIVACY NOTE
-
-Camera, microphone, and screen recording permissions are used only for the recording features you choose. Recording files are saved locally by default.
+Try free for 14 days, then continue with a yearly subscription or a one-time lifetime purchase.
 
 Developer: Recep Gur
 Contact: seslerinizindeapps@outlook.com
