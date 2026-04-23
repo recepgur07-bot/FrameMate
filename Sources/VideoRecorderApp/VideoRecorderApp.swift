@@ -197,7 +197,6 @@ struct VideoRecorderApp: App {
                         onDismiss: { onboardingCompleted = true },
                         viewModel: viewModel
                     )
-                    .interactiveDismissDisabled(!onboardingCompleted)
                 }
                 .onDisappear {
                     menuBarRefreshTimer?.invalidate()
