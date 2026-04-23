@@ -17,6 +17,22 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         )
     }
 
+    func testRuntimeInfoPlistDoesNotLaunchAsAgentApp() throws {
+        let plistURL = repoRootURL()
+            .appendingPathComponent("Resources")
+            .appendingPathComponent("Info.plist")
+
+        let plistData = try Data(contentsOf: plistURL)
+        let plist = try XCTUnwrap(
+            PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any]
+        )
+
+        XCTAssertNil(
+            plist["LSUIElement"],
+            "FrameMate should not be marked as an LSUIElement agent app because that hides standard app/menu behavior such as reliable Cmd+Q handling."
+        )
+    }
+
     func testAppEntitlementsAllowSandboxedMicrophoneInput() throws {
         let entitlementsURL = try resourceURL(named: "VideoRecorder", withExtension: "entitlements")
 
@@ -171,6 +187,13 @@ final class XcodeProjectConfigurationTests: XCTestCase {
 
     private var resourceBundle: Bundle {
         Bundle(for: Self.self)
+    }
+
+    private func repoRootURL() -> URL {
+        URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
     }
 
     private func projectContents() throws -> String {

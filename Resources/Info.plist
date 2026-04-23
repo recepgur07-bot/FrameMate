@@ -21,13 +21,11 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
-	<string>202604221324</string>
+	<string>202604231600</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.video</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
-	<key>LSUIElement</key>
-	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Kadraj yönlendirmesi ve video kaydı için kameraya erişim gerekiyor.</string>
 	<key>NSHumanReadableCopyright</key>

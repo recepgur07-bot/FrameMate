@@ -2,6 +2,7 @@ import SwiftUI
 
 extension Notification.Name {
     static let openMainWindowRequested = Notification.Name("openMainWindowRequested")
+    static let appQuitRequested = Notification.Name("appQuitRequested")
 }
 
 enum AppTerminationCoordinator {
@@ -24,6 +25,7 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             Self.showMainWindowIfAvailable()
+            self.installNativeQuitMenuItem()
         }
 
         // macOS modal sheet'ler SwiftUI komut menüsünü blokluyor.
@@ -31,8 +33,8 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
         // düşük seviye event monitor kuruyoruz.
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command,
-               event.charactersIgnoringModifiers == "q" {
-                NSApp.terminate(nil)
+               event.charactersIgnoringModifiers?.lowercased() == "q" {
+                self.requestQuit(nil)
                 return nil
             }
             return event
@@ -64,6 +66,35 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         window.makeKeyAndOrderFront(nil)
+    }
+
+    private func installNativeQuitMenuItem() {
+        guard let appMenu = NSApp.mainMenu?.items.first(where: { $0.title == "FrameMate" })?.submenu else {
+            return
+        }
+
+        let quitItem = appMenu.items.first(where: { $0.keyEquivalent.lowercased() == "q" })
+            ?? appMenu.items.first(where: { $0.title.localizedCaseInsensitiveContains("Çık") || $0.title.localizedCaseInsensitiveContains("Quit") })
+        quitItem?.target = self
+        quitItem?.action = #selector(requestQuit(_:))
+        quitItem?.keyEquivalent = "q"
+        quitItem?.keyEquivalentModifierMask = .command
+        quitItem?.isEnabled = true
+    }
+
+    @objc private func requestQuit(_ sender: Any?) {
+        NotificationCenter.default.post(name: .appQuitRequested, object: nil)
+        UserDefaults.standard.set(true, forKey: "onboarding.completed")
+
+        for window in NSApp.windows {
+            if let sheet = window.attachedSheet {
+                window.endSheet(sheet)
+            }
+        }
+
+        DispatchQueue.main.async {
+            NSApp.terminate(sender)
+        }
     }
 }
 
@@ -187,10 +218,17 @@ struct VideoRecorderApp: App {
                 .onChange(of: launchAtLogin) { _, _ in
                     syncLaunchAtLogin()
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .appQuitRequested)) { _ in
+                    onboardingCompleted = true
+                }
                 .sheet(
                     isPresented: Binding(
                         get: { !onboardingCompleted },
-                        set: { _ in }  // Kapatma yalnızca onDismiss callback'i üzerinden olur
+                        set: { isPresented in
+                            if !isPresented {
+                                onboardingCompleted = true
+                            }
+                        }
                     )
                 ) {
                     OnboardingView(
@@ -248,6 +286,7 @@ struct VideoRecorderApp: App {
 
             CommandGroup(replacing: .appTermination) {
                 Button(String(localized: "Çıkış")) {
+                    NotificationCenter.default.post(name: .appQuitRequested, object: nil)
                     NSApp.terminate(nil)
                 }
                 .keyboardShortcut("q", modifiers: .command)

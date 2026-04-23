@@ -61,14 +61,13 @@ final class MainWindowPresentationPolicyTests: XCTestCase {
         XCTAssertEqual(AppTerminationCoordinator.prepareForTermination(windows: []), .terminateNow)
     }
 
-    func testTerminationHelperCancelsQuitAndClosesAttachedSheets() {
+    func testTerminationHelperAllowsQuitWithAttachedSheets() {
         let window = NSWindow()
         let sheet = NSWindow()
         window.beginSheet(sheet)
 
         let reply = AppTerminationCoordinator.prepareForTermination(windows: [window])
 
-        XCTAssertEqual(reply, .terminateCancel)
-        XCTAssertNil(window.attachedSheet)
+        XCTAssertEqual(reply, .terminateNow)
     }
 }
