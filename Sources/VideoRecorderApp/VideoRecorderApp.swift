@@ -235,6 +235,13 @@ struct VideoRecorderApp: App {
                 .disabled(!onboardingCompleted)
             }
 
+            CommandGroup(replacing: .appTermination) {
+                Button(String(localized: "Çıkış")) {
+                    NSApp.terminate(nil)
+                }
+                .keyboardShortcut("q", modifiers: .command)
+            }
+
             CommandGroup(replacing: .help) {
                 Button(quickHelpMenuTitle) {
                     NotificationCenter.default.post(name: .openQuickHelpRequested, object: nil)
