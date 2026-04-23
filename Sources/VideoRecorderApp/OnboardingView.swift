@@ -47,6 +47,11 @@ struct OnboardingView: View {
         }
         .frame(width: 560)
         .frame(minHeight: 420)
+        .background(Button("quit") { NSApp.terminate(nil) }
+            .keyboardShortcut("q", modifiers: .command)
+            .opacity(0)
+            .accessibilityHidden(true)
+        )
         .background(
             ZStack {
                 Color.clear.background(.regularMaterial)
