@@ -25,6 +25,18 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
             Self.showMainWindowIfAvailable()
         }
+
+        // macOS modal sheet'ler SwiftUI komut menüsünü blokluyor.
+        // Cmd+Q'nun her durumda (onboarding dahil) çalışması için
+        // düşük seviye event monitor kuruyoruz.
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.modifierFlags.intersection(.deviceIndependentFlagsMask) == .command,
+               event.charactersIgnoringModifiers == "q" {
+                NSApp.terminate(nil)
+                return nil
+            }
+            return event
+        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
