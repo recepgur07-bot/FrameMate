@@ -1463,7 +1463,8 @@ struct QuickHelpContent: Equatable {
                 title: "Accessibility",
                 items: [
                     "FrameMate is designed to work well with VoiceOver, keyboard navigation, live status announcements, and spoken guidance.",
-                    "Frame Coach is especially helpful for blind and low-vision creators who need spoken framing feedback."
+                    "Frame Coach is especially helpful for blind and low-vision creators who need spoken framing feedback.",
+                    "Allow FrameMate in System Settings > Privacy & Security > Accessibility when you want keyboard shortcut overlays in screen recordings or reliable Cmd+I setting announcements."
                 ]
             ),
             .troubleshooting: QuickHelpSection(
@@ -1471,6 +1472,7 @@ struct QuickHelpContent: Equatable {
                 title: "Troubleshooting",
                 items: [
                     "If camera, microphone, or screen recording does not work, review permissions in System Settings > Privacy & Security.",
+                    "If FrameMate is not listed under Screen Recording, use the plus button, choose FrameMate from Applications, enable it, then reopen the app.",
                     "If system audio is missing, verify Screen Recording permission and reopen the app.",
                     "If keyboard shortcuts do not appear in exported videos, allow FrameMate under Accessibility."
                 ]
@@ -1519,7 +1521,8 @@ struct QuickHelpContent: Equatable {
                 title: "Erişilebilirlik",
                 items: [
                     "FrameMate; VoiceOver, klavye ile kullanım, canlı durum anonsları ve sesli yönlendirme ile güçlü çalışacak şekilde tasarlanmıştır.",
-                    "Kadraj Koçu, özellikle kör ve az gören kullanıcılar için konuşmalı kadraj geri bildirimi sunar."
+                    "Kadraj Koçu, özellikle kör ve az gören kullanıcılar için konuşmalı kadraj geri bildirimi sunar.",
+                    "Ekran kayıtlarında kısayol gösterimleri veya güvenilir Cmd+I ayar duyurusu için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik bölümünde FrameMate'e izin ver."
                 ]
             ),
             .troubleshooting: QuickHelpSection(
@@ -1527,6 +1530,7 @@ struct QuickHelpContent: Equatable {
                 title: "Sorun Giderme",
                 items: [
                     "Kamera, mikrofon veya ekran kaydı çalışmıyorsa Sistem Ayarları > Gizlilik ve Güvenlik içindeki izinleri kontrol et.",
+                    "FrameMate Ekran Kaydı listesinde görünmüyorsa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç, anahtarı aç ve uygulamayı yeniden başlat.",
                     "Sistem sesi gelmiyorsa Ekran Kaydı iznini doğrula ve uygulamayı yeniden aç.",
                     "Kısayol gösterimleri görünmüyorsa FrameMate'e Erişilebilirlik izni verildiğinden emin ol."
                 ]

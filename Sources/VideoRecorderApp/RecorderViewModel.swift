@@ -621,7 +621,7 @@ final class RecorderViewModel {
     /// Step-by-step instructions announced via VoiceOver when screen recording permission is not granted.
     var screenRecordingPermissionGuide: String? {
         guard screenRecordingPermissionStatus == .denied, !screenPermissionNeedsRestart else { return nil }
-        return String(localized: "Ekran kaydı izni gerekli. Adımlar: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat.")
+        return String(localized: "Ekran kaydı izni gerekli. Adımlar: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. FrameMate listede varsa aç. Listede yoksa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç ve ekle. 5. FrameMate'i açıp uygulamayı yeniden başlat.")
     }
 
     var permissionHubItems: [PermissionHubItem] {
@@ -772,7 +772,14 @@ final class RecorderViewModel {
             cameraSummary = String(localized: "Kamera şu anda gerekmiyor")
         }
 
-        return String(localized: "Hazır durumu: \(microphoneSummary). \(screenSummary). \(cameraSummary).")
+        var summaries = [microphoneSummary, screenSummary, cameraSummary]
+        if isKeyboardShortcutOverlayEnabled {
+            let accessibilitySummary = isAccessibilityPermissionGranted()
+                ? String(localized: "Erişilebilirlik tamam")
+                : String(localized: "Erişilebilirlik eksik")
+            summaries.append(accessibilitySummary)
+        }
+        return String(localized: "Hazır durumu: \(summaries.joined(separator: ". ")).")
     }
 
     var shouldShowPrivacySettingsButton: Bool {
@@ -1251,7 +1258,7 @@ final class RecorderViewModel {
     var keyboardShortcutAccessibilityWarning: String? {
         guard isKeyboardShortcutOverlayEnabled else { return nil }
         guard !isAccessibilityPermissionGranted() else { return nil }
-        return String(localized: "Klavye kısayollarını görmek için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver.")
+        return String(localized: "Ekran kaydında klavye kısayollarını göstermek ve Cmd+I ayar duyurusunu güvenilir almak için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver.")
     }
 
     func openAccessibilitySettings() {
@@ -1405,11 +1412,10 @@ final class RecorderViewModel {
         guard canPauseRecording else { return }
 
         if isPaused {
-            completeResumeAfterTransitionSound(duration: soundEffectPlayer.playPauseResume())
+            completeResumeFromPause()
         } else {
             beginCurrentPauseRange()
             isPaused = true
-            soundEffectPlayer.playPauseResume()
             statusText = selectedRecordingSource == .audio
                 ? String(localized: "Ses kaydı duraklatıldı")
                 : String(localized: "Kayıt duraklatıldı")
@@ -1787,7 +1793,6 @@ final class RecorderViewModel {
             }
 
             isRecording = true
-            soundEffectPlayer.playPauseResume()
             beginPauseTracking()
             isPreparingRecording = false
             lastSavedURL = nil
@@ -1837,7 +1842,6 @@ final class RecorderViewModel {
         pauseResumeTask?.cancel()
         pauseResumeTask = nil
         statusText = String(localized: "Kayıt durduruluyor")
-        soundEffectPlayer.playStop()
         sleepPreventer.allow()
         recordingDurationTask?.cancel()
         recordingDurationTask = nil
@@ -1928,7 +1932,6 @@ final class RecorderViewModel {
         }
 
         isRecording = true
-        soundEffectPlayer.playPauseResume()
         beginPauseTracking()
         isPreparingRecording = false
         lastSavedURL = nil
@@ -2046,7 +2049,6 @@ final class RecorderViewModel {
         }
 
         isRecording = true
-        soundEffectPlayer.playPauseResume()
         beginPauseTracking()
         isPreparingRecording = false
         lastSavedURL = nil
@@ -3205,7 +3207,7 @@ final class RecorderViewModel {
                 title: PermissionKind.screenRecording.title,
                 detail: detail,
                 statusLabel: String(localized: "Gerekli"),
-                helperText: String(localized: "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin."),
+                helperText: String(localized: "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. FrameMate listede varsa aç. Listede yoksa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç ve ekle. 5. FrameMate'i yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin."),
                 isRequired: isRequired,
                 isSatisfied: !isRequired,
                 isRequestInFlight: false,

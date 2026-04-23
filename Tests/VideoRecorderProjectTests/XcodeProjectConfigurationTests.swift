@@ -18,9 +18,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
     }
 
     func testRuntimeInfoPlistDoesNotLaunchAsAgentApp() throws {
-        let plistURL = repoRootURL()
-            .appendingPathComponent("Resources")
-            .appendingPathComponent("Info.plist")
+        let plistURL = try resourceURL(named: "AppInfoFixture", withExtension: "plist")
 
         let plistData = try Data(contentsOf: plistURL)
         let plist = try XCTUnwrap(
@@ -42,6 +40,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         )
 
         XCTAssertEqual(entitlements["com.apple.security.device.microphone"] as? Bool, true)
+        XCTAssertEqual(entitlements["com.apple.security.device.audio-input"] as? Bool, true)
     }
 
     func testUnitTestsUseBuiltFrameMateAppAsTestHost() throws {

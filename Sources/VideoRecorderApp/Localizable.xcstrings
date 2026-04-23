@@ -24,6 +24,17 @@
         }
       }
     },
+    "Hazır durumu: %@.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready status: %@."
+          }
+        }
+      }
+    },
     "%1$@ hazır.": {
       "extractionState": "manual",
       "localizations": {
@@ -1775,6 +1786,17 @@
         }
       }
     },
+    "Ekran kaydında klavye kısayollarını göstermek ve Cmd+I ayar duyurusunu güvenilir almak için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To show keyboard shortcuts in screen recordings and make Cmd+I setting announcements reliable, allow FrameMate in System Settings > Privacy & Security > Accessibility."
+          }
+        }
+      }
+    },
     "Klavye kısayollarını göster": {
       "extractionState": "manual",
       "localizations": {
@@ -3172,6 +3194,17 @@
         }
       }
     },
+    "Ekran kaydı izni gerekli. Adımlar: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. FrameMate listede varsa aç. Listede yoksa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç ve ekle. 5. FrameMate'i açıp uygulamayı yeniden başlat.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen recording permission required. Steps: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. If FrameMate is listed, enable it. If it is not listed, press the plus button, choose FrameMate from Applications, and add it. 5. Open FrameMate and restart the app."
+          }
+        }
+      }
+    },
     "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. Bu uygulamayı etkinleştir. 5. Uygulamayı yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin.": {
       "extractionState": "manual",
       "localizations": {
@@ -3179,6 +3212,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "To grant permission: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. Enable this application. 5. Restart the application. You can use the 'Open Settings' or 'Request Permission' buttons below."
+          }
+        }
+      }
+    },
+    "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. FrameMate listede varsa aç. Listede yoksa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç ve ekle. 5. FrameMate'i yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To grant permission: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. If FrameMate is listed, enable it. If it is not listed, press the plus button, choose FrameMate from Applications, and add it. 5. Restart FrameMate. You can use the 'Open Settings' or 'Request Permission' buttons below."
           }
         }
       }
@@ -3311,6 +3355,28 @@
           "stringUnit": {
             "state": "translated",
             "value": "2 minutes"
+          }
+        }
+      }
+    },
+    "Erişilebilirlik eksik": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessibility missing"
+          }
+        }
+      }
+    },
+    "Erişilebilirlik tamam": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accessibility ready"
           }
         }
       }
