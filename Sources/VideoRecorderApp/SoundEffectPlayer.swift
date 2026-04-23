@@ -20,7 +20,7 @@ struct SoundEffectPlayer: SoundEffectPlaying {
     }
 
     @discardableResult func playPauseResume() -> TimeInterval {
-        play(named: "yeni-ses")
+        play(named: "ara")
     }
 
     private func play(named name: String) -> TimeInterval {

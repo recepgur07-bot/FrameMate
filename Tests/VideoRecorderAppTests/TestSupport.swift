@@ -23,6 +23,7 @@ final class MockCaptureRecorder: CaptureRecording {
     let session = AVCaptureSession()
     var cameras: [InputDevice]
     var microphones: [InputDevice]
+    var onStop: () -> Void = {}
     private(set) var previewFramesEnabled = false
     private(set) var previewFrameHandler: PreviewFrameHandler?
 
@@ -36,7 +37,7 @@ final class MockCaptureRecorder: CaptureRecording {
 
     func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode) async throws {}
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {}
-    func stopRecording() {}
+    func stopRecording() { onStop() }
     func startSessionInBackground() {}
     func setPreviewFrameHandler(_ handler: PreviewFrameHandler?) { previewFrameHandler = handler }
     func setPreviewFramesEnabled(_ isEnabled: Bool) { previewFramesEnabled = isEnabled }

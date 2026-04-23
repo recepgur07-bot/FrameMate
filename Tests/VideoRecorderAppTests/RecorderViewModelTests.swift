@@ -2248,7 +2248,7 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(soundEffectPlayer.pauseResumeCallCount, 0)
     }
 
-    func testPauseResumeTogglesStateAndStatusWithoutTransitionSound() {
+    func testPauseResumeTogglesStateStatusAndTransitionSound() {
         let soundEffectPlayer = MockSoundEffectPlayer()
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(),
@@ -2269,10 +2269,10 @@ final class RecorderViewModelTests: XCTestCase {
 
         XCTAssertFalse(viewModel.isPaused)
         XCTAssertEqual(viewModel.statusText, "Kayıt yapılıyor")
-        XCTAssertEqual(soundEffectPlayer.pauseResumeCallCount, 0)
+        XCTAssertEqual(soundEffectPlayer.pauseResumeCallCount, 2)
     }
 
-    func testPauseDoesNotPlayTransitionSound() {
+    func testPauseStartsPauseRangeBeforePlayingTransitionSound() {
         let soundEffectPlayer = MockSoundEffectPlayer()
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(),
@@ -2283,17 +2283,17 @@ final class RecorderViewModelTests: XCTestCase {
         )
         viewModel.isRecording = true
         viewModel.selectedRecordingSource = .camera
-        var transitionSoundPlayed = false
+        var pausedWhenSoundPlayed = false
         soundEffectPlayer.onPauseResume = {
-            transitionSoundPlayed = true
+            pausedWhenSoundPlayed = viewModel.isPaused
         }
 
         viewModel.togglePauseResume()
 
-        XCTAssertFalse(transitionSoundPlayed)
+        XCTAssertTrue(pausedWhenSoundPlayed)
     }
 
-    func testResumeCompletesImmediatelyWithoutTransitionSound() async throws {
+    func testResumeKeepsPauseRangeOpenUntilTransitionSoundFinishes() async throws {
         let soundEffectPlayer = MockSoundEffectPlayer()
         soundEffectPlayer.pauseResumeDurations = [0, 0.02]
         let viewModel = RecorderViewModel(
@@ -2309,9 +2309,12 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.togglePauseResume()
         viewModel.togglePauseResume()
 
+        XCTAssertTrue(viewModel.isPaused)
+
+        try await Task.sleep(for: .milliseconds(50))
         XCTAssertFalse(viewModel.isPaused)
         XCTAssertEqual(viewModel.statusText, "Kayıt yapılıyor")
-        XCTAssertEqual(soundEffectPlayer.pauseResumeCallCount, 0)
+        XCTAssertEqual(soundEffectPlayer.pauseResumeCallCount, 2)
     }
 
     func testPauseResumeUsesAudioStatusForAudioRecording() {
@@ -2428,13 +2431,16 @@ final class RecorderViewModelTests: XCTestCase {
         }
 
         XCTAssertEqual(events.values.prefix(2), ["start-sound", "system-audio-start"])
-        XCTAssertEqual(soundEffectPlayer.pauseResumeCallCount, 0)
     }
 
-    func testStopRecordingDoesNotPlayStopSound() {
+    func testStopRecordingPlaysStopSoundAfterCaptureStop() {
+        let events = RecordingStartEventLog()
+        let recorder = MockCaptureRecorder()
+        recorder.onStop = { events.append("capture-stop") }
         let soundEffectPlayer = MockSoundEffectPlayer()
+        soundEffectPlayer.onStop = { events.append("stop-sound") }
         let viewModel = RecorderViewModel(
-            recorder: MockCaptureRecorder(),
+            recorder: recorder,
             screenRecordingProvider: MockScreenRecordingProvider(),
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
             soundEffectPlayer: soundEffectPlayer,
@@ -2445,7 +2451,8 @@ final class RecorderViewModelTests: XCTestCase {
 
         viewModel.stopRecording()
 
-        XCTAssertEqual(soundEffectPlayer.stopCallCount, 0)
+        XCTAssertEqual(soundEffectPlayer.stopCallCount, 1)
+        XCTAssertEqual(events.values, ["capture-stop", "stop-sound"])
     }
 
     func testPermissionHubShowsRequestActionForUndeterminedMicrophone() async throws {
@@ -2617,6 +2624,7 @@ private final class RecordingStartEventLog {
 
 private final class MockSoundEffectPlayer: SoundEffectPlaying {
     var onStart: () -> Void = {}
+    var onStop: () -> Void = {}
     var onPauseResume: () -> Void = {}
     var pauseResumeDurations: [TimeInterval] = [0]
     var pauseResumeCallCount = 0
@@ -2629,6 +2637,7 @@ private final class MockSoundEffectPlayer: SoundEffectPlaying {
 
     func playStop() -> TimeInterval {
         stopCallCount += 1
+        onStop()
         return 0
     }
     func playPauseResume() -> TimeInterval {

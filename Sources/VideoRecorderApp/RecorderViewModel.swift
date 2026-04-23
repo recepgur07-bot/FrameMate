@@ -1412,10 +1412,12 @@ final class RecorderViewModel {
         guard canPauseRecording else { return }
 
         if isPaused {
-            completeResumeFromPause()
+            let soundDuration = soundEffectPlayer.playPauseResume()
+            completeResumeAfterTransitionSound(duration: soundDuration)
         } else {
             beginCurrentPauseRange()
             isPaused = true
+            _ = soundEffectPlayer.playPauseResume()
             statusText = selectedRecordingSource == .audio
                 ? String(localized: "Ses kaydı duraklatıldı")
                 : String(localized: "Kayıt duraklatıldı")
@@ -1837,6 +1839,7 @@ final class RecorderViewModel {
             pendingScreenKeyboardShortcutTimeline = keyboardShortcutRecorder.stopTracking()
             screenRecordingProvider.stopRecording()
         }
+        _ = soundEffectPlayer.playStop()
         isRecording = false
         isPaused = false
         pauseResumeTask?.cancel()
