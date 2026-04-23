@@ -1,10 +1,10 @@
 FrameMate'in ilk herkese açık sürümü.
 
 Bu sürümde:
-- ekran ve pencere kaydı
-- ekran + kamera katmanı
-- kamera kaydı ve ses kaydı
-- isteğe bağlı sistem sesi
-- imleç vurgusu ve kısayol katmanları
+- Ekran ve pencere kaydı
+- Ekran + Kamera kaydı
+- Yalnızca kamera veya ses kaydı
+- Sistem sesi desteği
+- Klavye kısayolu ve imleç katmanları
+- VoiceOver dostu kontroller ve canlı durum anonsları
 - Kadraj Koçu sesli yönlendirmeleri
-- VoiceOver uyumlu kontroller ve canlı durum anonsları

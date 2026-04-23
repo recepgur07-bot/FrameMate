@@ -316,7 +316,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "move a bit to the right"
+            "value": "Move slightly right"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "biraz sağa geç"
           }
         }
       }
@@ -327,7 +333,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "move a bit to the left"
+            "value": "Move slightly left"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "biraz sola geç"
           }
         }
       }
@@ -393,7 +405,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're too far, move closer"
+            "value": "Too far, move closer"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çok uzaktasın, biraz yaklaş"
           }
         }
       }
@@ -404,7 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You're too close, move back a bit"
+            "value": "Too close, move back"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çok yakınsın, biraz uzaklaş"
           }
         }
       }
@@ -1021,7 +1045,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "light is low, turn on a lamp or increase screen brightness"
+            "value": "Low light, illuminate your face"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ışık düşük, lambayı aç veya ekran parlaklığını artır"
           }
         }
       }
@@ -1032,7 +1062,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "frame is balanced"
+            "value": "Frame is balanced"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kadraj dengeli"
           }
         }
       }
@@ -1043,7 +1079,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "frame coach on"
+            "value": "Frame Coach on"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kadraj koçu açık"
           }
         }
       }
@@ -1054,7 +1096,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frame coach is on"
+            "value": "Frame Coach is on"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj koçu açık"
           }
         }
       }
@@ -1065,7 +1113,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "frame coach off"
+            "value": "Frame Coach off"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kadraj koçu kapalı"
           }
         }
       }
@@ -1076,7 +1130,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frame coach is off"
+            "value": "Frame Coach is off"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj koçu kapalı"
           }
         }
       }
@@ -1087,7 +1147,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frame coach: %@"
+            "value": "Frame Coach: %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçu: %@"
           }
         }
       }
@@ -1098,7 +1164,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frame coach: %1$@"
+            "value": "Frame Coach: %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçu: %1$@"
           }
         }
       }
@@ -1109,7 +1181,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frame coach: ON"
+            "value": "Frame Coach: ON"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçu: açık"
           }
         }
       }
@@ -1120,7 +1198,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Frame coach: OFF"
+            "value": "Frame Coach: OFF"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçu: kapalı"
           }
         }
       }
@@ -1131,7 +1215,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "frame is good"
+            "value": "Frame is good"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kadraj uygun"
           }
         }
       }
@@ -1276,6 +1366,12 @@
             "state": "translated",
             "value": "Camera Box"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera Kutusu"
+          }
         }
       }
     },
@@ -1285,7 +1381,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "camera overlay on"
+            "value": "Camera box on"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kamera kutusu açık"
           }
         }
       }
@@ -1385,7 +1487,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tilt the camera down a bit"
+            "value": "Tilt camera down slightly"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kamerayı biraz aşağı indir"
           }
         }
       }
@@ -1396,7 +1504,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tilt the camera up a bit"
+            "value": "Tilt camera up slightly"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kamerayı biraz yukarı al"
           }
         }
       }
@@ -1605,7 +1719,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The following permissions are required: %1$@. Grant them using the buttons below."
+            "value": "Recording requires %1$@ permission. Grant it below."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt için %1$@ izni gerekiyor. Aşağıdan izin verebilirsin."
           }
         }
       }
@@ -1781,7 +1901,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To see keyboard shortcuts, allow FrameMate in System Settings > Privacy & Security > Accessibility."
+            "value": "To show keyboard shortcuts, allow FrameMate in System Settings > Privacy & Security > Accessibility."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye kısayollarını göstermek için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver."
           }
         }
       }
@@ -1792,7 +1918,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To show keyboard shortcuts in screen recordings and make Cmd+I setting announcements reliable, allow FrameMate in System Settings > Privacy & Security > Accessibility."
+            "value": "To show keyboard shortcuts and receive reliable status announcements, allow FrameMate in System Settings > Privacy & Security > Accessibility."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydında klavye kısayollarını göstermek ve Cmd+I ayar duyurusunu güvenilir almak için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver."
           }
         }
       }
@@ -2210,7 +2342,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "In auto mode, guidance is sent as an accessibility announcement if VoiceOver is on. Silent mode turns off the sound but keeps the on-screen text if you wish."
+            "value": "In auto mode, guidance uses accessibility announcements if VoiceOver is on. Silent mode disables sound."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatik modda VoiceOver açıksa erişilebilirlik anonsu kullanılır. Sessiz modda ses çıkmaz."
           }
         }
       }
@@ -2331,7 +2469,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The buttons on the right are clickable. If a macOS dialog appears after requesting permission, approve it there."
+            "value": "Remember to approve if a macOS dialog appears."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS penceresi açılırsa onay vermeyi unutma."
           }
         }
       }
@@ -2969,7 +3113,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Face not detected, look at the camera"
+            "value": "Face not detected"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yüz algılanamıyor"
           }
         }
       }
@@ -3079,7 +3229,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Saves the name entered in the field above"
+            "value": "Saves the file name"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosya adını kaydeder"
           }
         }
       }
@@ -3090,7 +3246,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opens the recording with the default application"
+            "value": "Plays the file"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosyayı oynatır"
           }
         }
       }
@@ -3101,7 +3263,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Shows the folder containing the file in Finder"
+            "value": "Shows in Finder"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klasörde gösterir"
           }
         }
       }
@@ -3112,7 +3280,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copies the recording to a different location"
+            "value": "Saves as"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farklı kaydeder"
           }
         }
       }
@@ -3123,7 +3297,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Closes this window"
+            "value": "Closes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapatır"
           }
         }
       }
@@ -3134,7 +3314,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Range: 0% to 150%. Adjust with left/right arrow keys."
+            "value": "Range: 0% to 150%. Adjust with arrow keys."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yüzde 0 ile 150 arası. Yön tuşlarıyla ayarla."
           }
         }
       }
@@ -3189,7 +3375,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Screen recording permission required. Steps: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. Enable this application. 5. Restart the application."
+            "value": "Screen Recording permission required. 1. Open System Settings. 2. Go to Privacy & Security > Screen Recording and enable the app. 3. Restart."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran Kaydı izni gerekli. 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik > Ekran Kaydı bölümünden uygulamaya izin ver. 3. Uygulamayı yeniden başlat."
           }
         }
       }
@@ -3200,7 +3392,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Screen recording permission required. Steps: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. If FrameMate is listed, enable it. If it is not listed, press the plus button, choose FrameMate from Applications, and add it. 5. Open FrameMate and restart the app."
+            "value": "Screen Recording permission required. 1. Open System Settings. 2. Enable FrameMate in Privacy & Security > Screen Recording. If it is missing, add FrameMate from Applications with the plus button. 3. Restart FrameMate."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran Kaydı izni gerekli. 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik > Ekran Kaydı bölümünden FrameMate'e izin ver. Listede yoksa artı düğmesiyle Uygulamalar'dan FrameMate'i ekle. 3. FrameMate'i yeniden başlat."
           }
         }
       }
@@ -3211,7 +3409,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To grant permission: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. Enable this application. 5. Restart the application. You can use the 'Open Settings' or 'Request Permission' buttons below."
+            "value": "Grant Screen Recording permission. Enable the app in System Settings > Privacy & Security > Screen Recording and restart."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran Kaydı izni verin. Sistem Ayarları > Gizlilik ve Güvenlik > Ekran Kaydı bölümünden uygulamayı açıp yeniden başlatın."
           }
         }
       }
@@ -3222,7 +3426,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "To grant permission: 1. Open System Settings. 2. Go to Privacy & Security. 3. Select Screen Recording. 4. If FrameMate is listed, enable it. If it is not listed, press the plus button, choose FrameMate from Applications, and add it. 5. Restart FrameMate. You can use the 'Open Settings' or 'Request Permission' buttons below."
+            "value": "Enable FrameMate in System Settings > Privacy & Security > Screen Recording and restart."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem Ayarları > Gizlilik ve Güvenlik > Ekran Kaydı bölümünden FrameMate'e izin verip uygulamayı yeniden başlatın."
           }
         }
       }
@@ -3233,7 +3443,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Selects how the framing coach delivers guidance. In automatic mode, accessibility announcements are used when VoiceOver is on, otherwise app audio. Silent mode disables all sound."
+            "value": "Selects how Frame Coach delivers guidance. Auto mode uses accessibility announcements if VoiceOver is on. Silent mode disables sound."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçunun yönlendirmesini ayarlar. Otomatik modda VoiceOver açıksa erişilebilirlik anonsu duyulur. Sessiz modda ses çıkmaz."
           }
         }
       }
@@ -3244,7 +3460,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Determines which ear the guidance audio comes from. In spatial mode, sound comes from the left or right ear depending on where your face is. In mono mode, sound always comes from the center."
+            "value": "Determines the guidance audio direction. Spatial mode places sound in the left or right ear based on your position. Mono is always centered."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yönlendirme sesinin yönünü belirler. Uzamsal modda ses, yüzünün tarafına göre sağdan veya soldan gelir. Mono modda hep ortadan gelir."
           }
         }
       }
@@ -3255,7 +3477,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Plays a short confirmation sound when your face reaches the center. Useful for knowing when you've found the correct position."
+            "value": "Plays a short confirmation sound when your face reaches the center. Helps you find the right position."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yüzün tam ortaya geldiğinde kısa bir onay sesi çalar. Doğru pozisyonu bulmayı kolaylaştırır."
           }
         }
       }
@@ -3266,7 +3494,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sets how often the framing coach gives guidance. Frequent means a prompt every few seconds; infrequent means only large deviations are announced."
+            "value": "Sets how often Frame Coach gives guidance. 'Frequent' prompts regularly; 'infrequent' only announces large deviations."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçunun yönlendirme sıklığını ayarlar. 'Sık' düzenli aralıklarla, 'Seyrek' ise büyük sapmalarda uyarır."
           }
         }
       }
@@ -3277,7 +3511,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Determines how many seconds before the same guidance message repeats. A short interval gives more frequent reminders; a long interval leaves silence after one prompt."
+            "value": "Determines the interval before repeating the same guidance message."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aynı yönlendirme mesajının tekrar aralığını belirler."
           }
         }
       }
@@ -3288,7 +3528,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Makes direction text visible on screen during recording. When off, only audio plays with no on-screen text."
+            "value": "Makes direction text visible on screen during recording. When off, only audio plays."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt sırasında yön metinlerini ekranda görünür yapar. Kapalıysa yalnızca ses çıkar."
           }
         }
       }
@@ -3299,7 +3545,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The app window disappears when recording starts, so the app's interface is not visible in the screen recording."
+            "value": "The app window hides automatically when recording starts."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt başladığında uygulama penceresi ekrandan gizlenir."
           }
         }
       }
@@ -3310,7 +3562,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The app window automatically returns when recording stops. When off, you need to open it yourself."
+            "value": "The app window automatically returns when recording stops."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt durduğunda uygulama penceresi otomatik olarak geri gelir."
           }
         }
       }
@@ -3321,7 +3579,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Determines the app's presence in the Dock and menu bar. 'Show in Dock' behaves like a standard app; 'menu bar only' runs in the background."
+            "value": "Determines if the app shows in the Dock or runs only in the menu bar."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulamanın Dock veya menü çubuğundaki görünümünü belirler."
           }
         }
       }

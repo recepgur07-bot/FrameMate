@@ -1,52 +1,34 @@
-Record polished tutorials, demos, walkthroughs, and presentations on your Mac without a complicated setup.
+Record polished tutorials, demos, and presentations on your Mac without a complicated setup.
 
-FrameMate is a native Mac screen recorder for creators, teachers, indie makers, consultants, and support teams who need clean recordings with clear narration and simple controls.
+FrameMate is a native Mac recorder designed for creators, teachers, and teams who need clean recordings with clear narration and accessibility support.
 
 WHAT YOU CAN RECORD
 
 • SCREEN RECORDING
-Capture your full screen or a single window as an MP4. Great for product demos, software tutorials, onboarding videos, bug reports, and client walkthroughs.
+Capture your full screen or a single window as an MP4. Great for product demos and tutorials.
 
 • SCREEN + CAMERA
-Add your camera as a picture-in-picture overlay so your face stays visible during presentations, lessons, and explainers.
+Add your camera as an overlay to make your presentation more engaging.
 
-• CAMERA RECORDING
-Record standalone camera videos for talking-head updates, lessons, and presentation intros.
-
-• AUDIO RECORDING
-Capture microphone audio for voice notes, meeting recaps, podcast drafts, and narration takes.
+• CAMERA OR AUDIO ONLY
+Record standalone camera videos for quick updates, or capture microphone audio for voice notes and podcast drafts.
 
 BUILT FOR CLEAR EXPLANATIONS
-
-• Optional system audio for screen and window recordings
-• Cursor highlight overlays to make clicks easier to follow
+• Optional system audio for screen recordings
+• Cursor highlight overlays to make clicks visible
 • Keyboard shortcut overlays for tutorial-style videos
-• Countdown, pause, and resume controls
-• Local file output directly on your Mac
+• Simple pause and resume controls
 
 FRAME COACH
-
-Frame Coach gives live spoken guidance to help keep your face centered and well lit while recording. It is especially useful for creators who want more consistent camera framing without checking the preview constantly.
+Frame Coach gives live spoken guidance to keep your face centered. It is especially useful for creators who want consistent camera framing without checking the screen constantly.
 
 ACCESSIBILITY FOR BLIND AND LOW-VISION CREATORS
-
-FrameMate is especially strong for blind and low-vision users who need spoken recording feedback. VoiceOver support, keyboard-friendly controls, live status announcements, and Frame Coach guidance make it easier to record without relying on constant visual preview checks.
-
-ACCESSIBILITY
-
-FrameMate is built with VoiceOver support, keyboard-friendly controls, clear labels, and live status announcements. Frame Coach also helps blind and low-vision creators keep a usable camera shot.
+FrameMate is built from the ground up with VoiceOver support:
+• Keyboard-friendly controls
+• Live status announcements for recordings and errors
+• Frame Coach guidance makes it possible to set up your shot independently without visual feedback
 
 PRIVACY
+Your recordings are processed and saved locally on your Mac. FrameMate does not require an account, does not upload videos, and includes no tracking SDKs.
 
-Your recordings stay on your Mac. FrameMate does not require an account, does not upload your videos, and does not include tracking or analytics SDKs.
-
-WHO IT IS FOR
-
-• tutorial creators
-• educators
-• product marketers
-• customer support teams
-• indie developers
-• consultants and freelancers
-
-Try FrameMate free for 14 days, then continue with a yearly subscription or a one-time lifetime purchase.
+Try FrameMate free for 14 days, then continue with a yearly subscription or a lifetime purchase.

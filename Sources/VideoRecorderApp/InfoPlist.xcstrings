@@ -1,110 +1,110 @@
 {
-  "sourceLanguage" : "tr",
-  "strings" : {
-    "CFBundleDisplayName" : {
-      "comment" : "Bundle display name",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "FrameMate"
+  "sourceLanguage": "tr",
+  "strings": {
+    "CFBundleDisplayName": {
+      "comment": "Bundle display name",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "FrameMate"
           }
         }
       }
     },
-    "CFBundleName" : {
-      "comment" : "Bundle name",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "FrameMate"
+    "CFBundleName": {
+      "comment": "Bundle name",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "FrameMate"
           }
         }
       }
     },
-    "NSCameraUsageDescription" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Camera access is needed for framing guidance and video recording."
+    "NSCameraUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera access is required for Frame Coach guidance and recording."
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kadraj yönlendirmesi ve video kaydı için kameraya erişim gerekiyor."
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçu yönlendirmeleri ve kamera kaydı için izin gereklidir."
           }
         }
       }
     },
-    "NSHumanReadableCopyright" : {
-      "comment" : "Copyright (human-readable)",
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Copyright © 2026 Recep Gür. All rights reserved."
+    "NSHumanReadableCopyright": {
+      "comment": "Copyright (human-readable)",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "tr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Copyright © 2026 Recep Gür. All rights reserved."
           }
         }
       }
     },
-    "NSMicrophoneUsageDescription" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Microphone access is needed to record videos with audio."
+    "NSMicrophoneUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone access is required to record audio."
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Videoları sesli kaydetmek için mikrofona erişim gerekiyor."
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıtlara ses eklemek için mikrofon izni gereklidir."
           }
         }
       }
     },
-    "NSScreenCaptureUsageDescription" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Screen capture permission is required to record your screen."
+    "NSScreenCaptureUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen Recording permission is required to capture your screen."
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ekranı kaydetmek için ekran yakalama iznine ihtiyaç var."
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekranı ve pencereleri kaydetmek için Ekran Kaydı izni gereklidir."
           }
         }
       }
     },
-    "NSSpeechUsageDescription" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Speech synthesis is used to deliver framing coach instructions aloud."
+    "NSSpeechUsageDescription": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speech synthesis is required to hear Frame Coach instructions."
           }
         },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kadraj koçluğu talimatlarını sesli olarak iletmek için ses sentezi kullanılır."
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçu yönlendirmelerini sesli duymak için gereklidir."
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

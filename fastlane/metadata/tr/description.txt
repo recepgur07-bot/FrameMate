@@ -1,52 +1,34 @@
-Mac'inizde eğitim videoları, ürün demoları, anlatımlar ve sunumlar kaydetmek için gereksiz karmaşıklığa ihtiyacınız yok.
+Mac'inizde eğitim videoları, ürün demoları, sunumlar ve anlatımlar kaydetmek için karmaşık araçlara ihtiyacınız yok.
 
-FrameMate; içerik üreticileri, eğitmenler, danışmanlar, ürün ekipleri ve destek ekipleri için hazırlanmış yerel bir Mac ekran kaydedicidir. Temiz kayıt, anlaşılır ses ve sade kontrol akışı sunar.
+FrameMate; içerik üreticileri, eğitmenler ve ekipler için tasarlanmış erişilebilirlik öncelikli, yerel bir Mac kayıt uygulamasıdır. Temiz kayıt kalitesi, VoiceOver desteği ve sade kontrol akışıyla öne çıkar.
 
 NELER KAYDEDEBİLİRSİNİZ
 
 • EKRAN KAYDI
-Tam ekranı veya tek bir pencereyi MP4 olarak kaydedin. Ürün demosu, eğitim videosu, hata bildirimi, onboarding anlatımı ve müşteri sunumu için idealdir.
+Tam ekranı veya tek bir pencereyi kaydedin. Eğitim, onboarding ve sunumlar için idealdir.
 
 • EKRAN + KAMERA
-Kameranızı resim içinde resim olarak ekleyin. Sunumlar, dersler ve açıklayıcı videolar için anlatımı daha güçlü hale getirir.
+Kameranızı ekleyerek anlatımınızı daha kişisel ve güçlü hale getirin.
 
-• KAMERA KAYDI
-Konuşma videoları, ders girişleri ve kısa anlatımlar için bağımsız kamera kaydı alın.
-
-• SES KAYDI
-Sesli not, toplantı özeti, podcast taslağı ve anlatım kaydı için mikrofon sesini kaydedin.
+• SADECE KAMERA VEYA SES
+Kısa anlatımlar için bağımsız kamera kaydı, toplantı özetleri ve podcast taslakları için mikrofon kaydı alın.
 
 ANLATIM ODAKLI ARAÇLAR
-
-• Ekran ve pencere kaydında isteğe bağlı sistem sesi
-• Tıklamaları daha görünür yapan imleç vurgusu
+• Ekran kaydına sistem sesini dahil etme
+• Tıklamaları belirginleştiren imleç vurgusu
 • Öğretici videolar için klavye kısayolu katmanı
-• Geri sayım, duraklatma ve devam ettirme
-• Dosyayı doğrudan Mac'inize kaydetme
+• Kolay kayıt duraklatma ve devam ettirme
 
 KADRAJ KOÇU
-
-Kadraj Koçu, kayıt sırasında yüzünüzü ortada ve daha dengeli tutmanız için canlı sesli yönlendirme verir. Sürekli önizlemeye bakmadan daha tutarlı kamera kaydı almak isteyenler için çok faydalıdır.
+Kayıt sırasında yüzünüzü ortada tutmanız için sesli yönlendirme sağlar. Kameranızı kontrol etmek için sürekli önizlemeye bakmak zorunda kalmazsınız.
 
 KÖR VE AZ GÖREN KULLANICILAR İÇİN GÜÇLÜ DESTEK
-
-FrameMate, sesli geri bildirim ihtiyacı olan kör ve az gören kullanıcılar için özellikle güçlüdür. VoiceOver desteği, klavye odaklı kullanım, canlı durum anonsları ve Kadraj Koçu yönlendirmeleri; sürekli görsel önizlemeye ihtiyaç duymadan kayıt almayı kolaylaştırır.
-
-ERİŞİLEBİLİRLİK
-
-FrameMate; VoiceOver desteği, klavye odaklı kullanım, net etiketler ve canlı durum anonslarıyla tasarlanmıştır. Kadraj Koçu da kör ve az gören üreticilerin daha kullanılabilir kamera çekimleri almasına yardımcı olur.
+FrameMate, başından beri VoiceOver uyumu düşünülerek tasarlanmıştır.
+• Klavye ile tam kontrol
+• Kayıt başlatma, duraklatma ve hata durumları için canlı anonslar
+• Görsel yardıma ihtiyaç duymadan kamera açısını ayarlamayı sağlayan Kadraj Koçu
 
 GİZLİLİK
+Tüm kayıtlarınız Mac'inizde yerel olarak işlenir ve saklanır. FrameMate bulut hesabı istemez ve takip kodu içermez.
 
-Kayıtlarınız Mac'inizde kalır. FrameMate hesap istemez, videolarınızı buluta yüklemez, takip veya analitik SDK'ları içermez.
-
-KİMLER İÇİN UYGUN
-
-• eğitim içerikleri hazırlayanlar
-• ürün demosu çeken ekipler
-• müşteri destek ekipleri
-• bağımsız geliştiriciler
-• danışmanlar ve freelancer'lar
-• sunum ve anlatım videosu hazırlayan profesyoneller
-
-FrameMate'i 14 gün ücretsiz deneyin. Sonrasında yıllık abonelik veya tek seferlik ömür boyu satın alma ile devam edebilirsiniz.
+FrameMate'i 14 gün ücretsiz deneyin. Sonrasında yıllık abonelik veya ömür boyu satın alma seçenekleriyle kullanmaya devam edin.
