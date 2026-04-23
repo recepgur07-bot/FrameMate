@@ -1,11 +1,16 @@
 import SwiftUI
 import AppKit
 
+extension Notification.Name {
+    static let openQuickHelpRequested = Notification.Name("openQuickHelpRequested")
+}
+
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Bindable var viewModel: RecorderViewModel
 
     @State private var toastQueue = ToastQueue()
+    @State private var isQuickHelpPresented = false
 
     var body: some View { makeBody() }
 
@@ -92,10 +97,16 @@ struct ContentView: View {
                 onClose: viewModel.dismissCompletedRecordingSummary
             )
         }
+        .sheet(isPresented: $isQuickHelpPresented) {
+            QuickHelpSheet()
+        }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
             viewModel.refreshDeviceState()
             Task { await viewModel.refreshAppAccess() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openQuickHelpRequested)) { _ in
+            isQuickHelpPresented = true
         }
         // VoiceOver announcements — proactively read state changes aloud so the user
         // doesn't have to navigate to the status elements to hear what happened.
@@ -1308,6 +1319,11 @@ struct SettingsView: View {
             }
 
             Section("Yardım ve Gizlilik") {
+                Button("Hızlı Yardımı Aç") {
+                    NotificationCenter.default.post(name: .openQuickHelpRequested, object: nil)
+                }
+                .accessibilityHint(String(localized: "Uygulama içindeki hızlı yardım penceresini açar."))
+
                 Link(
                     "Yardım ve Destek",
                     destination: URL(string: "https://recepgur07-bot.github.io/oneday-support/framemate-support")!
@@ -1363,6 +1379,342 @@ struct SettingsView: View {
 
     private var settingsDescription: String {
         String(localized: "Otomatik modda VoiceOver açıksa yönlendirmeler erişilebilirlik anonsu olarak iletilir. Sessiz mod, sesi kapatır ama istersen ekrandaki metni bırakır.")
+    }
+}
+
+struct QuickHelpSection: Identifiable, Equatable {
+    let id: String
+    let title: String
+    let items: [String]
+}
+
+enum QuickHelpTopic: String, CaseIterable, Identifiable {
+    case gettingStarted
+    case recording
+    case shortcuts
+    case accessibility
+    case troubleshooting
+
+    var id: String { rawValue }
+
+    var symbolName: String {
+        switch self {
+        case .gettingStarted:
+            return "play.circle.fill"
+        case .recording:
+            return "record.circle.fill"
+        case .shortcuts:
+            return "command.square.fill"
+        case .accessibility:
+            return "figure.roll"
+        case .troubleshooting:
+            return "wrench.and.screwdriver.fill"
+        }
+    }
+}
+
+struct QuickHelpContent: Equatable {
+    let title: String
+    let subtitle: String
+    let searchPlaceholder: String
+    let closeButtonTitle: String
+    let openOnlineHelpTitle: String
+    let emptyStateActionTitle: String
+    let topics: [QuickHelpTopic: QuickHelpSection]
+
+    static let english = QuickHelpContent(
+        title: "Quick Help",
+        subtitle: "A compact in-app guide for the main FrameMate workflows.",
+        searchPlaceholder: "Search help",
+        closeButtonTitle: "Close",
+        openOnlineHelpTitle: "Open online help",
+        emptyStateActionTitle: "Open Help & Support",
+        topics: [
+            .gettingStarted: QuickHelpSection(
+                id: "english-start",
+                title: "Getting Started",
+                items: [
+                    "Complete the onboarding permission steps for camera, microphone, screen recording, and accessibility features you plan to use.",
+                    "Choose a recording mode: horizontal camera, horizontal screen, or audio-only.",
+                    "Pick the needed inputs such as camera, microphone, display, or window before starting."
+                ]
+            ),
+            .recording: QuickHelpSection(
+                id: "english-recording",
+                title: "Recording",
+                items: [
+                    "Screen recording can capture a full display or a single window.",
+                    "Screen recordings can include microphone audio, system audio, cursor highlight, keyboard shortcut overlays, and a camera box.",
+                    "Camera recordings support Frame Coach and auto reframe for single-person shots.",
+                    "Audio mode can record microphone audio, system audio, or both."
+                ]
+            ),
+            .shortcuts: QuickHelpSection(
+                id: "english-shortcuts",
+                title: "Keyboard Shortcuts",
+                items: [
+                    "Cmd+1 selects camera recording, Cmd+2 selects screen recording, and Cmd+3 selects audio recording.",
+                    "Cmd+D turns Frame Coach on or off, and Cmd+I announces the current settings.",
+                    "Cmd+Ctrl+R starts or stops the main recording, Cmd+Ctrl+5 toggles audio-only recording, and Cmd+Ctrl+P pauses or resumes."
+                ]
+            ),
+            .accessibility: QuickHelpSection(
+                id: "english-accessibility",
+                title: "Accessibility",
+                items: [
+                    "FrameMate is designed to work well with VoiceOver, keyboard navigation, live status announcements, and spoken guidance.",
+                    "Frame Coach is especially helpful for blind and low-vision creators who need spoken framing feedback."
+                ]
+            ),
+            .troubleshooting: QuickHelpSection(
+                id: "english-troubleshooting",
+                title: "Troubleshooting",
+                items: [
+                    "If camera, microphone, or screen recording does not work, review permissions in System Settings > Privacy & Security.",
+                    "If system audio is missing, verify Screen Recording permission and reopen the app.",
+                    "If keyboard shortcuts do not appear in exported videos, allow FrameMate under Accessibility."
+                ]
+            )
+        ]
+    )
+
+    static let turkish = QuickHelpContent(
+        title: "Hızlı Yardım",
+        subtitle: "FrameMate'in temel akışlarını uygulama içinden hızlıca anlatan kısa rehber.",
+        searchPlaceholder: "Yardımda ara",
+        closeButtonTitle: "Kapat",
+        openOnlineHelpTitle: "Çevrimiçi yardımı aç",
+        emptyStateActionTitle: "Yardım ve Desteği Aç",
+        topics: [
+            .gettingStarted: QuickHelpSection(
+                id: "turkish-start",
+                title: "Başlangıç",
+                items: [
+                    "Kullanacağın özelliklere göre onboarding içindeki kamera, mikrofon, ekran kaydı ve erişilebilirlik izinlerini tamamla.",
+                    "Kayıt modunu seç: yatay video, yatay ekran veya ses kaydı.",
+                    "Kaydı başlatmadan önce gerekli girişleri seç: kamera, mikrofon, ekran veya pencere."
+                ]
+            ),
+            .recording: QuickHelpSection(
+                id: "turkish-recording",
+                title: "Kayıt",
+                items: [
+                    "Ekran kaydı tam ekranı veya tek pencereyi yakalayabilir.",
+                    "Ekran kayıtlarına mikrofon, sistem sesi, imleç vurgusu, klavye kısayolu gösterimi ve kamera kutusu eklenebilir.",
+                    "Kamera kayıtlarında Kadraj Koçu ve tek kişilik çekimler için otomatik yeniden kadrajlama kullanılabilir.",
+                    "Ses modu mikrofonu, sistem sesini veya ikisini birlikte kaydedebilir."
+                ]
+            ),
+            .shortcuts: QuickHelpSection(
+                id: "turkish-shortcuts",
+                title: "Klavye Kısayolları",
+                items: [
+                    "Cmd+1 kamera kaydını, Cmd+2 ekran kaydını, Cmd+3 ses kaydını seçer.",
+                    "Cmd+D Kadraj Koçu'nu açıp kapatır, Cmd+I mevcut ayarları duyurur.",
+                    "Cmd+Ctrl+R ana kaydı başlatır veya durdurur, Cmd+Ctrl+5 ses kaydını açıp kapatır, Cmd+Ctrl+P duraklatır veya devam ettirir."
+                ]
+            ),
+            .accessibility: QuickHelpSection(
+                id: "turkish-accessibility",
+                title: "Erişilebilirlik",
+                items: [
+                    "FrameMate; VoiceOver, klavye ile kullanım, canlı durum anonsları ve sesli yönlendirme ile güçlü çalışacak şekilde tasarlanmıştır.",
+                    "Kadraj Koçu, özellikle kör ve az gören kullanıcılar için konuşmalı kadraj geri bildirimi sunar."
+                ]
+            ),
+            .troubleshooting: QuickHelpSection(
+                id: "turkish-troubleshooting",
+                title: "Sorun Giderme",
+                items: [
+                    "Kamera, mikrofon veya ekran kaydı çalışmıyorsa Sistem Ayarları > Gizlilik ve Güvenlik içindeki izinleri kontrol et.",
+                    "Sistem sesi gelmiyorsa Ekran Kaydı iznini doğrula ve uygulamayı yeniden aç.",
+                    "Kısayol gösterimleri görünmüyorsa FrameMate'e Erişilebilirlik izni verildiğinden emin ol."
+                ]
+            )
+        ]
+    )
+
+    static func content(forPreferredLanguage preferredLanguage: String?) -> QuickHelpContent {
+        let normalized = preferredLanguage?.lowercased() ?? "en"
+        return normalized.hasPrefix("tr") ? .turkish : .english
+    }
+
+    static var current: QuickHelpContent {
+        content(forPreferredLanguage: Locale.preferredLanguages.first)
+    }
+}
+
+private struct QuickHelpSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedTopic: QuickHelpTopic = .gettingStarted
+    @State private var searchText = ""
+    @AccessibilityFocusState private var isTopicTitleFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            TextField(content.searchPlaceholder, text: $searchText)
+                .textFieldStyle(.roundedBorder)
+                .padding(.horizontal, 24)
+                .padding(.top, 20)
+                .accessibilityHint(searchFieldHint)
+
+            HStack(spacing: 0) {
+                List(QuickHelpTopic.allCases, selection: $selectedTopic) { topic in
+                    Label(title(for: topic), systemImage: topic.symbolName)
+                        .tag(topic)
+                }
+                .listStyle(.sidebar)
+                .frame(minWidth: 230, idealWidth: 250, maxWidth: 280)
+                .accessibilityLabel(sectionListTitle)
+                .accessibilityValue(title(for: selectedTopic))
+                .accessibilityHint(sectionListHint)
+
+                Divider()
+
+                ScrollView {
+                    QuickHelpTopicView(
+                        title: title(for: selectedTopic),
+                        items: filteredItems(for: selectedTopic),
+                        emptyStateTitle: emptyStateTitle,
+                        emptyStateMessage: emptyStateMessage,
+                        emptyStateActionTitle: content.emptyStateActionTitle,
+                        onOpenOnlineHelp: openOnlineHelp,
+                        isTitleFocused: $isTopicTitleFocused
+                    )
+                    .padding(24)
+                }
+            }
+        }
+        .frame(minWidth: 700, minHeight: 560)
+        .onChange(of: selectedTopic) { _, newTopic in
+            guard isVoiceOverRunning else { return }
+            let announcement = content == .turkish
+                ? "\(title(for: newTopic)) bölümü açıldı."
+                : "\(title(for: newTopic)) section opened."
+            announceForVoiceOver(announcement)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isTopicTitleFocused = true
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(content.openOnlineHelpTitle) {
+                    openOnlineHelp()
+                }
+            }
+            ToolbarItem(placement: .cancellationAction) {
+                Button(content.closeButtonTitle) {
+                    dismiss()
+                }
+            }
+        }
+    }
+
+    private var content: QuickHelpContent {
+        .current
+    }
+
+    private func title(for topic: QuickHelpTopic) -> String {
+        content.topics[topic]?.title ?? ""
+    }
+
+    private func filteredItems(for topic: QuickHelpTopic) -> [String] {
+        let items = content.topics[topic]?.items ?? []
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return items }
+        return items.filter { $0.localizedCaseInsensitiveContains(query) }
+    }
+
+    private var emptyStateTitle: String {
+        content == .turkish ? "Sonuç bulunamadı" : "No results found"
+    }
+
+    private var emptyStateMessage: String {
+        content == .turkish
+            ? "Farklı bir kelimeyle tekrar deneyebilirsin."
+            : "Try a different word or a shorter phrase."
+    }
+
+    private var sectionListTitle: String {
+        content == .turkish ? "Yardım bölümleri" : "Help sections"
+    }
+
+    private var sectionListHint: String {
+        content == .turkish
+            ? "Listeden bir bölüm seç. Seçili bölümün içeriği sağ tarafta açılır."
+            : "Select a section from the list. The selected section opens in the content area on the right."
+    }
+
+    private var searchFieldHint: String {
+        content == .turkish
+            ? "Yalnızca seçili yardım bölümünün içeriğinde arama yapar."
+            : "Searches only within the currently selected help section."
+    }
+
+    private var isVoiceOverRunning: Bool {
+        NSWorkspace.shared.runningApplications.contains { app in
+            app.bundleIdentifier == "com.apple.VoiceOver" && !app.isTerminated
+        }
+    }
+
+    private func announceForVoiceOver(_ text: String) {
+        guard let app = NSApp else { return }
+        NSAccessibility.post(
+            element: app,
+            notification: .announcementRequested,
+            userInfo: [
+                NSAccessibility.NotificationUserInfoKey.announcement: text,
+                NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+            ]
+        )
+    }
+
+    private func openOnlineHelp() {
+        NSWorkspace.shared.open(URL(string: "https://recepgur07-bot.github.io/oneday-support/framemate-support")!)
+    }
+}
+
+private struct QuickHelpTopicView: View {
+    let title: String
+    let items: [String]
+    let emptyStateTitle: String
+    let emptyStateMessage: String
+    let emptyStateActionTitle: String
+    let onOpenOnlineHelp: () -> Void
+    @AccessibilityFocusState.Binding var isTitleFocused: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title)
+                .font(.title2.weight(.bold))
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($isTitleFocused)
+
+            if items.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(emptyStateTitle)
+                        .font(.headline)
+                    Text(emptyStateMessage)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Button(emptyStateActionTitle) {
+                        onOpenOnlineHelp()
+                    }
+                    .padding(.top, 6)
+                }
+            } else {
+                ForEach(items, id: \.self) { item in
+                    Label {
+                        Text(item)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(Color.fmAccent)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

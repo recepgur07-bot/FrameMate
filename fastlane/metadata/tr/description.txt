@@ -1,42 +1,52 @@
-Eğitim videoları, demolar ve sunumlar — karmaşıklık olmadan, tek ekrandan.
+Mac'inizde eğitim videoları, ürün demoları, anlatımlar ve sunumlar kaydetmek için gereksiz karmaşıklığa ihtiyacınız yok.
 
-FrameMate, ekranınızı, kameranızı ve mikrofonunuzu tek akışta kaydeder; dosya doğrudan Mac'inizde hazır olur. Hesap gerekmez. Bulut yükleme yok. Gereksizlik yok.
+FrameMate; içerik üreticileri, eğitmenler, danışmanlar, ürün ekipleri ve destek ekipleri için hazırlanmış yerel bir Mac ekran kaydedicidir. Temiz kayıt, anlaşılır ses ve sade kontrol akışı sunar.
 
-NE KAYDEDEBİLİRSİNİZ
+NELER KAYDEDEBİLİRSİNİZ
 
-• EKRAN + ANLATIM
-Tam ekran veya tek pencere kaydı; mikrofon ve isteğe bağlı sistem sesiyle. Nasıl yapılır videoları, anlatımlı demolar ve ürün tanıtımları için.
+• EKRAN KAYDI
+Tam ekranı veya tek bir pencereyi MP4 olarak kaydedin. Ürün demosu, eğitim videosu, hata bildirimi, onboarding anlatımı ve müşteri sunumu için idealdir.
 
 • EKRAN + KAMERA
-Kamera görüntünüzü ekran kaydının üstünde resim içinde resim olarak ekleyin — sunum, ders ve açıklama videoları için ideal.
+Kameranızı resim içinde resim olarak ekleyin. Sunumlar, dersler ve açıklayıcı videolar için anlatımı daha güçlü hale getirir.
 
-• SADECE KAMERA
-Dikey veya yatay, bağımsız kamera kaydı. Konuşma klipleri ve ders içerikleri için.
+• KAMERA KAYDI
+Konuşma videoları, ders girişleri ve kısa anlatımlar için bağımsız kamera kaydı alın.
 
-• SADECE SES
-Podcast, sesli not ve toplantı kaydı için temiz mikrofon kaydı.
+• SES KAYDI
+Sesli not, toplantı özeti, podcast taslağı ve anlatım kaydı için mikrofon sesini kaydedin.
 
-YOLUNUZU AÇIK BIRAKMAK İÇİN TASARLANDI
+ANLATIM ODAKLI ARAÇLAR
 
-Tek pencere. Modu seçin, kaynakları seçin, kayıt başlatın. Bittiğinde dosya Mac'inizde hazır.
-
-Klavye kısayolları, iş akışınızdan çıkmadan kayıt başlatmanıza, duraklatmanıza ve durdurmanıza imkân tanır. Geri sayım sayacı başlangıçları temiz tutar.
+• Ekran ve pencere kaydında isteğe bağlı sistem sesi
+• Tıklamaları daha görünür yapan imleç vurgusu
+• Öğretici videolar için klavye kısayolu katmanı
+• Geri sayım, duraklatma ve devam ettirme
+• Dosyayı doğrudan Mac'inize kaydetme
 
 KADRAJ KOÇU
 
-Yüzünüzü ortalı ve iyi aydınlatılmış tutmanıza yardımcı olan gerçek zamanlı sesli yönlendirme sistemi. Kameraya yeni başlayanlar için de, tutarlı kayıt kalitesi arayanlar için de kullanışlı.
+Kadraj Koçu, kayıt sırasında yüzünüzü ortada ve daha dengeli tutmanız için canlı sesli yönlendirme verir. Sürekli önizlemeye bakmadan daha tutarlı kamera kaydı almak isteyenler için çok faydalıdır.
 
-KLAVYE KISAYOLU VE İMLEÇ VURGUSUKlavye kısayollarını ve imleç hareketlerini doğrudan kayıt içinde gösterin — öğretici içerikleri daha anlaşılır yapmanın en hızlı yolu.
+KÖR VE AZ GÖREN KULLANICILAR İÇİN GÜÇLÜ DESTEK
 
-GİZLİLİK
-
-Kamera, mikrofon ve ekran izinleri yalnızca kayıt için kullanılır. Analitik SDK yok, takip yok, harici yükleme yok. İçerikleriniz Mac'inizde kalır.
+FrameMate, sesli geri bildirim ihtiyacı olan kör ve az gören kullanıcılar için özellikle güçlüdür. VoiceOver desteği, klavye odaklı kullanım, canlı durum anonsları ve Kadraj Koçu yönlendirmeleri; sürekli görsel önizlemeye ihtiyaç duymadan kayıt almayı kolaylaştırır.
 
 ERİŞİLEBİLİRLİK
 
-VoiceOver ve klavye öncelikli navigasyon gözetilerek baştan tasarlandı. Her kontrol açıklayıcı etiket ve canlı durum bilgisi içerir. Kadraj Koçu'nun sesli yönlendirmeleri, kör ve az gören içerik üreticileri için de erişilebilirlik aracı işlevi görür.
+FrameMate; VoiceOver desteği, klavye odaklı kullanım, net etiketler ve canlı durum anonslarıyla tasarlanmıştır. Kadraj Koçu da kör ve az gören üreticilerin daha kullanılabilir kamera çekimleri almasına yardımcı olur.
 
-14 gün ücretsiz deneyin, ardından yıllık abonelik veya tek seferlik ömür boyu satın alımla devam edin.
+GİZLİLİK
 
-Geliştirici: Recep Gür
-İletişim: seslerinizindeapps@outlook.com
+Kayıtlarınız Mac'inizde kalır. FrameMate hesap istemez, videolarınızı buluta yüklemez, takip veya analitik SDK'ları içermez.
+
+KİMLER İÇİN UYGUN
+
+• eğitim içerikleri hazırlayanlar
+• ürün demosu çeken ekipler
+• müşteri destek ekipleri
+• bağımsız geliştiriciler
+• danışmanlar ve freelancer'lar
+• sunum ve anlatım videosu hazırlayan profesyoneller
+
+FrameMate'i 14 gün ücretsiz deneyin. Sonrasında yıllık abonelik veya tek seferlik ömür boyu satın alma ile devam edebilirsiniz.

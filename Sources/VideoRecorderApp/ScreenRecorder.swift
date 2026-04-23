@@ -182,8 +182,9 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
                     return
                 }
 
-                currentWriter.finishWriting {
-                    if let error = currentWriter.error {
+                let finishedWriterBox = UnsafeSendableBox(value: currentWriter)
+                finishedWriterBox.value.finishWriting { [finishedWriterBox] in
+                    if let error = finishedWriterBox.value.error {
                         self.complete(.failure(error))
                     } else {
                         self.complete(.success(outputURL))

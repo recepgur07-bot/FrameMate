@@ -1,4 +1,5 @@
 import XCTest
+import AppKit
 @testable import FrameMate
 
 final class MainWindowPresentationPolicyTests: XCTestCase {
@@ -54,5 +55,20 @@ final class MainWindowPresentationPolicyTests: XCTestCase {
         let policy = AppTerminationPolicy()
 
         XCTAssertFalse(policy.shouldTerminateAfterLastWindowClosed(isRecording: true))
+    }
+
+    func testTerminationHelperAllowsQuitWhenNoSheetIsAttached() {
+        XCTAssertEqual(AppTerminationCoordinator.prepareForTermination(windows: []), .terminateNow)
+    }
+
+    func testTerminationHelperCancelsQuitAndClosesAttachedSheets() {
+        let window = NSWindow()
+        let sheet = NSWindow()
+        window.beginSheet(sheet)
+
+        let reply = AppTerminationCoordinator.prepareForTermination(windows: [window])
+
+        XCTAssertEqual(reply, .terminateCancel)
+        XCTAssertNil(window.attachedSheet)
     }
 }

@@ -7,6 +7,10 @@ protocol SystemAudioRecordingProviding: AnyObject {
     func stopRecording()
 }
 
+private struct UnsafeSendableBox<Value>: @unchecked Sendable {
+    let value: Value
+}
+
 final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStreamOutput, SCStreamDelegate, @unchecked Sendable {
     private static let finalizeDelay: DispatchTimeInterval = .milliseconds(250)
     private let streamQueue = DispatchQueue(label: "com.local.VideoRecorder.system-audio-stream")
@@ -75,6 +79,8 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
         let currentAudioInput = audioInput
         let outputURL = outputURL
         let hasAudio = hasReceivedAudioSample
+        let currentWriterBox = currentWriter.map(UnsafeSendableBox.init)
+        let currentAudioInputBox = currentAudioInput.map(UnsafeSendableBox.init)
 
         Task {
             do {
@@ -82,7 +88,7 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
             } catch {}
 
             writerQueue.asyncAfter(deadline: .now() + Self.finalizeDelay) {
-                guard let currentWriter, let outputURL else {
+                guard let currentWriter = currentWriterBox?.value, let outputURL else {
                     self.complete(.failure(ScreenRecordingError.cannotCreateWriter))
                     return
                 }
@@ -94,10 +100,11 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
                     return
                 }
 
-                currentAudioInput?.markAsFinished()
+                currentAudioInputBox?.value.markAsFinished()
 
-                currentWriter.finishWriting {
-                    if let error = currentWriter.error {
+                let finishedWriterBox = UnsafeSendableBox(value: currentWriter)
+                finishedWriterBox.value.finishWriting { [finishedWriterBox] in
+                    if let error = finishedWriterBox.value.error {
                         self.complete(.failure(error))
                     } else {
                         self.complete(.success(outputURL))
@@ -115,17 +122,20 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
         guard outputType == .audio else { return }
         guard CMSampleBufferIsValid(sampleBuffer) else { return }
         guard let writer, let audioInput else { return }
+        let writerBox = UnsafeSendableBox(value: writer)
+        let audioInputBox = UnsafeSendableBox(value: audioInput)
+        let sampleBufferBox = UnsafeSendableBox(value: sampleBuffer)
 
         writerQueue.async {
             if !self.hasStartedWriting {
-                writer.startWriting()
-                writer.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+                writerBox.value.startWriting()
+                writerBox.value.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value))
                 self.hasStartedWriting = true
             }
 
-            guard audioInput.isReadyForMoreMediaData else { return }
+            guard audioInputBox.value.isReadyForMoreMediaData else { return }
             self.hasReceivedAudioSample = true
-            audioInput.append(sampleBuffer)
+            audioInputBox.value.append(sampleBufferBox.value)
         }
     }
 

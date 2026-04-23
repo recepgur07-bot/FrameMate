@@ -1508,7 +1508,7 @@ final class RecorderViewModelTests: XCTestCase {
         )
         XCTAssertEqual(
             viewModel.autoReframeExportSummary(keyframeCount: 0, usedVideoComposition: false),
-            "normal export tamamlandı"
+            "dışa aktarım tamamlandı"
         )
     }
 
@@ -1734,6 +1734,7 @@ final class RecorderViewModelTests: XCTestCase {
         )
 
         await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
         viewModel.isSystemAudioEnabled = true
         viewModel.refreshDeviceState()
 
@@ -2230,7 +2231,7 @@ final class RecorderViewModelTests: XCTestCase {
     }
 
     func testPauseResumeDoesNothingWhenNoRecordingIsActive() {
-        var soundEffectPlayer = MockSoundEffectPlayer()
+        let soundEffectPlayer = MockSoundEffectPlayer()
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(),
             screenRecordingProvider: MockScreenRecordingProvider(),
@@ -2246,7 +2247,7 @@ final class RecorderViewModelTests: XCTestCase {
     }
 
     func testPauseResumeTogglesStateStatusAndSoundForVideoRecording() {
-        var soundEffectPlayer = MockSoundEffectPlayer()
+        let soundEffectPlayer = MockSoundEffectPlayer()
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(),
             screenRecordingProvider: MockScreenRecordingProvider(),
@@ -2314,7 +2315,7 @@ final class RecorderViewModelTests: XCTestCase {
     }
 
     func testPauseResumeUsesAudioStatusForAudioRecording() {
-        var soundEffectPlayer = MockSoundEffectPlayer()
+        let soundEffectPlayer = MockSoundEffectPlayer()
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(),
             screenRecordingProvider: MockScreenRecordingProvider(),
@@ -2406,7 +2407,7 @@ final class RecorderViewModelTests: XCTestCase {
         )
         let systemAudioRecorder = MockSystemAudioRecorder()
         systemAudioRecorder.onStart = { events.append("system-audio-start") }
-        var soundEffectPlayer = MockSoundEffectPlayer()
+        let soundEffectPlayer = MockSoundEffectPlayer()
         soundEffectPlayer.onStart = { events.append("start-sound") }
 
         let viewModel = RecorderViewModel(
@@ -2505,6 +2506,48 @@ final class RecorderViewModelTests: XCTestCase {
 
         let screenItem = try XCTUnwrap(viewModel.permissionHubItems.first(where: { $0.id == .screenRecording }))
         XCTAssertTrue(screenItem.detail.localizedCaseInsensitiveContains("sistem sesi"))
+    }
+
+    func testAudioStatusClarifiesMicrophoneIsAlreadyGrantedWhenSystemAudioNeedsScreenPermission() async {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(status: .denied),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.audioOnly)
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isSystemAudioEnabled = true
+
+        XCTAssertEqual(
+            viewModel.statusText,
+            "Mikrofon izni verildi. Sorun mikrofon değil; sistem sesi için macOS ekran kaydı izni gerekli."
+        )
+    }
+
+    func testPermissionReadinessSummaryShowsGrantedAndMissingItems() async {
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(status: .denied),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.audio: .authorized, .video: .notDetermined])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+
+        XCTAssertEqual(
+            viewModel.permissionReadinessSummary,
+            "Hazır durumu: Mikrofon tamam. Ekran kaydı eksik. Kamera şu anda gerekmiyor."
+        )
     }
 
     func testCanProceedPastOnboardingAllowsMissingOptionalCamera() async {

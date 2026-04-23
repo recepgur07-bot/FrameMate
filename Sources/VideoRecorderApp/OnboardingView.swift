@@ -216,6 +216,16 @@ private struct OnboardingPermissionsPage: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
+            Text(viewModel.permissionReadinessSummary)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(.primary)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 12)
+                .background(Color.fmAccent.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .accessibilityElement(children: .combine)
+                .accessibilityLabel(viewModel.permissionReadinessSummary)
+
             if let feedbackMessage {
                 HStack(spacing: 8) {
                     Image(systemName: feedbackColor == .green ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")

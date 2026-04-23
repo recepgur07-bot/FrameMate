@@ -4,6 +4,40 @@ import AppKit
 import Observation
 import UniformTypeIdentifiers
 
+@MainActor
+private func presentOutputDirectoryPanel(currentURL: URL) -> URL? {
+    let panel = NSOpenPanel()
+    panel.canChooseFiles = false
+    panel.canChooseDirectories = true
+    panel.allowsMultipleSelection = false
+    panel.canCreateDirectories = true
+    panel.directoryURL = currentURL
+    panel.prompt = String(localized: "Klasörü Seç")
+    return panel.runModal() == .OK ? panel.url : nil
+}
+
+@MainActor
+private func presentSaveDestinationPanel(suggestedURL: URL) -> URL? {
+    let panel = NSSavePanel()
+    panel.canCreateDirectories = true
+    panel.nameFieldStringValue = suggestedURL.lastPathComponent
+    panel.directoryURL = suggestedURL.deletingLastPathComponent()
+    panel.allowedContentTypes = suggestedURL.pathExtension.lowercased() == "m4a" ? [.audio] : [.mpeg4Movie]
+    return panel.runModal() == .OK ? panel.url : nil
+}
+
+private func defaultChooseOutputDirectory(currentURL: URL) -> URL? {
+    MainActor.assumeIsolated {
+        presentOutputDirectoryPanel(currentURL: currentURL)
+    }
+}
+
+private func defaultChooseSaveDestination(suggestedURL: URL) -> URL? {
+    MainActor.assumeIsolated {
+        presentSaveDestinationPanel(suggestedURL: suggestedURL)
+    }
+}
+
 protocol AudioRecordingExporting: AnyObject {
     func export(
         microphoneURL: URL?,
@@ -460,7 +494,13 @@ final class RecorderViewModel {
     var selectedScreenCameraOverlayPosition: ScreenCameraOverlayPosition = .bottomRight
     var selectedScreenCameraOverlaySize: ScreenCameraOverlaySize = .medium
     var isSystemAudioEnabled = false {
-        didSet { persistLastRecordingConfiguration() }
+        didSet {
+            persistLastRecordingConfiguration()
+            guard hasSetUp else { return }
+            synchronizeRecordingSourceWithPreset()
+            refreshPermissionStatus()
+            statusText = makeStatusText()
+        }
     }
     var isCursorHighlightEnabled = false {
         didSet { persistLastRecordingConfiguration() }
@@ -685,11 +725,54 @@ final class RecorderViewModel {
     }
 
     var canProceedPastOnboarding: Bool {
-        !hasBlockingPermissionIssue
+        // Block only if a required permission is still undecided (notDetermined).
+        // A denied permission means the user made a conscious choice; let them proceed
+        // and surface an error when they actually attempt to record.
+        let undecidedRequired = requiredPermissionItems.contains { item in
+            guard !item.isSatisfied else { return false }
+            switch item.id {
+            case .microphone:
+                return microphonePermissionStatus == .notDetermined
+            case .camera:
+                return cameraPermissionStatus == .notDetermined
+            case .screenRecording:
+                return false // ScreenRecordingAuthorizationStatus has no notDetermined; always let user proceed
+            }
+        }
+        return !undecidedRequired
     }
 
     var shouldShowPermissionHub: Bool {
         true
+    }
+
+    var permissionReadinessSummary: String {
+        let microphoneSummary: String
+        if microphonePermissionStatus == .authorized {
+            microphoneSummary = String(localized: "Mikrofon tamam")
+        } else {
+            microphoneSummary = String(localized: "Mikrofon eksik")
+        }
+
+        let screenSummary: String
+        if selectedPreset.isScreenPreset || isSystemAudioEnabled {
+            screenSummary = screenRecordingPermissionStatus == .authorized || screenPermissionNeedsRestart
+                ? String(localized: "Ekran kaydı tamam")
+                : String(localized: "Ekran kaydı eksik")
+        } else {
+            screenSummary = String(localized: "Ekran kaydı şu anda gerekmiyor")
+        }
+
+        let cameraSummary: String
+        if selectedPreset == .horizontalCamera || selectedPreset == .verticalCamera || isScreenCameraOverlayEnabled {
+            cameraSummary = cameraPermissionStatus == .authorized
+                ? String(localized: "Kamera tamam")
+                : String(localized: "Kamera eksik")
+        } else {
+            cameraSummary = String(localized: "Kamera şu anda gerekmiyor")
+        }
+
+        return String(localized: "Hazır durumu: \(microphoneSummary). \(screenSummary). \(cameraSummary).")
     }
 
     var shouldShowPrivacySettingsButton: Bool {
@@ -921,24 +1004,8 @@ final class RecorderViewModel {
         isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         revealInFinder: @escaping (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
-        chooseOutputDirectory: @escaping (URL) -> URL? = { currentURL in
-            let panel = NSOpenPanel()
-            panel.canChooseFiles = false
-            panel.canChooseDirectories = true
-            panel.allowsMultipleSelection = false
-            panel.canCreateDirectories = true
-            panel.directoryURL = currentURL
-            panel.prompt = String(localized: "Klasörü Seç")
-            return panel.runModal() == .OK ? panel.url : nil
-        },
-        chooseSaveDestination: @escaping (URL) -> URL? = { suggestedURL in
-            let panel = NSSavePanel()
-            panel.canCreateDirectories = true
-            panel.nameFieldStringValue = suggestedURL.lastPathComponent
-            panel.directoryURL = suggestedURL.deletingLastPathComponent()
-            panel.allowedContentTypes = suggestedURL.pathExtension.lowercased() == "m4a" ? [.audio] : [.mpeg4Movie]
-            return panel.runModal() == .OK ? panel.url : nil
-        },
+        chooseOutputDirectory: @escaping (URL) -> URL? = defaultChooseOutputDirectory,
+        chooseSaveDestination: @escaping (URL) -> URL? = defaultChooseSaveDestination,
         speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer(),
         spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer()
     ) {
@@ -1036,24 +1103,8 @@ final class RecorderViewModel {
             isAccessibilityPermissionGranted: isAccessibilityPermissionGranted,
             openURL: openURL,
             revealInFinder: { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
-            chooseOutputDirectory: { currentURL in
-                let panel = NSOpenPanel()
-                panel.canChooseFiles = false
-                panel.canChooseDirectories = true
-                panel.allowsMultipleSelection = false
-                panel.canCreateDirectories = true
-                panel.directoryURL = currentURL
-                panel.prompt = String(localized: "Klasörü Seç")
-                return panel.runModal() == .OK ? panel.url : nil
-            },
-            chooseSaveDestination: { suggestedURL in
-                let panel = NSSavePanel()
-                panel.canCreateDirectories = true
-                panel.nameFieldStringValue = suggestedURL.lastPathComponent
-                panel.directoryURL = suggestedURL.deletingLastPathComponent()
-                panel.allowedContentTypes = suggestedURL.pathExtension.lowercased() == "m4a" ? [.audio] : [.mpeg4Movie]
-                return panel.runModal() == .OK ? panel.url : nil
-            },
+            chooseOutputDirectory: defaultChooseOutputDirectory,
+            chooseSaveDestination: defaultChooseSaveDestination,
             speechCuePlayer: speechCuePlayer,
             spatialCuePlayer: spatialCuePlayer
         )
@@ -1081,24 +1132,8 @@ final class RecorderViewModel {
         isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         revealInFinder: @escaping (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
-        chooseOutputDirectory: @escaping (URL) -> URL? = { currentURL in
-            let panel = NSOpenPanel()
-            panel.canChooseFiles = false
-            panel.canChooseDirectories = true
-            panel.allowsMultipleSelection = false
-            panel.canCreateDirectories = true
-            panel.directoryURL = currentURL
-            panel.prompt = String(localized: "Klasörü Seç")
-            return panel.runModal() == .OK ? panel.url : nil
-        },
-        chooseSaveDestination: @escaping (URL) -> URL? = { suggestedURL in
-            let panel = NSSavePanel()
-            panel.canCreateDirectories = true
-            panel.nameFieldStringValue = suggestedURL.lastPathComponent
-            panel.directoryURL = suggestedURL.deletingLastPathComponent()
-            panel.allowedContentTypes = suggestedURL.pathExtension.lowercased() == "m4a" ? [.audio] : [.mpeg4Movie]
-            return panel.runModal() == .OK ? panel.url : nil
-        },
+        chooseOutputDirectory: @escaping (URL) -> URL? = defaultChooseOutputDirectory,
+        chooseSaveDestination: @escaping (URL) -> URL? = defaultChooseSaveDestination,
         speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer(),
         spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer()
     ) {
@@ -2898,6 +2933,20 @@ final class RecorderViewModel {
         openURL(url)
     }
 
+    func openSupportPage() {
+        guard let url = URL(string: "https://recepgur07-bot.github.io/oneday-support/framemate-support") else {
+            return
+        }
+        openURL(url)
+    }
+
+    func openPrivacyPolicyPage() {
+        guard let url = URL(string: "https://recepgur07-bot.github.io/oneday-support/framemate-privacy") else {
+            return
+        }
+        openURL(url)
+    }
+
     func performPrimaryPermissionAction(for kind: PermissionKind) {
         switch kind {
         case .camera:
@@ -3303,11 +3352,11 @@ final class RecorderViewModel {
     }
 
     private func makeStatusText() -> String {
-        if selectedRecordingSource == .audio {
+        if selectedPreset.isAudioPreset {
             return makeAudioRecordingStatusText()
         }
 
-        if selectedRecordingSource != .camera {
+        if selectedPreset.isScreenPreset {
             return makeScreenRecordingStatusText()
         }
 
@@ -3380,6 +3429,9 @@ final class RecorderViewModel {
         }
 
         if isSystemAudioEnabled && screenRecordingPermissionStatus != .authorized {
+            if microphonePermissionStatus == .authorized && !selectedMicrophoneID.isEmpty {
+                return String(localized: "Mikrofon izni verildi. Sorun mikrofon değil; sistem sesi için macOS ekran kaydı izni gerekli.")
+            }
             return String(localized: "Sistem sesi için macOS ekran kaydı izni gerekli.")
         }
 
@@ -3796,6 +3848,17 @@ final class RecorderViewModel {
             selectedPreset = .audioOnly
         }
     }
+
+    private func synchronizeRecordingSourceWithPreset() {
+        if selectedPreset.isAudioPreset {
+            selectedRecordingSource = .audio
+        } else if selectedPreset.isCameraPreset {
+            selectedRecordingSource = .camera
+        } else {
+            selectedRecordingSource = selectedScreenCaptureSource.recordingSource
+        }
+    }
+
 }
 
 private extension String {

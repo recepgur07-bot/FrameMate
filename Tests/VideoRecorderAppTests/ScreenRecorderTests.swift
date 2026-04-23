@@ -1,7 +1,41 @@
 import XCTest
 @testable import FrameMate
 
+private final class ScreenAccessStateBox: @unchecked Sendable {
+    var isGranted: Bool
+
+    init(isGranted: Bool) {
+        self.isGranted = isGranted
+    }
+}
+
 final class ScreenRecorderTests: XCTestCase {
+    func testScreenPermissionRequestReturnsDeniedWhenAccessRemainsUnavailable() async {
+        let provider = SystemScreenRecordingProvider(
+            preflightAccess: { false },
+            requestAccessHandler: { false }
+        )
+
+        let result = await provider.requestAccess()
+
+        XCTAssertEqual(result, .denied)
+    }
+
+    func testScreenPermissionRequestReturnsRestartWhenRequestReportsFalseButAccessBecomesAvailable() async {
+        let state = ScreenAccessStateBox(isGranted: false)
+        let provider = SystemScreenRecordingProvider(
+            preflightAccess: { state.isGranted },
+            requestAccessHandler: {
+                state.isGranted = true
+                return false
+            }
+        )
+
+        let result = await provider.requestAccess()
+
+        XCTAssertEqual(result, .grantedButRequiresRestart)
+    }
+
     func testFallbackStopResultReturnsSuccessForNonEmptyRecordingFile() throws {
         let root = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

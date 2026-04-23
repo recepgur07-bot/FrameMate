@@ -41,27 +41,16 @@ final class MainWindowController {
     private let openMainWindow: () -> Void
 
     init(
-        mainWindowProvider: @escaping () -> NSWindow? = {
-            NSApp.mainWindow
-                ?? NSApp.keyWindow
-                ?? NSApp.windows.first(where: { $0.isVisible && $0.canBecomeKey })
-                ?? NSApp.windows.first(where: { $0.canBecomeKey })
-        },
-        activateApp: @escaping () -> Void = {
-            NSApp.activate(ignoringOtherApps: true)
-        },
-        hideApp: @escaping () -> Void = {
-            NSApp.hide(nil)
-        },
-        unhideApp: @escaping () -> Void = {
-            NSApp.unhide(nil)
-        },
+        mainWindowProvider: (() -> NSWindow?)? = nil,
+        activateApp: (() -> Void)? = nil,
+        hideApp: (() -> Void)? = nil,
+        unhideApp: (() -> Void)? = nil,
         openMainWindow: @escaping () -> Void = {}
     ) {
-        self.mainWindowProvider = mainWindowProvider
-        self.activateApp = activateApp
-        self.hideApp = hideApp
-        self.unhideApp = unhideApp
+        self.mainWindowProvider = mainWindowProvider ?? Self.defaultMainWindowProvider
+        self.activateApp = activateApp ?? Self.defaultActivateApp
+        self.hideApp = hideApp ?? Self.defaultHideApp
+        self.unhideApp = unhideApp ?? Self.defaultUnhideApp
         self.openMainWindow = openMainWindow
     }
 
@@ -83,5 +72,24 @@ final class MainWindowController {
 
     private func mainWindow() -> NSWindow? {
         mainWindowProvider()
+    }
+
+    private static func defaultMainWindowProvider() -> NSWindow? {
+        NSApp.mainWindow
+            ?? NSApp.keyWindow
+            ?? NSApp.windows.first(where: { $0.isVisible && $0.canBecomeKey })
+            ?? NSApp.windows.first(where: { $0.canBecomeKey })
+    }
+
+    private static func defaultActivateApp() {
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private static func defaultHideApp() {
+        NSApp.hide(nil)
+    }
+
+    private static func defaultUnhideApp() {
+        NSApp.unhide(nil)
     }
 }

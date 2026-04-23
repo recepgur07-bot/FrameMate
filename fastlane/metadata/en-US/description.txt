@@ -1,44 +1,52 @@
-Ship polished tutorials, demos, and presentations — without the complexity.
+Record polished tutorials, demos, walkthroughs, and presentations on your Mac without a complicated setup.
 
-FrameMate records your screen, webcam, and microphone in one clean workflow, straight to your Mac. No account required. No cloud upload. No bloat.
+FrameMate is a native Mac screen recorder for creators, teachers, indie makers, consultants, and support teams who need clean recordings with clear narration and simple controls.
 
 WHAT YOU CAN RECORD
 
-• SCREEN + NARRATION
-Full screen or a single window, with your microphone and optional system audio. Perfect for walkthroughs, how-to videos, and product demos.
+• SCREEN RECORDING
+Capture your full screen or a single window as an MP4. Great for product demos, software tutorials, onboarding videos, bug reports, and client walkthroughs.
 
 • SCREEN + CAMERA
-Picture-in-picture overlay puts your face alongside the content — ideal for presentations, lessons, and explainer videos.
+Add your camera as a picture-in-picture overlay so your face stays visible during presentations, lessons, and explainers.
 
-• CAMERA ONLY
-Portrait or landscape, standalone webcam recording for talking-head clips and course content.
+• CAMERA RECORDING
+Record standalone camera videos for talking-head updates, lessons, and presentation intros.
 
-• AUDIO ONLY
-Clean microphone recording for podcasts, voice memos, and meeting notes.
+• AUDIO RECORDING
+Capture microphone audio for voice notes, meeting recaps, podcast drafts, and narration takes.
 
-DESIGNED TO STAY OUT OF YOUR WAY
+BUILT FOR CLEAR EXPLANATIONS
 
-One window. Pick your mode, pick your inputs, press record. When you're done, the file is on your Mac.
-
-Keyboard shortcuts let you start, pause, and stop without leaving your workflow. A countdown timer keeps starts smooth.
+• Optional system audio for screen and window recordings
+• Cursor highlight overlays to make clicks easier to follow
+• Keyboard shortcut overlays for tutorial-style videos
+• Countdown, pause, and resume controls
+• Local file output directly on your Mac
 
 FRAME COACH
 
-An on-screen framing assistant that gives you real-time spoken guidance to keep your face centered and well-lit. Useful whether you're new to camera or just want consistency across recordings.
+Frame Coach gives live spoken guidance to help keep your face centered and well lit while recording. It is especially useful for creators who want more consistent camera framing without checking the preview constantly.
 
-SHORTCUT AND CURSOR OVERLAYS
+ACCESSIBILITY FOR BLIND AND LOW-VISION CREATORS
 
-Show keyboard shortcuts and highlight cursor movements directly in your recording — the fastest way to make instructional content easier to follow.
-
-PRIVACY
-
-Camera, microphone, and screen permissions are used only for recording. No analytics SDK, no tracking, no external uploads. Your content stays on your Mac.
+FrameMate is especially strong for blind and low-vision users who need spoken recording feedback. VoiceOver support, keyboard-friendly controls, live status announcements, and Frame Coach guidance make it easier to record without relying on constant visual preview checks.
 
 ACCESSIBILITY
 
-Built with VoiceOver and keyboard-first navigation throughout. Every control carries a descriptive label and live status. Frame Coach's spoken guidance also works as an accessibility tool for blind and low-vision creators making camera recordings.
+FrameMate is built with VoiceOver support, keyboard-friendly controls, clear labels, and live status announcements. Frame Coach also helps blind and low-vision creators keep a usable camera shot.
 
-Try free for 14 days, then continue with a yearly subscription or a one-time lifetime purchase.
+PRIVACY
 
-Developer: Recep Gur
-Contact: seslerinizindeapps@outlook.com
+Your recordings stay on your Mac. FrameMate does not require an account, does not upload your videos, and does not include tracking or analytics SDKs.
+
+WHO IT IS FOR
+
+• tutorial creators
+• educators
+• product marketers
+• customer support teams
+• indie developers
+• consultants and freelancers
+
+Try FrameMate free for 14 days, then continue with a yearly subscription or a one-time lifetime purchase.

@@ -1,1 +1,10 @@
-First release of FrameMate — screen, camera, and audio recording for Mac with Frame Coach framing guidance and keyboard shortcut overlays.
+First public release of FrameMate for Mac.
+
+Includes:
+- screen and window recording
+- screen + camera overlay
+- camera-only and audio-only recording
+- optional system audio
+- cursor highlight and shortcut overlays
+- Frame Coach spoken guidance
+- VoiceOver-friendly controls and live announcements

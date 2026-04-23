@@ -311,15 +311,15 @@ final class FrameCoachingEngine {
         if averageY > 0.52 {
             let isStrong = averageY > 0.64
             return isStrong
-                ? String(localized: "kamerayı belirgin şekilde aşağı indir")
-                : String(localized: "kamerayı biraz aşağı indir")
+                ? String(localized: "kamerayı belirgin şekilde yukarı al")
+                : String(localized: "kamerayı biraz yukarı al")
         }
 
         if averageY < 0.24 {
             let isStrong = averageY < 0.14
             return isStrong
-                ? String(localized: "kamerayı belirgin şekilde yukarı al")
-                : String(localized: "kamerayı biraz yukarı al")
+                ? String(localized: "kamerayı belirgin şekilde aşağı indir")
+                : String(localized: "kamerayı biraz aşağı indir")
         }
 
         return nil

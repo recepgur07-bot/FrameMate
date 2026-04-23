@@ -81,6 +81,8 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
             throw MicrophoneAudioRecorderError.cannotCreateWriter
         }
         writer.add(writerInput)
+        let writerBox = UnsafeSendableBox(value: writer)
+        let writerInputBox = UnsafeSendableBox(value: writerInput)
 
         try await withCheckedThrowingContinuation { continuation in
             sessionQueue.async {
@@ -104,8 +106,8 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                         self.session.addInput(input)
 
                         self.audioInput = input
-                        self.writer = writer
-                        self.writerInput = writerInput
+                        self.writer = writerBox.value
+                        self.writerInput = writerInputBox.value
                         self.completion = completion
                         self.outputURL = url
                         self.hasStartedWriting = false
@@ -152,8 +154,9 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                     return
                 }
 
-                currentWriter.finishWriting {
-                    if let error = currentWriter.error {
+                let finishedWriterBox = UnsafeSendableBox(value: currentWriter)
+                finishedWriterBox.value.finishWriting { [finishedWriterBox] in
+                    if let error = finishedWriterBox.value.error {
                         self.complete(.failure(error))
                     } else {
                         self.complete(.success(outputURL))

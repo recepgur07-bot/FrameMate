@@ -32,7 +32,7 @@ final class FrameCoachingEngineTests: XCTestCase {
                 ),
                 mode: .vertical1080p,
                 profile: .singleDeskSpeaker,
-                expectedInstruction: "kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün"
+                expectedInstruction: "çok yakınsın, biraz uzaklaş — omuzların ve göğsün de görünsün"
             ),
             .init(
                 name: "single-horizontal-low",
@@ -46,7 +46,7 @@ final class FrameCoachingEngineTests: XCTestCase {
                 ),
                 mode: .horizontal1080p,
                 profile: .singleDeskSpeaker,
-                expectedInstruction: "kamerayı biraz yukarı al"
+                expectedInstruction: "kamerayı belirgin şekilde yukarı al"
             ),
             .init(
                 name: "single-horizontal-left",
@@ -258,7 +258,7 @@ final class FrameCoachingEngineTests: XCTestCase {
 
         XCTAssertEqual(
             FrameCoachingEngine().instruction(for: analysis, mode: .horizontal1080p, profile: .singleDeskSpeaker),
-            "kamerayı biraz yukarı al"
+            "kamerayı belirgin şekilde yukarı al"
         )
     }
 
@@ -573,7 +573,7 @@ final class FrameCoachingEngineTests: XCTestCase {
 
         XCTAssertEqual(
             FrameCoachingEngine().instruction(for: analysis, mode: .vertical1080p, profile: .singleDeskSpeaker),
-            "kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün"
+            "çok yakınsın, biraz uzaklaş — omuzların ve göğsün de görünsün"
         )
     }
 

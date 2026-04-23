@@ -17,7 +17,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         )
     }
 
-    func testAppEntitlementsAllowHardenedRuntimeMicrophoneInput() throws {
+    func testAppEntitlementsAllowSandboxedMicrophoneInput() throws {
         let entitlementsURL = try resourceURL(named: "VideoRecorder", withExtension: "entitlements")
 
         let entitlementsData = try Data(contentsOf: entitlementsURL)
@@ -25,7 +25,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
             PropertyListSerialization.propertyList(from: entitlementsData, format: nil) as? [String: Any]
         )
 
-        XCTAssertEqual(entitlements["com.apple.security.device.audio-input"] as? Bool, true)
+        XCTAssertEqual(entitlements["com.apple.security.device.microphone"] as? Bool, true)
     }
 
     func testUnitTestsUseBuiltFrameMateAppAsTestHost() throws {

@@ -4,6 +4,12 @@ extension Notification.Name {
     static let openMainWindowRequested = Notification.Name("openMainWindowRequested")
 }
 
+enum AppTerminationCoordinator {
+    static func prepareForTermination(windows: [NSWindow]) -> NSApplication.TerminateReply {
+        .terminateNow
+    }
+}
+
 final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
     static var shouldTerminateAfterLastWindowClosed: () -> Bool = { true }
 
@@ -30,6 +36,10 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         Self.shouldTerminateAfterLastWindowClosed()
+    }
+
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        AppTerminationCoordinator.prepareForTermination(windows: sender.windows)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -224,6 +234,21 @@ struct VideoRecorderApp: App {
                 .keyboardShortcut("i", modifiers: .command)
                 .disabled(!onboardingCompleted)
             }
+
+            CommandGroup(replacing: .help) {
+                Button(quickHelpMenuTitle) {
+                    NotificationCenter.default.post(name: .openQuickHelpRequested, object: nil)
+                }
+                .keyboardShortcut("?", modifiers: .command)
+
+                Button(onlineHelpMenuTitle) {
+                    viewModel.openSupportPage()
+                }
+
+                Button(privacyMenuTitle) {
+                    viewModel.openPrivacyPolicyPage()
+                }
+            }
         }
 
         Settings {
@@ -250,6 +275,24 @@ struct VideoRecorderApp: App {
 
     private var frameCoachCommandTitle: String {
         viewModel.isFrameCoachEnabled ? "Kadraj Koçunu Kapat" : "Kadraj Koçunu Aç"
+    }
+
+    private var quickHelpMenuTitle: String {
+        Locale.preferredLanguages.first?.lowercased().hasPrefix("tr") == true
+            ? "FrameMate Yardım"
+            : "FrameMate Help"
+    }
+
+    private var onlineHelpMenuTitle: String {
+        Locale.preferredLanguages.first?.lowercased().hasPrefix("tr") == true
+            ? "Çevrimiçi Yardım ve Destek"
+            : "Online Help & Support"
+    }
+
+    private var privacyMenuTitle: String {
+        Locale.preferredLanguages.first?.lowercased().hasPrefix("tr") == true
+            ? "Gizlilik Politikası"
+            : "Privacy Policy"
     }
 
     @MainActor

@@ -1,1 +1,1 @@
-ekran kaydı,video kaydedici,kamera,sunum,eğitim,ses kaydı,screencast,voiceover,ekran yakalama
+ekran kaydedici,ekran kaydı,pencere kaydı,kamera kaydı,ses kaydı,screencast,demo,sunum

@@ -30,15 +30,17 @@ final class RecordingElapsedTimeAnnouncer {
                     } else {
                         text = String(localized: "Kayıt süresi: \(seconds) saniye")
                     }
-                    NSAccessibility.post(
-                        element: NSApp as Any,
-                        notification: .announcementRequested,
-                        userInfo: [
-                            NSAccessibility.NotificationUserInfoKey.announcement: text,
-                            NSAccessibility.NotificationUserInfoKey.priority:
-                                NSAccessibilityPriorityLevel.medium.rawValue
-                        ]
-                    )
+                    await MainActor.run {
+                        NSAccessibility.post(
+                            element: NSApp as Any,
+                            notification: .announcementRequested,
+                            userInfo: [
+                                NSAccessibility.NotificationUserInfoKey.announcement: text,
+                                NSAccessibility.NotificationUserInfoKey.priority:
+                                    NSAccessibilityPriorityLevel.medium.rawValue
+                            ]
+                        )
+                    }
                 }
             } catch {
                 // Cancelled when stop() is called — normal

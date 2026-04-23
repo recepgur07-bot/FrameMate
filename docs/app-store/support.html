@@ -3,30 +3,518 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>FrameMate Support</title>
+  <title>FrameMate Help & Support</title>
   <style>
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #14221e; background: linear-gradient(135deg, #eff7f2, #f8efe0); line-height: 1.6; }
-    main { max-width: 820px; margin: 0 auto; padding: 48px 20px; }
-    section { background: rgba(255,255,255,0.88); border: 1px solid #d9e1d8; border-radius: 24px; padding: 32px; box-shadow: 0 24px 60px rgba(34, 55, 48, 0.14); }
-    h1 { font-size: clamp(2rem, 6vw, 3.8rem); margin: 0 0 8px; }
-    h2 { margin-top: 28px; color: #0d6b5f; }
-    a { color: #0d6b5f; font-weight: 700; }
+    :root {
+      --bg-1: #edf6f1;
+      --bg-2: #f9efe2;
+      --ink: #15231f;
+      --muted: #556760;
+      --accent: #0d6b5f;
+      --accent-soft: rgba(13, 107, 95, 0.10);
+      --line: #d7e1db;
+      --card: rgba(255, 255, 255, 0.92);
+      --shadow: 0 24px 60px rgba(31, 54, 47, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(13, 107, 95, 0.10), transparent 35%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      line-height: 1.65;
+    }
+
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 20px 56px;
+    }
+
+    .hero,
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 34px 30px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(2.3rem, 5vw, 4.3rem);
+      line-height: 1.05;
+    }
+
+    .hero p {
+      max-width: 760px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.06rem;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    nav a,
+    .contact a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    nav a {
+      padding: 9px 13px;
+      border-radius: 999px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 22px;
+    }
+
+    .panel {
+      padding: 28px 24px;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      font-size: 1.45rem;
+      color: var(--accent);
+    }
+
+    h3 {
+      margin: 20px 0 8px;
+      font-size: 1.05rem;
+    }
+
+    p, li {
+      color: var(--ink);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .quick-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .quick-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .kbd {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.92em;
+      background: #f2f6f4;
+      border: 1px solid #d7e1db;
+      border-bottom-width: 2px;
+      border-radius: 8px;
+      padding: 2px 7px;
+      white-space: nowrap;
+    }
+
+    .table {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: minmax(120px, 160px) 1fr;
+      gap: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fff;
+    }
+
+    .row strong {
+      color: var(--accent);
+    }
+
+    .contact {
+      margin-top: 14px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--accent-soft);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 30px 0;
+    }
+
+    footer {
+      margin-top: 26px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    @media (max-width: 720px) {
+      main {
+        padding: 24px 14px 40px;
+      }
+
+      .hero,
+      .panel {
+        border-radius: 22px;
+      }
+
+      .hero,
+      .panel {
+        padding: 22px 18px;
+      }
+
+      .row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+    }
   </style>
 </head>
 <body>
   <main>
-    <section>
-      <h1>FrameMate Support</h1>
-      <p>Need help with FrameMate? Contact us and include your macOS version, FrameMate version, and a short description of the issue.</p>
-      <p>Email: <a href="mailto:seslerinizindeapps@outlook.com">seslerinizindeapps@outlook.com</a></p>
-
-      <h2>Common Checks</h2>
-      <p>For screen recording, camera, microphone, and accessibility features, open System Settings > Privacy & Security and confirm that FrameMate has the required permissions.</p>
-      <p>Recordings are saved locally on your Mac. If a file does not appear where expected, check your selected output folder and available disk space.</p>
-
-      <h2>Türkçe Destek</h2>
-      <p>FrameMate ile ilgili destek için macOS sürümünüzü, uygulama sürümünü ve yaşadığınız sorunu kısa şekilde yazarak bize e-posta gönderebilirsiniz.</p>
+    <section class="hero">
+      <div class="eyebrow">FrameMate Help Center</div>
+      <h1>Record clearly. Navigate confidently.</h1>
+      <p>FrameMate is a Mac recording app for screen capture, screen + camera videos, camera framing support, and audio recording. This page explains the app's modes, permissions, settings, keyboard shortcuts, accessibility features, purchases, and troubleshooting in both English and Turkish.</p>
+      <nav aria-label="Help sections">
+        <a href="#english">English Guide</a>
+        <a href="#turkce">Turkce Kilavuz</a>
+        <a href="#contact">Contact</a>
+      </nav>
     </section>
+
+    <div class="grid">
+      <section class="panel" id="english">
+        <h2>English Guide</h2>
+        <p class="muted">A practical guide for first-time setup, daily use, and accessibility-first recording.</p>
+
+        <h3>Quick Start</h3>
+        <div class="quick-list">
+          <div class="quick-item">1. Open FrameMate and complete the onboarding permission steps for the features you plan to use.</div>
+          <div class="quick-item">2. Choose a recording mode: camera, screen, or audio.</div>
+          <div class="quick-item">3. Select your camera, microphone, screen, or window if the mode requires it.</div>
+          <div class="quick-item">4. Adjust options like system audio, cursor highlight, keyboard shortcut overlay, or camera box.</div>
+          <div class="quick-item">5. Start recording from the main button, the app menu, or the global shortcut <span class="kbd">Cmd+Ctrl+R</span>.</div>
+        </div>
+
+        <h3>Recording Modes</h3>
+        <ul>
+          <li><strong>Horizontal Camera Recording:</strong> records your camera feed for talking-head videos and works with Frame Coach and auto reframing.</li>
+          <li><strong>Horizontal Screen Recording:</strong> records a full display or a single window. You can add microphone audio, system audio, cursor highlight, shortcut overlay, and an optional camera box.</li>
+          <li><strong>Audio Recording:</strong> records microphone audio, system audio, or both.</li>
+        </ul>
+
+        <h3>Permissions</h3>
+        <ul>
+          <li><strong>Camera:</strong> required for camera recording and for the screen camera box overlay.</li>
+          <li><strong>Microphone:</strong> required whenever microphone audio is part of the recording.</li>
+          <li><strong>Screen Recording:</strong> required for full-screen capture, window capture, and system audio capture on macOS.</li>
+          <li><strong>Accessibility:</strong> helpful for keyboard shortcut overlays in exported screen videos and for broader keyboard-friendly workflows.</li>
+        </ul>
+        <p>If you grant Screen Recording permission, macOS may require quitting and reopening FrameMate before the permission becomes active.</p>
+
+        <h3>Main Recording Options</h3>
+        <div class="table">
+          <div class="row">
+            <strong>Screen Source</strong>
+            <span>Choose whether to capture a full display or a single shareable window.</span>
+          </div>
+          <div class="row">
+            <strong>Microphone</strong>
+            <span>Select the input device or leave it off in screen mode if you only want system audio.</span>
+          </div>
+          <div class="row">
+            <strong>System Audio</strong>
+            <span>Adds sound from apps and macOS to the recording.</span>
+          </div>
+          <div class="row">
+            <strong>Cursor Highlight</strong>
+            <span>Adds a soft pointer emphasis and click ring in exported screen recordings.</span>
+          </div>
+          <div class="row">
+            <strong>Show Keyboard Shortcuts</strong>
+            <span>Briefly displays meaningful shortcuts such as Command, Control, Option, and similar key combinations in the video.</span>
+          </div>
+          <div class="row">
+            <strong>Camera Box</strong>
+            <span>Adds your camera on top of a screen recording. You can choose the camera, position, and size.</span>
+          </div>
+          <div class="row">
+            <strong>Auto Reframe</strong>
+            <span>For single-person camera recordings, software adjusts framing to keep the shot more balanced.</span>
+          </div>
+        </div>
+
+        <h3>Frame Coach and Accessibility</h3>
+        <ul>
+          <li><strong>Frame Coach</strong> provides spoken guidance to help keep your face centered and usable without constantly checking the preview.</li>
+          <li>It is especially helpful for blind and low-vision creators because the app supports VoiceOver, keyboard navigation, live announcements, and spoken recording guidance.</li>
+          <li><strong>Speech Mode</strong> can switch between automatic, spoken app feedback, or silence.</li>
+          <li><strong>Spatial Audio Mode</strong> can send guidance directionally so left and right cues are easier to follow with headphones.</li>
+          <li><strong>Center Confirmation</strong> plays a short confirmation sound when your face is centered.</li>
+          <li><strong>Feedback Frequency</strong> and <strong>Repeat Interval</strong> control how often coaching messages repeat.</li>
+          <li><strong>Show Guidance Text On Screen</strong> keeps guidance visible as text during recording if you want visual reinforcement.</li>
+        </ul>
+
+        <h3>Settings</h3>
+        <ul>
+          <li><strong>Countdown:</strong> set how many seconds FrameMate waits before recording starts.</li>
+          <li><strong>Maximum Recording Duration:</strong> stops the recording automatically after the chosen limit.</li>
+          <li><strong>Hide Window When Recording Starts:</strong> useful for screen recordings so the app window does not appear in the capture.</li>
+          <li><strong>Show Window When Recording Stops:</strong> automatically brings FrameMate back after the recording ends.</li>
+          <li><strong>App Appearance:</strong> choose whether the app appears in the Dock or runs from the menu bar only.</li>
+          <li><strong>Launch At Login:</strong> opens FrameMate automatically when your Mac starts.</li>
+          <li><strong>Default Recording Folder:</strong> defines where completed recordings are saved on your Mac.</li>
+        </ul>
+
+        <h3>Keyboard Shortcuts</h3>
+        <div class="table">
+          <div class="row">
+            <strong><span class="kbd">Cmd+1</span></strong>
+            <span>Select horizontal camera recording.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+2</span></strong>
+            <span>Select horizontal screen recording.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+3</span></strong>
+            <span>Select audio recording.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+D</span></strong>
+            <span>Turn Frame Coach on or off.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+I</span></strong>
+            <span>Have FrameMate announce the current settings.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+Ctrl+R</span></strong>
+            <span>Start or stop the main recording globally, even when FrameMate is in the background.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+Ctrl+5</span></strong>
+            <span>Start or stop audio-only recording globally.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+Ctrl+P</span></strong>
+            <span>Pause or resume an active recording.</span>
+          </div>
+        </div>
+
+        <h3>After Recording</h3>
+        <p>When a recording finishes, FrameMate can open the file, reveal it in Finder, rename it, or save a copy to a different location. Recordings are stored locally on your Mac in the selected output folder.</p>
+
+        <h3>Purchases</h3>
+        <p>FrameMate offers a yearly plan and a one-time lifetime purchase. If you already bought access, use <strong>Restore Purchases</strong> in the app settings first. If access still does not appear, contact support.</p>
+
+        <h3>Troubleshooting</h3>
+        <ul>
+          <li>If camera, microphone, or screen recording does not work, open <strong>System Settings &gt; Privacy &amp; Security</strong> and confirm that FrameMate has the needed permissions.</li>
+          <li>If system audio is missing, verify that Screen Recording permission is enabled and restart the app.</li>
+          <li>If keyboard shortcut overlays do not appear, make sure FrameMate is allowed under <strong>Accessibility</strong> in System Settings.</li>
+          <li>If a file is not where you expected, check the default recording folder in Settings and confirm that enough disk space is available.</li>
+        </ul>
+      </section>
+
+      <section class="panel" id="turkce">
+        <h2>Turkce Kilavuz</h2>
+        <p class="muted">Ilk kurulum, gunluk kullanim ve erisilebilirlik odakli kayit icin acik ve pratik rehber.</p>
+
+        <h3>Hizli Baslangic</h3>
+        <div class="quick-list">
+          <div class="quick-item">1. FrameMate'i ac ve kullanacagin ozelliklere gore onboarding izin adimlarini tamamla.</div>
+          <div class="quick-item">2. Kayit modunu sec: kamera, ekran ya da ses.</div>
+          <div class="quick-item">3. Gerekliyse kamera, mikrofon, ekran veya pencere secimini yap.</div>
+          <div class="quick-item">4. Sistem sesi, imlec vurgusu, klavye kisayolu gosterimi veya kamera kutusu gibi secenekleri ayarla.</div>
+          <div class="quick-item">5. Kaydi ana dugmeden, uygulama menusunden veya global kisayol <span class="kbd">Cmd+Ctrl+R</span> ile baslat.</div>
+        </div>
+
+        <h3>Kayit Modlari</h3>
+        <ul>
+          <li><strong>Yatay Video Kaydi:</strong> kamerani kaydeder; konusmali videolar icin uygundur ve Kadraj Kocu ile otomatik yeniden kadrajlama destekler.</li>
+          <li><strong>Yatay Ekran Kaydi:</strong> tam ekran ya da tek bir pencere kaydeder. Mikrofon, sistem sesi, imlec vurgusu, klavye kisayolu gosterimi ve istege bagli kamera kutusu eklenebilir.</li>
+          <li><strong>Ses Kaydi:</strong> mikrofonu, sistem sesini veya ikisini birlikte kaydeder.</li>
+        </ul>
+
+        <h3>Izinler</h3>
+        <ul>
+          <li><strong>Kamera:</strong> kamera kaydi ve ekran ustu kamera kutusu icin gerekir.</li>
+          <li><strong>Mikrofon:</strong> kayda mikrofon sesi eklenecekse gerekir.</li>
+          <li><strong>Ekran Kaydi:</strong> tam ekran, pencere ve sistem sesi kaydi icin macOS tarafinda gerekir.</li>
+          <li><strong>Erisilebilirlik:</strong> klavye kisayollarini videoda gostermek ve daha rahat klavye kullanim senaryolari icin faydalidir.</li>
+        </ul>
+        <p>Ekran Kaydi iznini verdikten sonra, iznin aktif olmasi icin FrameMate'i kapatip yeniden acman gerekebilir.</p>
+
+        <h3>Ana Kayit Secenekleri</h3>
+        <div class="table">
+          <div class="row">
+            <strong>Ekran Kaynagi</strong>
+            <span>Tum ekran mi yoksa tek pencere mi kaydedilecegini belirler.</span>
+          </div>
+          <div class="row">
+            <strong>Mikrofon</strong>
+            <span>Kayit cihazini secer. Ekran modunda yalnizca sistem sesi istiyorsan kapali birakabilirsin.</span>
+          </div>
+          <div class="row">
+            <strong>Sistem Sesi</strong>
+            <span>Mac'te calan uygulama ve sistem seslerini kayda ekler.</span>
+          </div>
+          <div class="row">
+            <strong>Imleci Vurgula</strong>
+            <span>Ekran kaydinin disa aktariminda imlecin etrafina yumusak bir vurgu ve tiklama halkasi ekler.</span>
+          </div>
+          <div class="row">
+            <strong>Klavye Kisayollarini Goster</strong>
+            <span>Komut, kontrol, option gibi anlamli tus kombinasyonlarini videoda kisa sure gosterir.</span>
+          </div>
+          <div class="row">
+            <strong>Kamera Kutusu</strong>
+            <span>Ekran kaydinin ustune kendi goruntunu ekler. Kamera, konum ve boyut secilebilir.</span>
+          </div>
+          <div class="row">
+            <strong>Otomatik Yeniden Kadrajlama</strong>
+            <span>Tek kisilik kamera cekimlerinde goruntuyu yazilimsal olarak daha dengeli tutmaya yardim eder.</span>
+          </div>
+        </div>
+
+        <h3>Kadraj Kocu ve Erisilebilirlik</h3>
+        <ul>
+          <li><strong>Kadraj Kocu</strong>, yuzunun kadrajda daha dogru kalmasi icin sesli yonlendirme verir; boylece onizlemeyi surekli kontrol etmen gerekmez.</li>
+          <li>Ozellikle kor ve az goren ureticiler icin gucludur; cunku VoiceOver destegi, klavye ile kullanilabilen kontrol yapisi, canli durum anonslari ve sesli kayit rehberligi birlikte calisir.</li>
+          <li><strong>Yonlendirme Sesi</strong>, otomatik mod, uygulama sesi veya sessiz mod arasinda secilebilir.</li>
+          <li><strong>Yon Sesi</strong>, kulaklikla kullanirken sag ve sol yonleri daha kolay takip etmek icin yonsel ses kullanabilir.</li>
+          <li><strong>Merkez Onayi</strong>, yuzun ortaya geldiginde kisa bir onay sesi calar.</li>
+          <li><strong>Geri Bildirim Sikligi</strong> ve <strong>Ayni Uyariyi Tekrarla</strong>, yonlendirmelerin ne kadar sik verilecegini belirler.</li>
+          <li><strong>Ekranda Yonlendirme Metnini Goster</strong>, istersen sesli rehbere ek olarak metni de gorunur tutar.</li>
+        </ul>
+
+        <h3>Ayarlar</h3>
+        <ul>
+          <li><strong>Geri Sayim Suresi:</strong> kayit baslamadan once kac saniye beklenecegini ayarlar.</li>
+          <li><strong>Maksimum Kayit Suresi:</strong> secilen sure dolunca kaydi otomatik durdurur.</li>
+          <li><strong>Kayit Baslarken Pencereyi Gizle:</strong> ozellikle ekran kaydinda uygulama penceresinin gorunmesini engeller.</li>
+          <li><strong>Kayit Bitince Pencereyi Geri Ac:</strong> kayit sonunda FrameMate'i otomatik geri getirir.</li>
+          <li><strong>Uygulama Gorunumu:</strong> uygulamanin Dock'ta mi yoksa sadece menu bardan mi calisacagini belirler.</li>
+          <li><strong>Giriste Otomatik Baslat:</strong> Mac acildiginda FrameMate'i otomatik acabilir.</li>
+          <li><strong>Varsayilan Kayit Klasoru:</strong> kayitlarin Mac'inde hangi klasore kaydedilecegini belirler.</li>
+        </ul>
+
+        <h3>Klavye Kisayollari</h3>
+        <div class="table">
+          <div class="row">
+            <strong><span class="kbd">Cmd+1</span></strong>
+            <span>Yatay video kaydi modunu secer.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+2</span></strong>
+            <span>Yatay ekran kaydi modunu secer.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+3</span></strong>
+            <span>Ses kaydi modunu secer.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+D</span></strong>
+            <span>Kadraj Kocu'nu acar veya kapatir.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+I</span></strong>
+            <span>Mevcut ayarlari sesli olarak duyurur.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+Ctrl+R</span></strong>
+            <span>FrameMate arka planda olsa bile ana kaydi global olarak baslatir veya durdurur.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+Ctrl+5</span></strong>
+            <span>Ses kaydini global olarak baslatir veya durdurur.</span>
+          </div>
+          <div class="row">
+            <strong><span class="kbd">Cmd+Ctrl+P</span></strong>
+            <span>Aktif kaydi duraklatir veya devam ettirir.</span>
+          </div>
+        </div>
+
+        <h3>Kayit Sonrasi</h3>
+        <p>Kayit tamamlandiginda FrameMate dosyayi acabilir, Finder'da gosterebilir, yeniden adlandirabilir veya farkli bir konuma kopya kaydedebilir. Kayitlar secili cikti klasorune yerel olarak kaydedilir.</p>
+
+        <h3>Satin Alma</h3>
+        <p>FrameMate yillik plan ve tek seferlik omur boyu satin alma sunar. Erisimin gorunmuyorsa once uygulama ayarlarindaki <strong>Satin Alimlari Geri Yukle</strong> dugmesini kullan, sorun devam ederse destekle iletisime gec.</p>
+
+        <h3>Sorun Giderme</h3>
+        <ul>
+          <li>Kamera, mikrofon veya ekran kaydi calismiyorsa <strong>Sistem Ayarlari &gt; Gizlilik ve Guvenlik</strong> altindan FrameMate izinlerini kontrol et.</li>
+          <li>Sistem sesi gelmiyorsa Ekran Kaydi izninin acik oldugunu dogrula ve uygulamayi yeniden baslat.</li>
+          <li>Klavye kisayolu gosterimleri cikmiyorsa <strong>Erisilebilirlik</strong> altinda FrameMate'e izin verildiginden emin ol.</li>
+          <li>Dosya bekledigin yerde degilse Ayarlar icindeki varsayilan kayit klasorunu ve bos disk alanini kontrol et.</li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="panel" id="contact" style="margin-top: 24px;">
+      <h2>Contact / Iletisim</h2>
+      <p class="muted">If you contact support, include your macOS version, FrameMate version, recording mode, and a short description of the issue. If you use VoiceOver or rely on spoken guidance, mention that too so accessibility-specific troubleshooting can be prioritized.</p>
+      <div class="contact">
+        <p><strong>Email:</strong> <a href="mailto:seslerinizindeapps@outlook.com">seslerinizindeapps@outlook.com</a></p>
+        <p><strong>English:</strong> Include whether you were recording camera, screen, screen + camera, or audio only, and mention which permission or setting seems involved.</p>
+        <p><strong>Turkce:</strong> Kamera, ekran, ekran + kamera ya da ses kaydi modlarindan hangisini kullandigini ve sorunun izin mi ayar mi kaynak secimi mi ile ilgili oldugunu yazarsan daha hizli yardimci olabiliriz.</p>
+      </div>
+    </section>
+
+    <footer>
+      FrameMate records to your Mac and uses camera, microphone, screen recording, and accessibility permissions only for the features you choose to turn on.
+    </footer>
   </main>
 </body>
 </html>

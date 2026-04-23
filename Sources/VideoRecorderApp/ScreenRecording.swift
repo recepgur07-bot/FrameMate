@@ -85,28 +85,41 @@ protocol ScreenRecordingProviding: AnyObject {
 }
 
 final class SystemScreenRecordingProvider: ScreenRecordingProviding {
+    private let preflightAccess: @Sendable () -> Bool
+    private let requestAccessHandler: @Sendable () -> Bool
+
+    init(
+        preflightAccess: @escaping @Sendable () -> Bool = { CGPreflightScreenCaptureAccess() },
+        requestAccessHandler: @escaping @Sendable () -> Bool = { CGRequestScreenCaptureAccess() }
+    ) {
+        self.preflightAccess = preflightAccess
+        self.requestAccessHandler = requestAccessHandler
+    }
+
     func authorizationStatus() -> ScreenRecordingAuthorizationStatus {
-        CGPreflightScreenCaptureAccess() ? .authorized : .denied
+        preflightAccess() ? .authorized : .denied
     }
 
     func requestAccess() async -> ScreenRecordingPermissionRequestResult {
-        await withCheckedContinuation { continuation in
+        let preflightAccess = self.preflightAccess
+        let requestAccessHandler = self.requestAccessHandler
+        return await withCheckedContinuation { continuation in
             DispatchQueue.main.async {
                 NSApp.activate(ignoringOtherApps: true)
-                NSApp.windows.first(where: \.canBecomeKey)?.makeKeyAndOrderFront(nil)
+                NSApp.windows.first(where: { $0.canBecomeKey })?.makeKeyAndOrderFront(nil)
 
-                if CGPreflightScreenCaptureAccess() {
-                    continuation.resume(returning: .granted)
+                if preflightAccess() {
+                    continuation.resume(returning: ScreenRecordingPermissionRequestResult.granted)
                     return
                 }
 
-                let granted = CGRequestScreenCaptureAccess()
+                let granted = requestAccessHandler()
                 if granted {
-                    continuation.resume(returning: .granted)
-                } else if CGPreflightScreenCaptureAccess() {
-                    continuation.resume(returning: .granted)
+                    continuation.resume(returning: ScreenRecordingPermissionRequestResult.granted)
+                } else if preflightAccess() {
+                    continuation.resume(returning: ScreenRecordingPermissionRequestResult.grantedButRequiresRestart)
                 } else {
-                    continuation.resume(returning: .grantedButRequiresRestart)
+                    continuation.resume(returning: ScreenRecordingPermissionRequestResult.denied)
                 }
             }
         }
