@@ -61,20 +61,24 @@ struct ScreenRecordingCompositionPreview: View {
                         .padding(18)
                     }
 
-                if isOverlayEnabled {
-                    VideoPreviewView(session: session, crop: .fullFrame)
-                        .frame(width: overlayFrame.width, height: overlayFrame.height)
-                        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                                .stroke(Color.white.opacity(0.88), lineWidth: 2)
-                        )
-                        .shadow(color: .black.opacity(0.35), radius: 16, x: 0, y: 6)
-                        .position(
-                            x: canvasFrame.minX + overlayFrame.midX,
-                            y: canvasFrame.minY + overlayFrame.midY
-                        )
-                }
+                // Keep VideoPreviewView always in the hierarchy while screen preset is
+                // active. Conditional add/remove caused AVCaptureVideoPreviewLayer to be
+                // disconnected from a still-running session (dismantleNSView fired before
+                // the async stopSession() completed), crashing on repeated toggles.
+                VideoPreviewView(session: session, crop: .fullFrame)
+                    .frame(width: overlayFrame.width, height: overlayFrame.height)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(Color.white.opacity(0.88), lineWidth: 2)
+                    )
+                    .shadow(color: .black.opacity(0.35), radius: 16, x: 0, y: 6)
+                    .position(
+                        x: canvasFrame.minX + overlayFrame.midX,
+                        y: canvasFrame.minY + overlayFrame.midY
+                    )
+                    .opacity(isOverlayEnabled ? 1 : 0)
+                    .allowsHitTesting(false)
             }
         }
         .frame(minHeight: 260)
