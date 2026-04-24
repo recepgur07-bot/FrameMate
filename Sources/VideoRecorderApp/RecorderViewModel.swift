@@ -925,6 +925,7 @@ final class RecorderViewModel {
     @ObservationIgnored private var countdownTask: Task<Void, Never>?
     @ObservationIgnored private var recordingDurationTask: Task<Void, Never>?
     @ObservationIgnored private var pauseResumeTask: Task<Void, Never>?
+    @ObservationIgnored private var screenOverlayPreviewTask: Task<Void, Never>?
     @ObservationIgnored private var sleepPreventer = SleepPreventer()
     private var autoReframeSmoother = AutoReframeSmoother()
     private var autoReframeTimeline = AutoReframeTimeline()
@@ -946,6 +947,7 @@ final class RecorderViewModel {
     private let permissionProvider: any MediaPermissionProviding
     private let appAccessManager: any AppAccessManaging
     private let isAccessibilityPermissionGranted: () -> Bool
+    private let requestAccessibilityPermissionPrompt: () -> Void
     private let openURL: (URL) -> Void
     private let revealInFinder: (URL) -> Void
     private let chooseOutputDirectory: (URL) -> URL?
@@ -1009,6 +1011,10 @@ final class RecorderViewModel {
         permissionProvider: any MediaPermissionProviding = SystemMediaPermissionProvider(),
         appAccessManager: (any AppAccessManaging)? = nil,
         isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
+        requestAccessibilityPermissionPrompt: @escaping () -> Void = {
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            AXIsProcessTrustedWithOptions(options)
+        },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         revealInFinder: @escaping (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
         chooseOutputDirectory: @escaping (URL) -> URL? = defaultChooseOutputDirectory,
@@ -1039,6 +1045,7 @@ final class RecorderViewModel {
         self.permissionProvider = permissionProvider
         self.appAccessManager = appAccessManager ?? AppAccessManager()
         self.isAccessibilityPermissionGranted = isAccessibilityPermissionGranted
+        self.requestAccessibilityPermissionPrompt = requestAccessibilityPermissionPrompt
         self.openURL = openURL
         self.revealInFinder = revealInFinder
         self.chooseOutputDirectory = chooseOutputDirectory
@@ -1083,6 +1090,10 @@ final class RecorderViewModel {
         frameCoachSettingsStore: any FrameCoachSettingsStoring = UserDefaultsFrameCoachSettingsStore(),
         permissionProvider: any MediaPermissionProviding = SystemMediaPermissionProvider(),
         isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
+        requestAccessibilityPermissionPrompt: @escaping () -> Void = {
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            AXIsProcessTrustedWithOptions(options)
+        },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer(),
         spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer()
@@ -1108,6 +1119,7 @@ final class RecorderViewModel {
             recordingOutputDirectoryStore: UserDefaultsRecordingOutputDirectoryStore(),
             permissionProvider: permissionProvider,
             isAccessibilityPermissionGranted: isAccessibilityPermissionGranted,
+            requestAccessibilityPermissionPrompt: requestAccessibilityPermissionPrompt,
             openURL: openURL,
             revealInFinder: { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
             chooseOutputDirectory: defaultChooseOutputDirectory,
@@ -1137,6 +1149,10 @@ final class RecorderViewModel {
         recordingOutputDirectoryStore: any RecordingOutputDirectoryStoring = UserDefaultsRecordingOutputDirectoryStore(),
         permissionProvider: any MediaPermissionProviding = SystemMediaPermissionProvider(),
         isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
+        requestAccessibilityPermissionPrompt: @escaping () -> Void = {
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            AXIsProcessTrustedWithOptions(options)
+        },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         revealInFinder: @escaping (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
         chooseOutputDirectory: @escaping (URL) -> URL? = defaultChooseOutputDirectory,
@@ -1165,6 +1181,7 @@ final class RecorderViewModel {
             recordingOutputDirectoryStore: recordingOutputDirectoryStore,
             permissionProvider: permissionProvider,
             isAccessibilityPermissionGranted: isAccessibilityPermissionGranted,
+            requestAccessibilityPermissionPrompt: requestAccessibilityPermissionPrompt,
             openURL: openURL,
             revealInFinder: revealInFinder,
             chooseOutputDirectory: chooseOutputDirectory,
@@ -1193,6 +1210,10 @@ final class RecorderViewModel {
         frameCoachSettingsStore: any FrameCoachSettingsStoring = UserDefaultsFrameCoachSettingsStore(),
         permissionProvider: any MediaPermissionProviding = SystemMediaPermissionProvider(),
         isAccessibilityPermissionGranted: @escaping () -> Bool = { AXIsProcessTrusted() },
+        requestAccessibilityPermissionPrompt: @escaping () -> Void = {
+            let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
+            AXIsProcessTrustedWithOptions(options)
+        },
         openURL: @escaping (URL) -> Void = { NSWorkspace.shared.open($0) },
         speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer(),
         spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer()
@@ -1217,6 +1238,7 @@ final class RecorderViewModel {
             recordingOutputDirectoryStore: UserDefaultsRecordingOutputDirectoryStore(),
             permissionProvider: permissionProvider,
             isAccessibilityPermissionGranted: isAccessibilityPermissionGranted,
+            requestAccessibilityPermissionPrompt: requestAccessibilityPermissionPrompt,
             openURL: openURL,
             revealInFinder: { NSWorkspace.shared.activateFileViewerSelecting([$0]) },
             chooseOutputDirectory: { currentURL in
@@ -1262,6 +1284,7 @@ final class RecorderViewModel {
     }
 
     func openAccessibilitySettings() {
+        requestAccessibilityPermissionPrompt()
         let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
         openURL(url)
     }
@@ -1986,44 +2009,45 @@ final class RecorderViewModel {
         pendingScreenKeyboardShortcutTimeline = .empty
         pendingOverlayCaptureResult = isScreenCameraOverlayEnabled ? nil : .success(nil)
 
-        await playStartSoundBeforeCapture()
-
-        if isCursorHighlightEnabled, let targetFrame = currentScreenCaptureTargetFrame() {
-            cursorHighlightRecorder.startTracking(targetFrame: targetFrame)
-        }
-        if isKeyboardShortcutOverlayEnabled {
-            keyboardShortcutRecorder.startTracking()
-        }
-
-        if isScreenCameraOverlayEnabled {
-            try await cameraOverlayRecorder.configure(cameraDeviceID: selectedCameraID, mode: selectedMode)
-            try await cameraOverlayRecorder.startRecording(to: overlayCaptureURL) { [weak self] result in
-                Task { @MainActor in
-                    self?.handleScreenOverlayCaptureCompletion(result)
-                }
-            }
-            pendingScreenOverlayCaptureURL = overlayCaptureURL
-        }
-
-        if !selectedMicrophoneID.isEmpty {
-            try await microphoneAudioRecorder.startRecording(deviceID: selectedMicrophoneID, to: microphoneCaptureURL) { [weak self] result in
-                Task { @MainActor in
-                    self?.handleScreenMicrophoneCaptureCompletion(result)
-                }
-            }
-            pendingScreenMicrophoneCaptureURL = microphoneCaptureURL
-        }
-
-        if isSystemAudioEnabled {
-            try await systemAudioRecorder.startRecording(to: systemAudioCaptureURL) { [weak self] result in
-                Task { @MainActor in
-                    self?.handleScreenSystemAudioCaptureCompletion(result)
-                }
-            }
-            pendingScreenSystemAudioCaptureURL = systemAudioCaptureURL
-        }
-
         do {
+            await playStartSoundBeforeCapture()
+
+            if isCursorHighlightEnabled, let targetFrame = currentScreenCaptureTargetFrame() {
+                cursorHighlightRecorder.startTracking(targetFrame: targetFrame)
+            }
+            if isKeyboardShortcutOverlayEnabled {
+                keyboardShortcutRecorder.startTracking()
+            }
+
+            if isScreenCameraOverlayEnabled {
+                cancelScreenOverlayPreview(stopSession: false)
+                try await cameraOverlayRecorder.configure(cameraDeviceID: selectedCameraID, mode: selectedMode)
+                try await cameraOverlayRecorder.startRecording(to: overlayCaptureURL) { [weak self] result in
+                    Task { @MainActor in
+                        self?.handleScreenOverlayCaptureCompletion(result)
+                    }
+                }
+                pendingScreenOverlayCaptureURL = overlayCaptureURL
+            }
+
+            if !selectedMicrophoneID.isEmpty {
+                try await microphoneAudioRecorder.startRecording(deviceID: selectedMicrophoneID, to: microphoneCaptureURL) { [weak self] result in
+                    Task { @MainActor in
+                        self?.handleScreenMicrophoneCaptureCompletion(result)
+                    }
+                }
+                pendingScreenMicrophoneCaptureURL = microphoneCaptureURL
+            }
+
+            if isSystemAudioEnabled {
+                try await systemAudioRecorder.startRecording(to: systemAudioCaptureURL) { [weak self] result in
+                    Task { @MainActor in
+                        self?.handleScreenSystemAudioCaptureCompletion(result)
+                    }
+                }
+                pendingScreenSystemAudioCaptureURL = systemAudioCaptureURL
+            }
+
             try await screenRecordingProvider.startRecording(
                 target: target,
                 microphoneDeviceID: "",
@@ -2035,19 +2059,7 @@ final class RecorderViewModel {
                 }
             }
         } catch {
-            if isScreenCameraOverlayEnabled {
-                cameraOverlayRecorder.stopRecording()
-                cameraOverlayRecorder.stopSession()
-            }
-            if pendingScreenMicrophoneCaptureURL != nil {
-                microphoneAudioRecorder.stopRecording()
-            }
-            if pendingScreenSystemAudioCaptureURL != nil {
-                systemAudioRecorder.stopRecording()
-            }
-            _ = cursorHighlightRecorder.stopTracking()
-            _ = keyboardShortcutRecorder.stopTracking()
-            resetPendingScreenRecordingState()
+            cleanupFailedScreenRecordingStart()
             throw error
         }
 
@@ -2061,6 +2073,22 @@ final class RecorderViewModel {
         sleepPreventer.prevent(reason: "Ekran kaydı devam ediyor")
         startMaxDurationTimer()
         startElapsedAnnouncer()
+    }
+
+    private func cleanupFailedScreenRecordingStart() {
+        if isScreenCameraOverlayEnabled || pendingScreenOverlayCaptureURL != nil {
+            cameraOverlayRecorder.stopRecording()
+            cameraOverlayRecorder.stopSession()
+        }
+        if pendingScreenMicrophoneCaptureURL != nil {
+            microphoneAudioRecorder.stopRecording()
+        }
+        if pendingScreenSystemAudioCaptureURL != nil {
+            systemAudioRecorder.stopRecording()
+        }
+        _ = cursorHighlightRecorder.stopTracking()
+        _ = keyboardShortcutRecorder.stopTracking()
+        resetPendingScreenRecordingState()
     }
 
     private func handleCameraRecordingCompletion(_ result: Result<URL, Error>, finalURL: URL) {
@@ -3578,25 +3606,41 @@ final class RecorderViewModel {
     }
 
     private func updateScreenOverlayPreviewState() {
+        cancelScreenOverlayPreview(stopSession: false)
+
         guard showsScreenOverlayConfiguration else {
             cameraOverlayRecorder.stopSession()
             return
         }
 
-        Task {
+        screenOverlayPreviewTask = Task {
             await prepareScreenOverlayPreviewIfPossible()
         }
     }
 
+    private func cancelScreenOverlayPreview(stopSession: Bool) {
+        screenOverlayPreviewTask?.cancel()
+        screenOverlayPreviewTask = nil
+        if stopSession {
+            cameraOverlayRecorder.stopSession()
+        }
+    }
+
     private func prepareScreenOverlayPreviewIfPossible() async {
+        guard !Task.isCancelled else { return }
         guard showsScreenOverlayConfiguration else { return }
         guard cameraPermissionStatus == .authorized else { return }
         guard !selectedCameraID.isEmpty else { return }
 
         do {
             try await cameraOverlayRecorder.configure(cameraDeviceID: selectedCameraID, mode: selectedMode)
+            guard !Task.isCancelled, showsScreenOverlayConfiguration else {
+                cameraOverlayRecorder.stopSession()
+                return
+            }
             cameraOverlayRecorder.startSessionInBackground()
         } catch {
+            guard !Task.isCancelled else { return }
             report(error)
         }
     }

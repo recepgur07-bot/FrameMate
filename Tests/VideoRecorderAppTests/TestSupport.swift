@@ -136,6 +136,7 @@ final class MockCameraOverlayRecorder: CameraOverlayRecording {
     let session = AVCaptureSession()
     private(set) var configuredCameraID: String?
     private(set) var configuredMode: RecordingMode?
+    private(set) var configureCallCount = 0
     private(set) var startedURL: URL?
     private(set) var stopCalled = false
     private(set) var startSessionCalled = false
@@ -143,10 +144,17 @@ final class MockCameraOverlayRecorder: CameraOverlayRecording {
     private(set) var previewFramesEnabled = false
     private(set) var previewFrameHandler: PreviewFrameHandler?
     var startError: Error?
+    var onConfigureStarted: (() -> Void)?
+    var configureDelayNanoseconds: UInt64 = 0
     var shouldCompleteOnStop = true
     private var completion: ((Result<URL, Error>) -> Void)?
 
     func configure(cameraDeviceID: String, mode: RecordingMode) async throws {
+        configureCallCount += 1
+        onConfigureStarted?()
+        if configureDelayNanoseconds > 0 {
+            try? await Task.sleep(nanoseconds: configureDelayNanoseconds)
+        }
         configuredCameraID = cameraDeviceID
         configuredMode = mode
     }

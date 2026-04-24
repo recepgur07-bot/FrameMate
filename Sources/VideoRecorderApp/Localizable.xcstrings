@@ -1,6 +1,28 @@
 {
   "sourceLanguage": "tr",
   "strings": {
+    "Ayarlar": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        }
+      }
+    },
+    "Uygulama ayarlarını açar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens app settings."
+          }
+        }
+      }
+    },
     ", opsiyonel": {
       "extractionState": "manual",
       "localizations": {

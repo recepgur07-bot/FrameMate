@@ -266,6 +266,20 @@ struct ContentView: View {
                 .padding(.trailing, 8)
             }
 
+            Button {
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+            } label: {
+                Image(systemName: "gearshape")
+                    .font(.system(size: 15, weight: .semibold))
+                    .frame(width: 30, height: 30)
+            }
+            .buttonStyle(.borderless)
+            .foregroundStyle(.secondary)
+            .help(String(localized: "Ayarlar"))
+            .accessibilityLabel(String(localized: "Ayarlar"))
+            .accessibilityHint(String(localized: "Uygulama ayarlarını açar."))
+
             StatusPill(status: currentStatus)
         }
     }

@@ -421,6 +421,27 @@ final class RecorderViewModelTests: XCTestCase {
         )
     }
 
+    func testOpeningAccessibilitySettingsRequestsSystemPromptFirst() async {
+        var didRequestPrompt = false
+        var openedURL: URL?
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(status: .authorized),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [:]),
+            isAccessibilityPermissionGranted: { false },
+            requestAccessibilityPermissionPrompt: { didRequestPrompt = true },
+            openURL: { openedURL = $0 }
+        )
+
+        await viewModel.setup()
+        viewModel.openAccessibilitySettings()
+
+        XCTAssertTrue(didRequestPrompt)
+        XCTAssertEqual(openedURL?.absoluteString, "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+    }
+
     func testFrameCoachSettingsDefaultToAccessibleBalancedGuidance() async {
         let settingsStore = MockFrameCoachSettingsStore()
         let viewModel = RecorderViewModel(
@@ -871,6 +892,44 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.showsFrameCoachControls)
     }
 
+    func testDisablingScreenOverlayCancelsPendingPreviewStart() async {
+        let overlayRecorder = MockCameraOverlayRecorder()
+        overlayRecorder.configureDelayNanoseconds = 200_000_000
+        var didStartConfiguring = false
+        overlayRecorder.onConfigureStarted = {
+            didStartConfiguring = true
+        }
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(
+                cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+                microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(
+                status: .authorized,
+                displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+            ),
+            cameraOverlayRecorder: overlayRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.toggleScreenCameraOverlay()
+        for _ in 0..<40 where !didStartConfiguring {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+        XCTAssertTrue(didStartConfiguring)
+
+        viewModel.toggleScreenCameraOverlay()
+        try? await Task.sleep(nanoseconds: 250_000_000)
+
+        XCTAssertTrue(overlayRecorder.stopSessionCalled)
+        XCTAssertFalse(overlayRecorder.startSessionCalled)
+        XCTAssertFalse(viewModel.showsScreenOverlayConfiguration)
+    }
+
     func testScreenOverlayRequiresCameraSelectionWhenEnabled() async {
         let permissions = RecorderPermissionsStub(
             statuses: [.video: .authorized, .audio: .authorized]
@@ -948,6 +1007,110 @@ final class RecorderViewModelTests: XCTestCase {
         try? await Task.sleep(nanoseconds: 50_000_000)
 
         XCTAssertTrue(overlayRecorder.stopCalled)
+    }
+
+    func testStartingScreenOverlayRecordingCancelsPendingPreviewPreparation() async {
+        let permissions = RecorderPermissionsStub(
+            statuses: [.video: .authorized, .audio: .authorized]
+        )
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+        )
+        let screenProvider = MockScreenRecordingProvider(
+            status: .authorized,
+            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+        )
+        let overlayRecorder = MockCameraOverlayRecorder()
+        overlayRecorder.configureDelayNanoseconds = 200_000_000
+        var didStartPreviewConfiguration = false
+        overlayRecorder.onConfigureStarted = {
+            didStartPreviewConfiguration = true
+        }
+
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: screenProvider,
+            cameraOverlayRecorder: overlayRecorder,
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            microphoneAudioRecorder: MockMicrophoneAudioRecorder(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.toggleScreenCameraOverlay()
+        for _ in 0..<40 where !didStartPreviewConfiguration {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+        XCTAssertTrue(didStartPreviewConfiguration)
+
+        viewModel.startRecording()
+        for _ in 0..<40 where overlayRecorder.startedURL == nil || !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+        try? await Task.sleep(nanoseconds: 250_000_000)
+
+        XCTAssertNotNil(overlayRecorder.startedURL, viewModel.errorText ?? viewModel.statusText)
+        XCTAssertTrue(viewModel.isRecording, viewModel.errorText ?? viewModel.statusText)
+        XCTAssertFalse(overlayRecorder.startSessionCalled)
+
+        viewModel.stopRecording()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+    }
+
+    func testScreenOverlayStartupFailureCleansStartedCompanionRecorders() async {
+        let permissions = RecorderPermissionsStub(
+            statuses: [.video: .authorized, .audio: .authorized]
+        )
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+        )
+        let screenProvider = MockScreenRecordingProvider(
+            status: .authorized,
+            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display", frame: CGRect(x: 0, y: 0, width: 1440, height: 900))]
+        )
+        let overlayRecorder = MockCameraOverlayRecorder()
+        let microphoneRecorder = MockMicrophoneAudioRecorder()
+        microphoneRecorder.startError = CaptureRecorderError.microphoneNotFound
+        let cursorRecorder = MockCursorHighlightRecorder()
+
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: screenProvider,
+            cameraOverlayRecorder: overlayRecorder,
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            microphoneAudioRecorder: microphoneRecorder,
+            cursorHighlightRecorder: cursorRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.toggleScreenCameraOverlay()
+        viewModel.isCursorHighlightEnabled = true
+        await viewModel.refreshScreenRecordingOptions()
+
+        viewModel.startRecording()
+        for _ in 0..<40 where overlayRecorder.startedURL == nil && viewModel.errorText == nil {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+        for _ in 0..<40 where viewModel.isPreparingRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertNotNil(overlayRecorder.startedURL)
+        XCTAssertTrue(overlayRecorder.stopCalled)
+        XCTAssertTrue(overlayRecorder.stopSessionCalled)
+        XCTAssertTrue(cursorRecorder.stopCalled)
+        XCTAssertNil(screenProvider.startedURL)
+        XCTAssertFalse(viewModel.isRecording)
+        XCTAssertFalse(viewModel.isPreparingRecording)
     }
 
     func testRecordingSettingsDoNotChangeDuringActiveScreenOverlayRecording() async {
@@ -1196,6 +1359,7 @@ final class RecorderViewModelTests: XCTestCase {
             keyboardShortcutRecorder: keyboardRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
             soundEffectPlayer: MockSoundEffectPlayer(),
+            lastRecordingConfigurationStore: MockLastRecordingConfigurationStore(),
             permissionProvider: permissions
         )
 
@@ -2824,6 +2988,82 @@ final class RecordingLifecycleTests: XCTestCase {
 
     // MARK: Helpers
 
+    private struct RecordingScenario {
+        let name: String
+        let preset: RecordingPreset
+        var screenSource: ScreenCaptureSource = .screen
+        var includesMicrophone = true
+        var includesSystemAudio = false
+        var includesCameraOverlay = false
+        var includesCursorHighlight = false
+        var includesKeyboardShortcuts = false
+    }
+
+    private struct RichRecordingHarness {
+        let viewModel: RecorderViewModel
+        let recorder: RecorderCaptureStub
+        let screenProvider: MockScreenRecordingProvider
+        let cameraOverlayRecorder: MockCameraOverlayRecorder
+        let microphoneRecorder: MockMicrophoneAudioRecorder
+        let systemAudioRecorder: MockSystemAudioRecorder
+        let cursorRecorder: MockCursorHighlightRecorder
+        let keyboardRecorder: MockKeyboardShortcutRecorder
+    }
+
+    private func makeRichRecordingHarness() -> RichRecordingHarness {
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
+            microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]
+        )
+        let screenProvider = MockScreenRecordingProvider(
+            status: .authorized,
+            displays: [
+                ScreenDisplayOption(
+                    id: "display-1",
+                    name: "Built-in Display",
+                    frame: CGRect(x: 0, y: 0, width: 1440, height: 900)
+                )
+            ],
+            windows: [
+                ScreenWindowOption(
+                    id: "window-1",
+                    name: "Safari - Docs",
+                    frame: CGRect(x: 20, y: 20, width: 1200, height: 800)
+                )
+            ]
+        )
+        screenProvider.shouldCompleteOnStop = true
+        let cameraOverlayRecorder = MockCameraOverlayRecorder()
+        let microphoneRecorder = MockMicrophoneAudioRecorder()
+        let systemAudioRecorder = MockSystemAudioRecorder()
+        let cursorRecorder = MockCursorHighlightRecorder()
+        let keyboardRecorder = MockKeyboardShortcutRecorder()
+        let permissions = RecorderPermissionsStub(statuses: [.video: .authorized, .audio: .authorized])
+        let tempRoot = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: screenProvider,
+            cameraOverlayRecorder: cameraOverlayRecorder,
+            systemAudioRecorder: systemAudioRecorder,
+            microphoneAudioRecorder: microphoneRecorder,
+            cursorHighlightRecorder: cursorRecorder,
+            keyboardShortcutRecorder: keyboardRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+        return RichRecordingHarness(
+            viewModel: viewModel,
+            recorder: recorder,
+            screenProvider: screenProvider,
+            cameraOverlayRecorder: cameraOverlayRecorder,
+            microphoneRecorder: microphoneRecorder,
+            systemAudioRecorder: systemAudioRecorder,
+            cursorRecorder: cursorRecorder,
+            keyboardRecorder: keyboardRecorder
+        )
+    }
+
     private func makeAudioViewModel() -> (RecorderViewModel, MockMicrophoneAudioRecorder, MockSystemAudioRecorder, MockAudioRecordingExporter) {
         let mic = MockMicrophoneAudioRecorder()
         let sys = MockSystemAudioRecorder()
@@ -2838,6 +3078,7 @@ final class RecordingLifecycleTests: XCTestCase {
             audioRecordingExporter: exporter,
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
             soundEffectPlayer: MockSoundEffectPlayer(),
+            lastRecordingConfigurationStore: MockLastRecordingConfigurationStore(),
             permissionProvider: permissions
         )
         return (vm, mic, sys, exporter)
@@ -2855,6 +3096,7 @@ final class RecordingLifecycleTests: XCTestCase {
             screenRecordingProvider: MockScreenRecordingProvider(),
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
             soundEffectPlayer: MockSoundEffectPlayer(),
+            lastRecordingConfigurationStore: MockLastRecordingConfigurationStore(),
             permissionProvider: permissions
         )
         return (vm, stub)
@@ -2873,6 +3115,7 @@ final class RecordingLifecycleTests: XCTestCase {
             screenRecordingProvider: provider,
             fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
             soundEffectPlayer: MockSoundEffectPlayer(),
+            lastRecordingConfigurationStore: MockLastRecordingConfigurationStore(),
             permissionProvider: permissions
         )
         return (vm, provider)
@@ -2886,6 +3129,56 @@ final class RecordingLifecycleTests: XCTestCase {
 
     private func waitForIdle(_ vm: RecorderViewModel) async {
         try? await Task.sleep(nanoseconds: 150_000_000)
+    }
+
+    private func runScenario(_ scenario: RecordingScenario, file: StaticString = #filePath, line: UInt = #line) async {
+        let harness = makeRichRecordingHarness()
+        let vm = harness.viewModel
+        await vm.setup()
+        vm.selectPreset(scenario.preset)
+        if scenario.preset.isScreenPreset {
+            await vm.refreshScreenRecordingOptions()
+            vm.selectScreenCaptureSource(scenario.screenSource)
+        }
+        vm.selectedCameraID = "cam-1"
+        vm.selectedMicrophoneID = scenario.includesMicrophone ? "mic-1" : ""
+        vm.isSystemAudioEnabled = scenario.includesSystemAudio
+        vm.isScreenCameraOverlayEnabled = scenario.includesCameraOverlay
+        vm.isCursorHighlightEnabled = scenario.includesCursorHighlight
+        vm.isKeyboardShortcutOverlayEnabled = scenario.includesKeyboardShortcuts
+        vm.refreshDeviceState()
+
+        vm.startRecording()
+        await waitForRecording(vm)
+
+        XCTAssertTrue(vm.isRecording, "\(scenario.name): should start recording. \(vm.errorText ?? vm.statusText)", file: file, line: line)
+        XCTAssertFalse(vm.isPreparingRecording, "\(scenario.name): should leave preparing state", file: file, line: line)
+        XCTAssertNil(vm.errorText, "\(scenario.name): should not report an error", file: file, line: line)
+
+        vm.stopRecording()
+        await waitForIdle(vm)
+
+        XCTAssertFalse(vm.isRecording, "\(scenario.name): should stop recording", file: file, line: line)
+        XCTAssertFalse(vm.isPaused, "\(scenario.name): should clear pause state", file: file, line: line)
+        XCTAssertFalse(vm.isPreparingRecording, "\(scenario.name): should not be stuck preparing", file: file, line: line)
+        XCTAssertFalse(vm.isCountingDown, "\(scenario.name): should not leave a countdown running", file: file, line: line)
+
+        if scenario.includesMicrophone, !scenario.preset.isCameraPreset {
+            XCTAssertTrue(harness.microphoneRecorder.stopCalled, "\(scenario.name): microphone recorder should stop", file: file, line: line)
+        }
+        if scenario.includesSystemAudio {
+            XCTAssertTrue(harness.systemAudioRecorder.stopCalled, "\(scenario.name): system audio recorder should stop", file: file, line: line)
+        }
+        if scenario.includesCameraOverlay {
+            XCTAssertTrue(harness.cameraOverlayRecorder.stopCalled, "\(scenario.name): camera overlay recorder should stop", file: file, line: line)
+            XCTAssertTrue(harness.cameraOverlayRecorder.stopSessionCalled, "\(scenario.name): camera overlay session should stop", file: file, line: line)
+        }
+        if scenario.includesCursorHighlight {
+            XCTAssertTrue(harness.cursorRecorder.stopCalled, "\(scenario.name): cursor tracker should stop", file: file, line: line)
+        }
+        if scenario.includesKeyboardShortcuts {
+            XCTAssertTrue(harness.keyboardRecorder.stopCalled, "\(scenario.name): keyboard tracker should stop", file: file, line: line)
+        }
     }
 
     // MARK: Audio: start → stop
@@ -3135,6 +3428,11 @@ final class RecordingLifecycleTests: XCTestCase {
         await vm.setup()
         vm.selectPreset(.horizontalScreen)
         vm.selectScreenCaptureSource(.screen)
+        vm.selectedMicrophoneID = ""
+        vm.isSystemAudioEnabled = false
+        vm.isScreenCameraOverlayEnabled = false
+        vm.isCursorHighlightEnabled = false
+        vm.isKeyboardShortcutOverlayEnabled = false
         await vm.refreshScreenRecordingOptions()
         vm.refreshDeviceState()
 
@@ -3158,6 +3456,11 @@ final class RecordingLifecycleTests: XCTestCase {
         await vm.setup()
         vm.selectPreset(.horizontalScreen)
         vm.selectScreenCaptureSource(.screen)
+        vm.selectedMicrophoneID = ""
+        vm.isSystemAudioEnabled = false
+        vm.isScreenCameraOverlayEnabled = false
+        vm.isCursorHighlightEnabled = false
+        vm.isKeyboardShortcutOverlayEnabled = false
         await vm.refreshScreenRecordingOptions()
         vm.refreshDeviceState()
 
@@ -3177,6 +3480,76 @@ final class RecordingLifecycleTests: XCTestCase {
         XCTAssertFalse(vm.isRecording)
         XCTAssertFalse(vm.isPaused)
         XCTAssertFalse(vm.isPreparingRecording)
+    }
+
+    // MARK: Representative option matrix
+
+    func testRepresentativeRecordingOptionMatrixStartsAndStopsCleanly() async {
+        let scenarios: [RecordingScenario] = [
+            RecordingScenario(
+                name: "camera with microphone",
+                preset: .horizontalCamera,
+                includesMicrophone: true
+            ),
+            RecordingScenario(
+                name: "camera with microphone and system audio",
+                preset: .horizontalCamera,
+                includesMicrophone: true,
+                includesSystemAudio: true
+            ),
+            RecordingScenario(
+                name: "screen display base",
+                preset: .horizontalScreen,
+                screenSource: .screen,
+                includesMicrophone: false
+            ),
+            RecordingScenario(
+                name: "screen display with microphone and system audio",
+                preset: .horizontalScreen,
+                screenSource: .screen,
+                includesMicrophone: true,
+                includesSystemAudio: true
+            ),
+            RecordingScenario(
+                name: "screen display with all overlays",
+                preset: .horizontalScreen,
+                screenSource: .screen,
+                includesMicrophone: true,
+                includesSystemAudio: true,
+                includesCameraOverlay: true,
+                includesCursorHighlight: true,
+                includesKeyboardShortcuts: true
+            ),
+            RecordingScenario(
+                name: "window with camera overlay and keyboard shortcuts",
+                preset: .horizontalScreen,
+                screenSource: .window,
+                includesMicrophone: false,
+                includesCameraOverlay: true,
+                includesKeyboardShortcuts: true
+            ),
+            RecordingScenario(
+                name: "audio microphone only",
+                preset: .audioOnly,
+                includesMicrophone: true
+            ),
+            RecordingScenario(
+                name: "audio system only",
+                preset: .audioOnly,
+                includesMicrophone: false,
+                includesSystemAudio: true
+            ),
+            RecordingScenario(
+                name: "audio microphone and system",
+                preset: .audioOnly,
+                includesMicrophone: true,
+                includesSystemAudio: true
+            )
+        ]
+
+        for scenario in scenarios {
+            await runScenario(scenario)
+        }
     }
 
     // MARK: State integrity
