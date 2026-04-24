@@ -14,6 +14,10 @@ struct VideoPreviewView: NSViewRepresentable {
     func updateNSView(_ nsView: PreviewContainerView, context: Context) {
         nsView.update(session: session, crop: crop)
     }
+
+    static func dismantleNSView(_ nsView: PreviewContainerView, coordinator: ()) {
+        nsView.invalidateSession()
+    }
 }
 
 final class PreviewContainerView: NSView {
@@ -36,6 +40,10 @@ final class PreviewContainerView: NSView {
         super.layout()
         previewLayer.frame = bounds
         applyCrop()
+    }
+
+    func invalidateSession() {
+        previewLayer.session = nil
     }
 
     func update(session: AVCaptureSession, crop: AutoReframeCrop) {
