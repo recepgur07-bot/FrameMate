@@ -930,6 +930,86 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.showsScreenOverlayConfiguration)
     }
 
+    func testScreenOverlayAddRemoveAddStartsSessionAndDoesNotCrash() async {
+        let overlayRecorder = MockCameraOverlayRecorder()
+        overlayRecorder.configureDelayNanoseconds = 50_000_000
+        var configureCount = 0
+        overlayRecorder.onConfigureStarted = { configureCount += 1 }
+        let permissions = RecorderPermissionsStub(
+            statuses: [.video: .authorized, .audio: .authorized]
+        )
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+        )
+        let screenProvider = MockScreenRecordingProvider(
+            status: .authorized,
+            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+        )
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: screenProvider,
+            cameraOverlayRecorder: overlayRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+
+        // ADD
+        viewModel.toggleScreenCameraOverlay()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        // REMOVE (while configure may still be in-flight)
+        viewModel.toggleScreenCameraOverlay()
+        try? await Task.sleep(nanoseconds: 10_000_000)
+
+        // ADD again — must not crash, session must start
+        viewModel.toggleScreenCameraOverlay()
+        try? await Task.sleep(nanoseconds: 200_000_000)
+
+        XCTAssertTrue(viewModel.showsScreenOverlayConfiguration)
+        XCTAssertTrue(overlayRecorder.startSessionCalled, "Session must start after re-enabling overlay")
+        XCTAssertGreaterThanOrEqual(configureCount, 2, "Overlay must be configured at least twice")
+    }
+
+    func testScreenOverlayAddRemoveAddRapidlyDoesNotLeaveSessionStopped() async {
+        let overlayRecorder = MockCameraOverlayRecorder()
+        let permissions = RecorderPermissionsStub(
+            statuses: [.video: .authorized, .audio: .authorized]
+        )
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+        )
+        let screenProvider = MockScreenRecordingProvider(
+            status: .authorized,
+            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+        )
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: screenProvider,
+            cameraOverlayRecorder: overlayRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+
+        // Rapid ADD → REMOVE → ADD without waiting
+        viewModel.toggleScreenCameraOverlay()
+        viewModel.toggleScreenCameraOverlay()
+        viewModel.toggleScreenCameraOverlay()
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertTrue(viewModel.showsScreenOverlayConfiguration)
+        XCTAssertTrue(overlayRecorder.startSessionCalled)
+    }
+
     func testScreenOverlayRequiresCameraSelectionWhenEnabled() async {
         let permissions = RecorderPermissionsStub(
             statuses: [.video: .authorized, .audio: .authorized]

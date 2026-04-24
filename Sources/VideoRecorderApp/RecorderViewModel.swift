@@ -3634,10 +3634,10 @@ final class RecorderViewModel {
 
         do {
             try await cameraOverlayRecorder.configure(cameraDeviceID: selectedCameraID, mode: selectedMode)
-            guard !Task.isCancelled, showsScreenOverlayConfiguration else {
-                cameraOverlayRecorder.stopSession()
-                return
-            }
+            // Re-check after suspension: state may have changed while configure was running.
+            // Do NOT call stopSession here — updateScreenOverlayPreviewState already manages
+            // session lifecycle and a stale stopSession would kill a subsequently started session.
+            guard !Task.isCancelled, showsScreenOverlayConfiguration else { return }
             cameraOverlayRecorder.startSessionInBackground()
         } catch {
             guard !Task.isCancelled else { return }

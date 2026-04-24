@@ -34,6 +34,10 @@ final class CameraOverlayRecorder: NSObject, AVCaptureFileOutputRecordingDelegat
         try await withCheckedThrowingContinuation { continuation in
             sessionQueue.async { [self] in
                 do {
+                    guard !movieOutput.isRecording else {
+                        throw CaptureRecorderError.alreadyRecording
+                    }
+
                     session.beginConfiguration()
                     defer { session.commitConfiguration() }
 
@@ -150,12 +154,15 @@ final class CameraOverlayRecorder: NSObject, AVCaptureFileOutputRecordingDelegat
         from connections: [AVCaptureConnection],
         error: Error?
     ) {
-        if let error {
-            completion?(.failure(error))
-        } else {
-            completion?(.success(outputFileURL))
+        sessionQueue.async { [self] in
+            let handler = completion
+            completion = nil
+            if let error {
+                handler?(.failure(error))
+            } else {
+                handler?(.success(outputFileURL))
+            }
         }
-        completion = nil
     }
 
     private func applyOrientation(for mode: RecordingMode) {
