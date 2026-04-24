@@ -1360,7 +1360,7 @@ final class RecorderViewModel {
             await refreshScreenRecordingSources()
         }
         updatePreviewAnalysisState()
-        if isCameraPreviewAnalysisActive || isScreenOverlayFrameCoachActive {
+        if isCameraPreviewAnalysisActive {
             Task {
                 await prepareAnalysisPreviewIfPossible()
             }
@@ -3587,8 +3587,9 @@ final class RecorderViewModel {
             return
         }
 
-        guard selectedPreset.isScreenPreset, isScreenCameraOverlayEnabled, isFrameCoachEnabled else { return }
-        await prepareScreenOverlayPreviewIfPossible()
+        // Screen camera overlay preview is owned by updateScreenOverlayPreviewState().
+        // Keeping it out of the frame-coach preparation path prevents duplicate
+        // configure/start cycles when overlay and coaching toggles change together.
     }
 
     private var isScreenOverlayFrameCoachActive: Bool {

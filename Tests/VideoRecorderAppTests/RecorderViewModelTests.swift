@@ -892,6 +892,65 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.showsFrameCoachControls)
     }
 
+    func testScreenOverlayWithFrameCoachUsesSinglePreviewPreparationPath() async {
+        let overlayRecorder = MockCameraOverlayRecorder()
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(
+                cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+                microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(
+                status: .authorized,
+                displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+            ),
+            cameraOverlayRecorder: overlayRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: RecorderPermissionsStub(statuses: [.video: .authorized, .audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.isFrameCoachEnabled = true
+
+        viewModel.toggleScreenCameraOverlay()
+        try? await Task.sleep(nanoseconds: 150_000_000)
+
+        XCTAssertTrue(viewModel.showsScreenOverlayConfiguration)
+        XCTAssertEqual(overlayRecorder.configureCallCount, 1)
+    }
+
+    func testEnablingFrameCoachForActiveScreenOverlayDoesNotReconfigureOverlayPreview() async {
+        let overlayRecorder = MockCameraOverlayRecorder()
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(
+                cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+                microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(
+                status: .authorized,
+                displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+            ),
+            cameraOverlayRecorder: overlayRecorder,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: RecorderPermissionsStub(statuses: [.video: .authorized, .audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.toggleScreenCameraOverlay()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        let configureCountAfterOverlayEnable = overlayRecorder.configureCallCount
+
+        viewModel.toggleFrameCoach()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertTrue(viewModel.isFrameCoachEnabled)
+        XCTAssertEqual(overlayRecorder.configureCallCount, configureCountAfterOverlayEnable)
+        XCTAssertTrue(overlayRecorder.previewFramesEnabled)
+    }
+
     func testDisablingScreenOverlayCancelsPendingPreviewStart() async {
         let overlayRecorder = MockCameraOverlayRecorder()
         overlayRecorder.configureDelayNanoseconds = 200_000_000
