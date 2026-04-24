@@ -12,6 +12,7 @@ protocol CaptureRecording: AnyObject {
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws
     func stopRecording()
     func startSessionInBackground()
+    func stopSession()
     func setPreviewFrameHandler(_ handler: PreviewFrameHandler?)
     func setPreviewFramesEnabled(_ isEnabled: Bool)
 }

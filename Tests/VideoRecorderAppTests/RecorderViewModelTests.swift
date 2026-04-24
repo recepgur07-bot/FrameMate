@@ -1046,6 +1046,36 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(overlayRecorder.configureCallCount, configureCountAfterFirstEnable)
     }
 
+    func testSelectingScreenModeStopsCameraPreviewSessionBeforeOverlayUsesCamera() async {
+        let permissions = RecorderPermissionsStub(
+            statuses: [.video: .authorized, .audio: .authorized]
+        )
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+        )
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: MockScreenRecordingProvider(
+                status: .authorized,
+                displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+            ),
+            cameraOverlayRecorder: MockCameraOverlayRecorder(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
+        try? await Task.sleep(nanoseconds: 100_000_000)
+        XCTAssertTrue(recorder.startSessionInBackgroundCalled)
+
+        viewModel.selectPreset(.horizontalScreen)
+
+        XCTAssertTrue(recorder.stopSessionCalled)
+    }
+
     func testScreenOverlayRequiresCameraSelectionWhenEnabled() async {
         let permissions = RecorderPermissionsStub(
             statuses: [.video: .authorized, .audio: .authorized]
@@ -2976,6 +3006,8 @@ private final class RecorderCaptureStub: CaptureRecording {
     private(set) var startCalled = false
     private(set) var stopCalled = false
     private(set) var startedURL: URL?
+    private(set) var startSessionInBackgroundCalled = false
+    private(set) var stopSessionCalled = false
     private(set) var previewFramesEnabled = false
     private(set) var previewFrameHandler: PreviewFrameHandler?
     var shouldCompleteOnStop = true
@@ -3008,7 +3040,8 @@ private final class RecorderCaptureStub: CaptureRecording {
         }
     }
 
-    func startSessionInBackground() {}
+    func startSessionInBackground() { startSessionInBackgroundCalled = true }
+    func stopSession() { stopSessionCalled = true }
     func setPreviewFrameHandler(_ handler: PreviewFrameHandler?) { previewFrameHandler = handler }
     func setPreviewFramesEnabled(_ isEnabled: Bool) { previewFramesEnabled = isEnabled }
 }

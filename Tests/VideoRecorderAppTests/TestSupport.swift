@@ -39,6 +39,7 @@ final class MockCaptureRecorder: CaptureRecording {
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {}
     func stopRecording() { onStop() }
     func startSessionInBackground() {}
+    func stopSession() {}
     func setPreviewFrameHandler(_ handler: PreviewFrameHandler?) { previewFrameHandler = handler }
     func setPreviewFramesEnabled(_ isEnabled: Bool) { previewFramesEnabled = isEnabled }
 }

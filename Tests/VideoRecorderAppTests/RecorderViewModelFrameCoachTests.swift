@@ -502,6 +502,7 @@ private final class FrameCoachMockCaptureRecorder: CaptureRecording {
     func setPreviewFrameHandler(_ handler: PreviewFrameHandler?) { previewFrameHandler = handler }
     func setPreviewFramesEnabled(_ isEnabled: Bool) { previewFramesEnabled = isEnabled }
     func startSessionInBackground() { startSessionInBackgroundCallCount += 1 }
+    func stopSession() {}
 }
 
 private struct FrameCoachMockMediaPermissionProvider: MediaPermissionProviding {

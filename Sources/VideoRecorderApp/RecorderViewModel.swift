@@ -1359,7 +1359,8 @@ final class RecorderViewModel {
         Task {
             await refreshScreenRecordingSources()
         }
-        if isFrameCoachEnabled || isAutoReframeEnabled {
+        updatePreviewAnalysisState()
+        if isCameraPreviewAnalysisActive || isScreenOverlayFrameCoachActive {
             Task {
                 await prepareAnalysisPreviewIfPossible()
             }
@@ -1370,6 +1371,7 @@ final class RecorderViewModel {
     func applySelectedInputs() {
         guard hasSetUp, !isRecording else { return }
         guard selectedPreset.isCameraPreset else {
+            recorder.stopSession()
             statusText = makeStatusText()
             errorText = nil
             updateScreenOverlayPreviewState()
@@ -3701,6 +3703,10 @@ final class RecorderViewModel {
     private func updatePreviewAnalysisState() {
         recorder.setPreviewFramesEnabled(isCameraPreviewAnalysisActive)
         cameraOverlayRecorder.setPreviewFramesEnabled(isScreenOverlayFrameCoachActive)
+
+        if !isCameraPreviewAnalysisActive, !isRecording {
+            recorder.stopSession()
+        }
 
         if !isAnyPreviewAnalysisActive {
             resetFrameCoachAnalysisState()
