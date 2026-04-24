@@ -1068,12 +1068,37 @@ final class RecorderViewModelTests: XCTestCase {
 
         await viewModel.setup()
         viewModel.selectPreset(.horizontalCamera)
+        viewModel.isFrameCoachEnabled = true
+        viewModel.refreshDeviceState()
         try? await Task.sleep(nanoseconds: 100_000_000)
         XCTAssertTrue(recorder.startSessionInBackgroundCalled)
 
         viewModel.selectPreset(.horizontalScreen)
 
         XCTAssertTrue(recorder.stopSessionCalled)
+    }
+
+    func testSetupDoesNotStartCameraPreviewForAutoReframeOnly() async {
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
+            microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]
+        )
+        let permissions = RecorderPermissionsStub(statuses: [.video: .authorized, .audio: .authorized])
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertTrue(viewModel.isAutoReframeEnabled)
+        XCTAssertFalse(viewModel.isFrameCoachEnabled)
+        XCTAssertFalse(recorder.startSessionInBackgroundCalled)
+        XCTAssertFalse(recorder.previewFramesEnabled)
     }
 
     func testScreenOverlayRequiresCameraSelectionWhenEnabled() async {

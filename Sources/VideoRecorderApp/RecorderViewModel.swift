@@ -1381,7 +1381,7 @@ final class RecorderViewModel {
         Task {
             do {
                 try await configureRecorder()
-                if isFrameCoachEnabled || isAutoReframeEnabled {
+                if isFrameCoachEnabled {
                     recorder.startSessionInBackground()
                 }
                 statusText = String(localized: "\(currentPresetReadinessLabel) hazır.")
@@ -1781,6 +1781,7 @@ final class RecorderViewModel {
             }
 
             try await configureRecorder()
+            recorder.setPreviewFramesEnabled(isFrameCoachEnabled || isAutoReframeEnabled)
             autoReframeTimeline.reset()
             autoReframeSmoother.reset()
             currentAutoReframeCrop = .fullFrame
@@ -3573,7 +3574,7 @@ final class RecorderViewModel {
 
     private func prepareAnalysisPreviewIfPossible() async {
         if selectedRecordingSource == .camera {
-            guard isFrameCoachEnabled || isAutoReframeEnabled else { return }
+            guard isFrameCoachEnabled else { return }
             guard hasRequiredPermissions else { return }
             guard !selectedCameraID.isEmpty, !selectedMicrophoneID.isEmpty else { return }
 
@@ -3595,7 +3596,7 @@ final class RecorderViewModel {
     }
 
     private var isCameraPreviewAnalysisActive: Bool {
-        selectedRecordingSource == .camera && (isFrameCoachEnabled || isAutoReframeEnabled)
+        selectedRecordingSource == .camera && isFrameCoachEnabled
     }
 
     private var isAnyPreviewAnalysisActive: Bool {

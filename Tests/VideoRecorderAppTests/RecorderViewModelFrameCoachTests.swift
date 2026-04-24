@@ -31,7 +31,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         XCTAssertTrue(viewModel.isFrameCoachEnabled)
         XCTAssertEqual(viewModel.currentFrameCoachInstruction, "Kadraj koçu açık")
         XCTAssertEqual(speaker.spokenTexts, ["Kadraj koçu açık"])
-        XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 2)
+        XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 1)
     }
 
     func testToggleFrameCoachDisablesCoachAndClearsInstruction() {

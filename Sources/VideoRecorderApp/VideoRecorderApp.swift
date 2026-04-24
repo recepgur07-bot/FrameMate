@@ -263,13 +263,11 @@ struct VideoRecorderApp: App {
                     viewModel.toggleAudioRecording()
                 }
                 .disabled(!onboardingCompleted || viewModel.isPreparingRecording || (viewModel.isRecording && viewModel.selectedRecordingSource != .audio))
-                .keyboardShortcut("5", modifiers: [.command, .control])
 
                 Button("\(pauseResumeCommandTitle) (\(GlobalHotkeyMonitor.pauseResumeToggleDisplay))") {
                     viewModel.togglePauseResume()
                 }
                 .disabled(!onboardingCompleted || !viewModel.canPauseRecording)
-                .keyboardShortcut("p", modifiers: [.command, .control])
 
                 Button(frameCoachCommandTitle) {
                     viewModel.toggleFrameCoach()
