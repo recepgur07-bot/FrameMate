@@ -39,7 +39,7 @@ struct ContentView: View {
                 onPresetSelected: { viewModel.selectPreset($0) },
                 onEnableOverlay: {
                     if !viewModel.isScreenCameraOverlayEnabled {
-                        viewModel.toggleScreenCameraOverlay()
+                        viewModel.setScreenCameraOverlayEnabled(true)
                     }
                 }
             )
@@ -563,7 +563,7 @@ struct ContentView: View {
                             detail: String(localized: "Ekran kaydının üstüne kendi görüntünü ekler. Aşağıdan kamerayı, konumu ve boyutu seçebilirsin."),
                             isOn: Binding(
                                 get: { viewModel.isScreenCameraOverlayEnabled },
-                                set: { _ in viewModel.toggleScreenCameraOverlay() }
+                                set: { viewModel.setScreenCameraOverlayEnabled($0) }
                             )
                         )
 
@@ -958,7 +958,7 @@ struct ContentView: View {
                     String(localized: "Kamera kutusunu göster"),
                     isOn: Binding(
                         get: { viewModel.isScreenCameraOverlayEnabled },
-                        set: { _ in viewModel.toggleScreenCameraOverlay() }
+                        set: { viewModel.setScreenCameraOverlayEnabled($0) }
                     )
                 )
                 .accessibilityHint(String(localized: "Ekran kaydının üstüne kamera görüntünü ekler."))

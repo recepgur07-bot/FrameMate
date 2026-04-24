@@ -1744,8 +1744,13 @@ final class RecorderViewModel {
     }
 
     func toggleScreenCameraOverlay() {
+        setScreenCameraOverlayEnabled(!isScreenCameraOverlayEnabled)
+    }
+
+    func setScreenCameraOverlayEnabled(_ isEnabled: Bool) {
         guard canChangeRecordingSettings else { return }
-        isScreenCameraOverlayEnabled.toggle()
+        guard isScreenCameraOverlayEnabled != isEnabled else { return }
+        isScreenCameraOverlayEnabled = isEnabled
         refreshDeviceState()
     }
 
