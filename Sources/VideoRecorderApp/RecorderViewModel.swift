@@ -1297,6 +1297,7 @@ final class RecorderViewModel {
         guard !hasSetUp else { return }
         hasSetUp = true
 
+        cleanupOrphanedTempFiles()
         await refreshAppAccess()
         applyPresetSelection(refresh: false)
         recordingCountdown = RecordingCountdown(rawValue: UserDefaults.standard.integer(forKey: "recording.countdown")) ?? .none
@@ -2926,6 +2927,19 @@ final class RecorderViewModel {
             }
 
             return fallbackFileNamer
+        }
+    }
+
+    private func cleanupOrphanedTempFiles() {
+        let directory = activeFileNamer.outputDirectory
+        let fm = FileManager.default
+        guard let items = try? fm.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) else { return }
+        let tempPrefixes = ["tmp-", "camera-overlay-", "screen-microphone-", "screen-system-audio-", "system-audio-"]
+        for item in items {
+            let name = item.lastPathComponent
+            if tempPrefixes.contains(where: { name.hasPrefix($0) }) {
+                try? fm.removeItem(at: item)
+            }
         }
     }
 

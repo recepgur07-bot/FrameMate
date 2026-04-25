@@ -43,9 +43,6 @@ final class PreviewContainerView: NSView {
     }
 
     func invalidateSession() {
-        // AVFoundation requires the session to be stopped before disconnecting
-        // the preview layer. stopRunning() is a no-op if already stopped.
-        previewLayer.session?.stopRunning()
         previewLayer.session = nil
     }
 
