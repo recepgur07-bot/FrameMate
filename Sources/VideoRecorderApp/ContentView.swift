@@ -7,6 +7,7 @@ extension Notification.Name {
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openSettings) private var openSettings
     @Bindable var viewModel: RecorderViewModel
 
     @State private var toastQueue = ToastQueue()
@@ -268,7 +269,7 @@ struct ContentView: View {
 
             Button {
                 NSApp.activate(ignoringOtherApps: true)
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+                openSettings()
             } label: {
                 Image(systemName: "gearshape")
                     .font(.system(size: 15, weight: .semibold))
