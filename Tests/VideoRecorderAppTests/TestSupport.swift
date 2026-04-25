@@ -223,6 +223,7 @@ final class MockSystemAudioRecorder: SystemAudioRecordingProviding {
 
 final class MockMicrophoneAudioRecorder: MicrophoneAudioRecordingProviding {
     private(set) var startCalled = false
+    private(set) var startCallCount = 0
     private(set) var stopCalled = false
     private(set) var startedURL: URL?
     private(set) var startedDeviceID: String?
@@ -236,6 +237,7 @@ final class MockMicrophoneAudioRecorder: MicrophoneAudioRecordingProviding {
         }
 
         startCalled = true
+        startCallCount += 1
         startedURL = url
         startedDeviceID = deviceID
         self.completion = completion
