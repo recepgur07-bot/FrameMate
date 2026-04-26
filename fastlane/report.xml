@@ -5,7 +5,7 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="00: Verifying fastlane version" time="0.000175">
+      <testcase classname="fastlane.lanes" name="00: Verifying fastlane version" time="0.00015">
         
       </testcase>
     
@@ -15,47 +15,47 @@
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="02: Switch to mac doctor lane" time="4.3e-05">
+      <testcase classname="fastlane.lanes" name="02: Switch to mac doctor lane" time="6.3e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="03: Switch to mac certificates lane" time="4.4e-05">
+      <testcase classname="fastlane.lanes" name="03: Switch to mac certificates lane" time="4.1e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="04: app_store_connect_api_key" time="0.002519">
+      <testcase classname="fastlane.lanes" name="04: app_store_connect_api_key" time="0.001664">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="05: match" time="3.125887">
+      <testcase classname="fastlane.lanes" name="05: match" time="2.436254">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="06: app_store_connect_api_key" time="0.001552">
+      <testcase classname="fastlane.lanes" name="06: app_store_connect_api_key" time="0.001035">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="07: get_info_plist_value" time="0.001696">
+      <testcase classname="fastlane.lanes" name="07: get_info_plist_value" time="0.000941">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="08: /usr/libexec/PlistBuddy -c &apos;Set :CFBundleVersion 202604241010&apos; &apos;/Users/recepgur/Desktop/video recorder/Resources/Info.plist&apos;" time="0.010416">
+      <testcase classname="fastlane.lanes" name="08: /usr/libexec/PlistBuddy -c &apos;Set :CFBundleVersion 202604261050&apos; &apos;/Users/recepgur/Desktop/video recorder/Resources/Info.plist&apos;" time="0.008984">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="09: build_mac_app" time="25.010239">
+      <testcase classname="fastlane.lanes" name="09: build_mac_app" time="25.14936">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="10: upload_to_testflight" time="147.809703">
+      <testcase classname="fastlane.lanes" name="10: upload_to_testflight" time="120.118454">
         
       </testcase>
     

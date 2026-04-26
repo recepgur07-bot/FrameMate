@@ -9,6 +9,10 @@ final class RecorderViewModelTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "recording.lastConfiguration")
         UserDefaults.standard.removeObject(forKey: "recording.countdown")
         UserDefaults.standard.removeObject(forKey: "recording.maxDuration")
+        UserDefaults.standard.removeObject(forKey: "recording.sound.commandReceived")
+        UserDefaults.standard.removeObject(forKey: "recording.sound.start")
+        UserDefaults.standard.removeObject(forKey: "recording.sound.stop")
+        UserDefaults.standard.removeObject(forKey: "recording.sound.pauseResume")
         UserDefaults.standard.removeObject(forKey: "appAccess.trialStartDate")
     }
 
@@ -16,6 +20,10 @@ final class RecorderViewModelTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "recording.lastConfiguration")
         UserDefaults.standard.removeObject(forKey: "recording.countdown")
         UserDefaults.standard.removeObject(forKey: "recording.maxDuration")
+        UserDefaults.standard.removeObject(forKey: "recording.sound.commandReceived")
+        UserDefaults.standard.removeObject(forKey: "recording.sound.start")
+        UserDefaults.standard.removeObject(forKey: "recording.sound.stop")
+        UserDefaults.standard.removeObject(forKey: "recording.sound.pauseResume")
         UserDefaults.standard.removeObject(forKey: "appAccess.trialStartDate")
         super.tearDown()
     }
@@ -2463,6 +2471,24 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(store.outputDirectoryPath, selectedURL.path)
     }
 
+    func testInternalSandboxFallbackOutputDirectoryIsNotRestored() {
+        let store = MockRecordingOutputDirectoryStore()
+        store.outputDirectoryPath = "/Users/example/Library/Containers/com.recepgur.VideoRecorder/Data/Downloads/FrameMate"
+        let defaultURL = URL(fileURLWithPath: "/tmp/Video Recorder", isDirectory: true)
+
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(outputDirectory: defaultURL),
+            soundEffectPlayer: SoundEffectPlayer(),
+            recordingOutputDirectoryStore: store,
+            permissionProvider: MockMediaPermissionProvider(statuses: [:])
+        )
+
+        XCTAssertEqual(viewModel.recordingOutputDirectoryURL.path, defaultURL.path)
+        XCTAssertNil(store.outputDirectoryPath)
+    }
+
     func testRenameCompletedRecordingMovesFileAndUpdatesLastSavedURL() throws {
         let tempRoot = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -2827,11 +2853,155 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(events.values.prefix(2), ["start-sound", "system-audio-start"])
     }
 
-    func testStopRecordingPlaysStopSoundAfterCaptureStop() {
+    func testToggleRecordingPlaysCommandSoundBeforeCountdown() async {
+        let soundEffectPlayer = MockSoundEffectPlayer()
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(
+                cameras: [InputDevice(id: "camera-1", name: "Camera")],
+                microphones: [InputDevice(id: "mic-1", name: "Microphone")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(outputDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: soundEffectPlayer,
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+        await viewModel.setup()
+        viewModel.recordingCountdown = .three
+
+        viewModel.toggleRecording()
+
+        XCTAssertEqual(soundEffectPlayer.commandReceivedCallCount, 1)
+        XCTAssertTrue(viewModel.isCountingDown)
+        XCTAssertFalse(viewModel.isRecording)
+    }
+
+    func testRecordingCommandSoundCanBeDisabled() async {
+        let soundEffectPlayer = MockSoundEffectPlayer()
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(
+                cameras: [InputDevice(id: "camera-1", name: "Camera")],
+                microphones: [InputDevice(id: "mic-1", name: "Microphone")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(outputDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: soundEffectPlayer,
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+        await viewModel.setup()
+        viewModel.isRecordingCommandSoundEnabled = false
+
+        viewModel.toggleRecording()
+
+        XCTAssertEqual(soundEffectPlayer.commandReceivedCallCount, 0)
+    }
+
+    func testNoCountdownWaitsForCommandSoundBeforeStartSound() async {
+        let events = RecordingStartEventLog()
+        let soundEffectPlayer = MockSoundEffectPlayer()
+        soundEffectPlayer.commandReceivedDurations = [0.12]
+        soundEffectPlayer.onCommandReceived = { events.append("command") }
+        soundEffectPlayer.onStart = { events.append("start") }
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(
+                cameras: [InputDevice(id: "camera-1", name: "Camera")],
+                microphones: [InputDevice(id: "mic-1", name: "Microphone")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(outputDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: soundEffectPlayer,
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+        await viewModel.setup()
+        viewModel.selectedRecordingSource = .camera
+        viewModel.selectedCameraID = "camera-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.recordingCountdown = .none
+
+        viewModel.toggleRecording()
+        try? await Task.sleep(nanoseconds: 40_000_000)
+
+        XCTAssertFalse(viewModel.isRecording)
+        XCTAssertEqual(events.values, ["command"])
+
+        for _ in 0..<20 where !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertTrue(viewModel.isRecording)
+        XCTAssertEqual(events.values, ["command", "start"])
+    }
+
+    func testStartSoundCanBeDisabled() async {
+        let soundEffectPlayer = MockSoundEffectPlayer()
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(
+                cameras: [InputDevice(id: "camera-1", name: "Camera")],
+                microphones: [InputDevice(id: "mic-1", name: "Microphone")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(outputDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: soundEffectPlayer,
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+        await viewModel.setup()
+        viewModel.selectedRecordingSource = .camera
+        viewModel.selectedCameraID = "camera-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isRecordingStartSoundEnabled = false
+
+        viewModel.startRecording()
+        for _ in 0..<20 where !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertTrue(viewModel.isRecording)
+        XCTAssertEqual(soundEffectPlayer.startCallCount, 0)
+    }
+
+    func testStopSoundCanBeDisabled() {
+        let soundEffectPlayer = MockSoundEffectPlayer()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: soundEffectPlayer,
+            permissionProvider: MockMediaPermissionProvider(statuses: [:])
+        )
+        viewModel.isRecording = true
+        viewModel.selectedRecordingSource = .camera
+        viewModel.isRecordingStopSoundEnabled = false
+
+        viewModel.stopRecording()
+
+        XCTAssertEqual(soundEffectPlayer.stopCallCount, 0)
+    }
+
+    func testPauseResumeSoundCanBeDisabled() {
+        let soundEffectPlayer = MockSoundEffectPlayer()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: soundEffectPlayer,
+            permissionProvider: MockMediaPermissionProvider(statuses: [:])
+        )
+        viewModel.isRecording = true
+        viewModel.selectedRecordingSource = .camera
+        viewModel.isRecordingPauseResumeSoundEnabled = false
+
+        viewModel.togglePauseResume()
+        viewModel.togglePauseResume()
+
+        XCTAssertEqual(soundEffectPlayer.pauseResumeCallCount, 0)
+        XCTAssertFalse(viewModel.isPaused)
+    }
+
+    func testStopRecordingPlaysCommandSoundAfterCaptureStop() {
         let events = RecordingStartEventLog()
         let recorder = MockCaptureRecorder()
         recorder.onStop = { events.append("capture-stop") }
         let soundEffectPlayer = MockSoundEffectPlayer()
+        soundEffectPlayer.onCommandReceived = { events.append("stop-command-sound") }
         soundEffectPlayer.onStop = { events.append("stop-sound") }
         let viewModel = RecorderViewModel(
             recorder: recorder,
@@ -2845,8 +3015,77 @@ final class RecorderViewModelTests: XCTestCase {
 
         viewModel.stopRecording()
 
+        XCTAssertEqual(soundEffectPlayer.stopCallCount, 0)
+        XCTAssertEqual(soundEffectPlayer.commandReceivedCallCount, 1)
+        XCTAssertEqual(events.values, ["capture-stop", "stop-command-sound"])
+        XCTAssertEqual(viewModel.statusText, "Kayıt durdu. Dosya hazırlanıyor")
+    }
+
+    func testAudioStopShowsPreparingStatusUntilExportCompletes() async {
+        let exporter = MockAudioRecordingExporter()
+        exporter.delayNanoseconds = 120_000_000
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(cameras: [], microphones: [InputDevice(id: "mic-1", name: "USB Mic")]),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            microphoneAudioRecorder: MockMicrophoneAudioRecorder(),
+            audioRecordingExporter: exporter,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            lastRecordingConfigurationStore: MockLastRecordingConfigurationStore(),
+            permissionProvider: RecorderPermissionsStub(statuses: [.audio: .authorized])
+        )
+        await viewModel.setup()
+        viewModel.selectPreset(RecordingPreset.audioOnly)
+        viewModel.refreshDeviceState()
+
+        viewModel.startRecording()
+        for _ in 0..<20 where !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        viewModel.stopRecording()
+        try? await Task.sleep(nanoseconds: 40_000_000)
+
+        XCTAssertEqual(viewModel.statusText, "Ses dosyası hazırlanıyor")
+        XCTAssertNil(viewModel.completedRecording)
+
+        try? await Task.sleep(nanoseconds: 160_000_000)
+
+        XCTAssertNotNil(viewModel.completedRecording)
+        XCTAssertTrue(viewModel.statusText.hasPrefix("Kaydedildi:"))
+    }
+
+    func testStopSoundPlaysWhenAudioFileIsReady() async {
+        let soundEffectPlayer = MockSoundEffectPlayer()
+        let exporter = MockAudioRecordingExporter()
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(cameras: [], microphones: [InputDevice(id: "mic-1", name: "USB Mic")]),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            microphoneAudioRecorder: MockMicrophoneAudioRecorder(),
+            audioRecordingExporter: exporter,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: soundEffectPlayer,
+            lastRecordingConfigurationStore: MockLastRecordingConfigurationStore(),
+            permissionProvider: RecorderPermissionsStub(statuses: [.audio: .authorized])
+        )
+        await viewModel.setup()
+        viewModel.selectPreset(RecordingPreset.audioOnly)
+        viewModel.refreshDeviceState()
+
+        viewModel.startRecording()
+        for _ in 0..<20 where !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        viewModel.stopRecording()
+        XCTAssertEqual(soundEffectPlayer.stopCallCount, 0)
+
+        try? await Task.sleep(nanoseconds: 150_000_000)
+
+        XCTAssertNotNil(viewModel.completedRecording)
         XCTAssertEqual(soundEffectPlayer.stopCallCount, 1)
-        XCTAssertEqual(events.values, ["capture-stop", "stop-sound"])
     }
 
     func testPermissionHubShowsRequestActionForUndeterminedMicrophone() async throws {
@@ -3017,14 +3256,26 @@ private final class RecordingStartEventLog {
 }
 
 private final class MockSoundEffectPlayer: SoundEffectPlaying {
+    var onCommandReceived: () -> Void = {}
     var onStart: () -> Void = {}
     var onStop: () -> Void = {}
     var onPauseResume: () -> Void = {}
+    var commandReceivedDurations: [TimeInterval] = [0]
     var pauseResumeDurations: [TimeInterval] = [0]
+    var commandReceivedCallCount = 0
+    var startCallCount = 0
     var pauseResumeCallCount = 0
     var stopCallCount = 0
 
+    func playCommandReceived() -> TimeInterval {
+        commandReceivedCallCount += 1
+        onCommandReceived()
+        guard !commandReceivedDurations.isEmpty else { return 0 }
+        return commandReceivedDurations.removeFirst()
+    }
+
     func playStart() -> TimeInterval {
+        startCallCount += 1
         onStart()
         return 0
     }
@@ -3046,6 +3297,7 @@ private final class MockAudioRecordingExporter: AudioRecordingExporting {
     private(set) var exportedMicrophoneURL: URL?
     private(set) var exportedSystemAudioURL: URL?
     private(set) var exportedDestinationURL: URL?
+    var delayNanoseconds: UInt64 = 0
 
     func export(
         microphoneURL: URL?,
@@ -3055,6 +3307,9 @@ private final class MockAudioRecordingExporter: AudioRecordingExporting {
         systemAudioVolume: Float,
         pauseTimeline: RecordingPauseTimeline
     ) async throws -> URL {
+        if delayNanoseconds > 0 {
+            try await Task.sleep(nanoseconds: delayNanoseconds)
+        }
         exportedMicrophoneURL = microphoneURL
         exportedSystemAudioURL = systemAudioURL
         exportedDestinationURL = destinationURL

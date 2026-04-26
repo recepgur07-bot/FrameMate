@@ -73,8 +73,11 @@ struct AutoReframeCompositionBuilder {
             for index in 0..<(timeline.keyframes.count - 1) {
                 let current = timeline.keyframes[index]
                 let next = timeline.keyframes[index + 1]
-                let timeRange = CMTimeRange(start: current.time, end: next.time)
-                guard timeRange.duration > .zero else { continue }
+                guard let timeRange = Self.boundedRampTimeRange(
+                    start: current.time,
+                    end: next.time,
+                    duration: duration
+                ) else { continue }
                 layerInstruction.setTransformRamp(
                     fromStart: transform(
                         for: current.crop,
@@ -168,8 +171,11 @@ struct AutoReframeCompositionBuilder {
                 for index in 0..<(timeline.keyframes.count - 1) {
                     let current = timeline.keyframes[index]
                     let next = timeline.keyframes[index + 1]
-                    let timeRange = CMTimeRange(start: current.time, end: next.time)
-                    guard timeRange.duration > .zero else { continue }
+                    guard let timeRange = Self.boundedRampTimeRange(
+                        start: current.time,
+                        end: next.time,
+                        duration: duration
+                    ) else { continue }
                     layerInstruction.setTransformRamp(
                         fromStart: Self.portraitLayerTransform(for: current.crop),
                         toEnd: Self.portraitLayerTransform(for: next.crop),
@@ -182,5 +188,19 @@ struct AutoReframeCompositionBuilder {
         instruction.layerInstructions = [layerInstruction]
         composition.instructions = [instruction]
         return composition
+    }
+
+    static func boundedRampTimeRange(start: CMTime, end: CMTime, duration: CMTime) -> CMTimeRange? {
+        guard start.isNumeric, end.isNumeric, duration.isNumeric, duration > .zero else {
+            return nil
+        }
+
+        let boundedStart = max(.zero, start)
+        let boundedEnd = min(duration, end)
+        guard boundedStart < duration, boundedEnd > boundedStart else {
+            return nil
+        }
+
+        return CMTimeRange(start: boundedStart, end: boundedEnd)
     }
 }

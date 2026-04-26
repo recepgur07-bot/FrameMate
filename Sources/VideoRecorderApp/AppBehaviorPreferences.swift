@@ -35,7 +35,7 @@ enum AppActivationPolicyPreference: String, CaseIterable, Identifiable {
 }
 
 struct AppBehaviorPreferences: Equatable {
-    var hideWindowOnRecordingStart = true
+    var hideWindowOnRecordingStart = false
     var showWindowWhenRecordingStops = true
     var activationPolicy: AppActivationPolicyPreference = .regular
     var launchAtLogin = false

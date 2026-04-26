@@ -126,7 +126,7 @@ private struct MainWindowRootView: View {
 struct VideoRecorderApp: App {
     @NSApplicationDelegateAdaptor(VideoRecorderAppDelegate.self) private var appDelegate
     @AppStorage("onboarding.completed") private var onboardingCompleted = false
-    @AppStorage(AppBehaviorPreferenceKey.hideWindowOnRecordingStart) private var hideWindowOnRecordingStart = true
+    @AppStorage(AppBehaviorPreferenceKey.hideWindowOnRecordingStart) private var hideWindowOnRecordingStart = false
     @AppStorage(AppBehaviorPreferenceKey.showWindowWhenRecordingStops) private var showWindowWhenRecordingStops = true
     @AppStorage(AppBehaviorPreferenceKey.activationPolicy) private var activationPolicyPreference = AppActivationPolicyPreference.regular.rawValue
     @AppStorage(AppBehaviorPreferenceKey.launchAtLogin) private var launchAtLogin = false

@@ -542,6 +542,18 @@ final class RecorderViewModel {
     var maxRecordingDuration: MaxRecordingDuration = .unlimited {
         didSet { UserDefaults.standard.set(maxRecordingDuration.rawValue, forKey: "recording.maxDuration") }
     }
+    var isRecordingCommandSoundEnabled = true {
+        didSet { UserDefaults.standard.set(isRecordingCommandSoundEnabled, forKey: "recording.sound.commandReceived") }
+    }
+    var isRecordingStartSoundEnabled = true {
+        didSet { UserDefaults.standard.set(isRecordingStartSoundEnabled, forKey: "recording.sound.start") }
+    }
+    var isRecordingStopSoundEnabled = true {
+        didSet { UserDefaults.standard.set(isRecordingStopSoundEnabled, forKey: "recording.sound.stop") }
+    }
+    var isRecordingPauseResumeSoundEnabled = true {
+        didSet { UserDefaults.standard.set(isRecordingPauseResumeSoundEnabled, forKey: "recording.sound.pauseResume") }
+    }
     var isAutoReframeEnabled = true {
         didSet { persistLastRecordingConfiguration() }
     }
@@ -979,6 +991,7 @@ final class RecorderViewModel {
     private var pendingAudioSystemAudioCaptureResult: Result<URL?, Error>?
     private var pendingAudioSystemAudioCaptureURL: URL?
     private var pendingAudioSystemAudioWarning: String?
+    private var recordingLifecycle = RecordingLifecycleState()
     private var isRestoringLastRecordingConfiguration = false
     private var recordingStartUptime: TimeInterval?
     private var currentPauseStartOffset: TimeInterval?
@@ -1061,7 +1074,13 @@ final class RecorderViewModel {
         ) ?? .off
         self.playsFrameCoachCenterConfirmation = UserDefaults.standard.object(forKey: "frameCoach.playsCenterConfirmation") as? Bool ?? true
         if let storedOutputPath = recordingOutputDirectoryStore.outputDirectoryPath {
-            self.recordingOutputDirectoryURL = URL(fileURLWithPath: storedOutputPath, isDirectory: true)
+            let storedOutputURL = URL(fileURLWithPath: storedOutputPath, isDirectory: true)
+            if Self.isInternalSandboxFallbackOutputDirectory(storedOutputURL) {
+                recordingOutputDirectoryStore.outputDirectoryPath = nil
+                self.recordingOutputDirectoryURL = fileNamer.outputDirectory
+            } else {
+                self.recordingOutputDirectoryURL = storedOutputURL
+            }
         } else {
             self.recordingOutputDirectoryURL = fileNamer.outputDirectory
         }
@@ -1293,6 +1312,11 @@ final class RecorderViewModel {
         RecordingFileNamer(outputDirectory: recordingOutputDirectoryURL)
     }
 
+    private func userDefaultBool(forKey key: String, defaultValue: Bool) -> Bool {
+        guard UserDefaults.standard.object(forKey: key) != nil else { return defaultValue }
+        return UserDefaults.standard.bool(forKey: key)
+    }
+
     func setup() async {
         guard !hasSetUp else { return }
         hasSetUp = true
@@ -1302,6 +1326,10 @@ final class RecorderViewModel {
         applyPresetSelection(refresh: false)
         recordingCountdown = RecordingCountdown(rawValue: UserDefaults.standard.integer(forKey: "recording.countdown")) ?? .none
         maxRecordingDuration = MaxRecordingDuration(rawValue: UserDefaults.standard.integer(forKey: "recording.maxDuration")) ?? .unlimited
+        isRecordingCommandSoundEnabled = userDefaultBool(forKey: "recording.sound.commandReceived", defaultValue: true)
+        isRecordingStartSoundEnabled = userDefaultBool(forKey: "recording.sound.start", defaultValue: true)
+        isRecordingStopSoundEnabled = userDefaultBool(forKey: "recording.sound.stop", defaultValue: true)
+        isRecordingPauseResumeSoundEnabled = userDefaultBool(forKey: "recording.sound.pauseResume", defaultValue: true)
         configureFrameCoachFeed()
         refreshDeviceState()
     }
@@ -1427,8 +1455,10 @@ final class RecorderViewModel {
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
 
+        let commandSoundDuration = playCommandReceivedSoundIfEnabled()
+
         if recordingCountdown == .none {
-            startRecording()
+            startRecording(afterCommandSoundDelay: commandSoundDuration)
         } else {
             beginCountdown()
         }
@@ -1438,12 +1468,12 @@ final class RecorderViewModel {
         guard canPauseRecording else { return }
 
         if isPaused {
-            let soundDuration = soundEffectPlayer.playPauseResume()
+            let soundDuration = playPauseResumeSoundIfEnabled()
             completeResumeAfterTransitionSound(duration: soundDuration)
         } else {
             beginCurrentPauseRange()
             isPaused = true
-            _ = soundEffectPlayer.playPauseResume()
+            _ = playPauseResumeSoundIfEnabled()
             statusText = selectedRecordingSource == .audio
                 ? String(localized: "Ses kaydı duraklatıldı")
                 : String(localized: "Kayıt duraklatıldı")
@@ -1700,8 +1730,15 @@ final class RecorderViewModel {
         return hardKeywords.contains { instruction.contains($0) }
     }
 
-    func startRecording() {
+    func startRecording(afterCommandSoundDelay commandSoundDelay: TimeInterval = 0) {
         Task {
+            if commandSoundDelay > 0 {
+                do {
+                    try await Task.sleep(for: .seconds(min(commandSoundDelay, 0.8)))
+                } catch {
+                    return
+                }
+            }
             await startRecordingAsync()
         }
     }
@@ -1728,8 +1765,10 @@ final class RecorderViewModel {
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
 
+        let commandSoundDuration = playCommandReceivedSoundIfEnabled()
+
         if recordingCountdown == .none {
-            startRecording()
+            startRecording(afterCommandSoundDelay: commandSoundDuration)
         } else {
             beginCountdown()
         }
@@ -1764,10 +1803,10 @@ final class RecorderViewModel {
     private func startRecordingAsync() async {
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
+        guard beginRecordingPreparation() else { return }
 
         do {
             let fileNamer = try resolvedActiveFileNamer()
-            isPreparingRecording = true
             statusText = String(localized: "Kayıt hazırlanıyor")
             errorText = nil
 
@@ -1826,16 +1865,10 @@ final class RecorderViewModel {
                 throw error
             }
 
-            isRecording = true
-            beginPauseTracking()
-            isPreparingRecording = false
-            lastSavedURL = nil
-            completedRecording = nil
-            errorText = nil
-            statusText = String(localized: "Kayıt yapılıyor")
-            sleepPreventer.prevent(reason: "Video kaydı devam ediyor")
-            startMaxDurationTimer()
-            startElapsedAnnouncer()
+            markRecordingStarted(
+                statusText: String(localized: "Kayıt yapılıyor"),
+                sleepReason: "Video kaydı devam ediyor"
+            )
         } catch {
             report(error)
         }
@@ -1871,12 +1904,11 @@ final class RecorderViewModel {
             pendingScreenKeyboardShortcutTimeline = keyboardShortcutRecorder.stopTracking()
             screenRecordingProvider.stopRecording()
         }
-        _ = soundEffectPlayer.playStop()
-        isRecording = false
-        isPaused = false
+        markRecordingStopping()
         pauseResumeTask?.cancel()
         pauseResumeTask = nil
-        statusText = String(localized: "Kayıt durduruluyor")
+        playCommandReceivedSoundIfEnabled()
+        setRecordingFinishingStatus(String(localized: "Kayıt durdu. Dosya hazırlanıyor"), key: "recording-file-preparing")
         sleepPreventer.allow()
         recordingDurationTask?.cancel()
         recordingDurationTask = nil
@@ -1907,6 +1939,7 @@ final class RecorderViewModel {
     }
 
     private func playStartSoundBeforeCapture() async {
+        guard isRecordingStartSoundEnabled else { return }
         let duration = soundEffectPlayer.playStart()
         guard duration > 0 else { return }
 
@@ -1915,6 +1948,68 @@ final class RecorderViewModel {
         } catch {
             // If start is cancelled while the cue is playing, continue cleanup through the caller.
         }
+    }
+
+    @discardableResult
+    private func playCommandReceivedSoundIfEnabled() -> TimeInterval {
+        guard isRecordingCommandSoundEnabled else { return 0 }
+        return soundEffectPlayer.playCommandReceived()
+    }
+
+    @discardableResult
+    private func playPauseResumeSoundIfEnabled() -> TimeInterval {
+        guard isRecordingPauseResumeSoundEnabled else { return 0 }
+        return soundEffectPlayer.playPauseResume()
+    }
+
+    private func playStopSoundIfEnabled() {
+        guard isRecordingStopSoundEnabled else { return }
+        _ = soundEffectPlayer.playStop()
+    }
+
+    private func setRecordingFinishingStatus(_ text: String, key: String) {
+        statusText = text
+        speechCuePlayer.speakIfNeeded(text, isEnabled: true, key: key)
+    }
+
+    private func markRecordingFileReady() {
+        playStopSoundIfEnabled()
+        speechCuePlayer.speakIfNeeded(String(localized: "Kayıt hazır"), isEnabled: true, key: "recording-file-ready")
+    }
+
+    private func beginRecordingPreparation() -> Bool {
+        guard recordingLifecycle.beginPreparing() else { return false }
+        isPreparingRecording = true
+        return true
+    }
+
+    private func markRecordingStarted(statusText: String, sleepReason: String) {
+        _ = recordingLifecycle.markStarted()
+        isRecording = true
+        beginPauseTracking()
+        isPreparingRecording = false
+        lastSavedURL = nil
+        completedRecording = nil
+        errorText = nil
+        self.statusText = statusText
+        sleepPreventer.prevent(reason: sleepReason)
+        startMaxDurationTimer()
+        startElapsedAnnouncer()
+    }
+
+    private func markRecordingStopping() {
+        _ = recordingLifecycle.beginStopping()
+        isRecording = false
+        isPaused = false
+        updatePreviewAnalysisState()
+    }
+
+    private func finishRecordingLifecycle() {
+        recordingLifecycle.finish()
+        isRecording = false
+        isPaused = false
+        isPreparingRecording = false
+        updatePreviewAnalysisState()
     }
 
     private func startAudioRecording() async throws {
@@ -1966,16 +2061,10 @@ final class RecorderViewModel {
             throw error
         }
 
-        isRecording = true
-        beginPauseTracking()
-        isPreparingRecording = false
-        lastSavedURL = nil
-        completedRecording = nil
-        errorText = nil
-        statusText = String(localized: "Ses kaydı yapılıyor")
-        sleepPreventer.prevent(reason: "Ses kaydı devam ediyor")
-        startMaxDurationTimer()
-        startElapsedAnnouncer()
+        markRecordingStarted(
+            statusText: String(localized: "Ses kaydı yapılıyor"),
+            sleepReason: "Ses kaydı devam ediyor"
+        )
     }
 
     private func startScreenRecording() async throws {
@@ -2072,16 +2161,10 @@ final class RecorderViewModel {
             throw error
         }
 
-        isRecording = true
-        beginPauseTracking()
-        isPreparingRecording = false
-        lastSavedURL = nil
-        completedRecording = nil
-        errorText = nil
-        statusText = String(localized: "Kayıt yapılıyor")
-        sleepPreventer.prevent(reason: "Ekran kaydı devam ediyor")
-        startMaxDurationTimer()
-        startElapsedAnnouncer()
+        markRecordingStarted(
+            statusText: String(localized: "Kayıt yapılıyor"),
+            sleepReason: "Ekran kaydı devam ediyor"
+        )
     }
 
     private func cleanupFailedScreenRecordingStart() {
@@ -2107,17 +2190,9 @@ final class RecorderViewModel {
     }
 
     private func handleCameraSystemAudioRecordingCompletion(_ result: Result<URL, Error>) {
-        switch result {
-        case .success(let url):
-            pendingCameraSystemAudioCaptureResult = .success(url)
-        case .failure(let error):
-            if let screenError = error as? ScreenRecordingError, screenError == .emptyRecording {
-                pendingCameraSystemAudioCaptureResult = .success(nil)
-            } else {
-                pendingCameraSystemAudioWarning = String(localized: "sistem sesi eklenemedi")
-                pendingCameraSystemAudioCaptureResult = .success(nil)
-            }
-        }
+        let componentResult = RecordingComponentResult.systemAudio(from: result)
+        pendingCameraSystemAudioCaptureResult = componentResult.value
+        pendingCameraSystemAudioWarning = componentResult.warning
         completeCameraRecordingIfReady()
     }
 
@@ -2153,12 +2228,11 @@ final class RecorderViewModel {
         warningText: String? = nil
     ) {
         let pauseTimeline = recordingPauseTimeline
-        isRecording = false
-        isPaused = false
+        finishRecordingLifecycle()
 
         switch result {
         case .success(let captureURL):
-            statusText = String(localized: "MP4 hazırlanıyor")
+            setRecordingFinishingStatus(String(localized: "Video dosyası hazırlanıyor"), key: "camera-video-file-preparing")
             Task {
                 do {
                     let exportResult = try await exportMP4(
@@ -2196,6 +2270,7 @@ final class RecorderViewModel {
                             key: "export-\(exportResult.usedVideoComposition)-\(exportResult.keyframeCount)-\(exportResult.strategy)",
                             settings: frameCoachPreferences
                         )
+                        markRecordingFileReady()
                     }
                 } catch {
                     await MainActor.run {
@@ -2220,62 +2295,30 @@ final class RecorderViewModel {
     }
 
     private func handleScreenMicrophoneCaptureCompletion(_ result: Result<URL, Error>) {
-        switch result {
-        case .success(let url):
-            pendingScreenMicrophoneCaptureResult = .success(url)
-        case .failure(let error):
-            if let microphoneError = error as? MicrophoneAudioRecorderError, microphoneError == .emptyRecording {
-                pendingScreenMicrophoneCaptureResult = .success(nil)
-            } else {
-                pendingScreenMicrophoneWarning = String(localized: "mikrofon sesi eklenemedi")
-                pendingScreenMicrophoneCaptureResult = .success(nil)
-            }
-        }
+        let componentResult = RecordingComponentResult.microphone(from: result)
+        pendingScreenMicrophoneCaptureResult = componentResult.value
+        pendingScreenMicrophoneWarning = componentResult.warning
         maybeFinalizeScreenRecordingExport()
     }
 
     private func handleScreenSystemAudioCaptureCompletion(_ result: Result<URL, Error>) {
-        switch result {
-        case .success(let url):
-            pendingScreenSystemAudioCaptureResult = .success(url)
-        case .failure(let error):
-            if let screenError = error as? ScreenRecordingError, screenError == .emptyRecording {
-                pendingScreenSystemAudioCaptureResult = .success(nil)
-            } else {
-                pendingScreenSystemAudioWarning = String(localized: "sistem sesi eklenemedi")
-                pendingScreenSystemAudioCaptureResult = .success(nil)
-            }
-        }
+        let componentResult = RecordingComponentResult.systemAudio(from: result)
+        pendingScreenSystemAudioCaptureResult = componentResult.value
+        pendingScreenSystemAudioWarning = componentResult.warning
         maybeFinalizeScreenRecordingExport()
     }
 
     private func handleAudioMicrophoneCaptureCompletion(_ result: Result<URL, Error>) {
-        switch result {
-        case .success(let url):
-            pendingAudioMicrophoneCaptureResult = .success(url)
-        case .failure(let error):
-            if let microphoneError = error as? MicrophoneAudioRecorderError, microphoneError == .emptyRecording {
-                pendingAudioMicrophoneCaptureResult = .success(nil)
-            } else {
-                pendingAudioMicrophoneWarning = String(localized: "mikrofon sesi eklenemedi")
-                pendingAudioMicrophoneCaptureResult = .success(nil)
-            }
-        }
+        let componentResult = RecordingComponentResult.microphone(from: result)
+        pendingAudioMicrophoneCaptureResult = componentResult.value
+        pendingAudioMicrophoneWarning = componentResult.warning
         maybeFinalizeAudioRecordingExport()
     }
 
     private func handleAudioSystemAudioCaptureCompletion(_ result: Result<URL, Error>) {
-        switch result {
-        case .success(let url):
-            pendingAudioSystemAudioCaptureResult = .success(url)
-        case .failure(let error):
-            if let screenError = error as? ScreenRecordingError, screenError == .emptyRecording {
-                pendingAudioSystemAudioCaptureResult = .success(nil)
-            } else {
-                pendingAudioSystemAudioWarning = String(localized: "sistem sesi eklenemedi")
-                pendingAudioSystemAudioCaptureResult = .success(nil)
-            }
-        }
+        let componentResult = RecordingComponentResult.systemAudio(from: result)
+        pendingAudioSystemAudioCaptureResult = componentResult.value
+        pendingAudioSystemAudioWarning = componentResult.warning
         maybeFinalizeAudioRecordingExport()
     }
 
@@ -2290,14 +2333,13 @@ final class RecorderViewModel {
         let systemAudioWarning = pendingAudioSystemAudioWarning
         let pauseTimeline = recordingPauseTimeline
         resetPendingAudioRecordingState()
-        isRecording = false
-        isPaused = false
+        finishRecordingLifecycle()
 
         switch (microphoneResult, systemAudioResult) {
         case (.failure(let error), _), (_, .failure(let error)):
             report(error)
         case (.success(let microphoneURL), .success(let systemAudioURL)):
-            statusText = String(localized: "M4A hazırlanıyor")
+            setRecordingFinishingStatus(String(localized: "Ses dosyası hazırlanıyor"), key: "audio-file-preparing")
             Task {
                 do {
                     let exportURL = try await audioRecordingExporter.export(
@@ -2323,6 +2365,7 @@ final class RecorderViewModel {
                         } else {
                             statusText = String(localized: "Kaydedildi: \(exportURL.path) (\(warnings.joined(separator: ", ")))")
                         }
+                        markRecordingFileReady()
                     }
                 } catch {
                     await MainActor.run { [weak self] in
@@ -2373,8 +2416,7 @@ final class RecorderViewModel {
         let keyboardShortcutTimeline = pendingScreenKeyboardShortcutTimeline.shifted(by: pauseTimeline)
         resetPendingScreenRecordingState()
         cameraOverlayRecorder.stopSession()
-        isRecording = false
-        isPaused = false
+        finishRecordingLifecycle()
 
         switch (screenResult, overlayResult, microphoneResult, systemAudioResult) {
         case (.failure(let error), _, _, _):
@@ -2386,7 +2428,7 @@ final class RecorderViewModel {
         case (_, _, _, .failure(let error)):
             report(error)
         case (.success(let captureURL), .success(let overlayURL), .success(let microphoneURL), .success(let systemAudioURL)):
-            statusText = String(localized: "MP4 hazırlanıyor")
+            setRecordingFinishingStatus(String(localized: "Ekran kaydı dosyası hazırlanıyor"), key: "screen-video-file-preparing")
             Task {
                 do {
                     let exportResult = try await exportMP4(
@@ -2426,6 +2468,7 @@ final class RecorderViewModel {
                         } else {
                             statusText = String(localized: "Kaydedildi: \(exportResult.url.path) (\(warnings.joined(separator: ", ")))")
                         }
+                        markRecordingFileReady()
                     }
                 } catch {
                     await MainActor.run {
@@ -2930,6 +2973,18 @@ final class RecorderViewModel {
         }
     }
 
+    private static func isInternalSandboxFallbackOutputDirectory(_ url: URL) -> Bool {
+        let components = url.standardizedFileURL.pathComponents
+        guard let containersIndex = components.firstIndex(of: "Containers"),
+              components.indices.contains(containersIndex + 1),
+              components[containersIndex + 1] == "com.recepgur.VideoRecorder" else {
+            return false
+        }
+
+        let suffix = Array(components.suffix(3))
+        return suffix == ["Data", "Downloads", "FrameMate"]
+    }
+
     private func cleanupOrphanedTempFiles() {
         let directory = activeFileNamer.outputDirectory
         let fm = FileManager.default
@@ -2947,9 +3002,7 @@ final class RecorderViewModel {
         refreshPermissionStatus()
         errorText = error.localizedDescription
         statusText = "Hata: \(error.localizedDescription)"
-        isRecording = false
-        isPaused = false
-        isPreparingRecording = false
+        finishRecordingLifecycle()
         completedRecording = nil
         if error is CaptureRecorderError {
             isRecorderConfigured = false
@@ -3589,6 +3642,7 @@ final class RecorderViewModel {
     private func prepareAnalysisPreviewIfPossible() async {
         if selectedRecordingSource == .camera {
             guard isFrameCoachEnabled else { return }
+            guard !isRecording, !isPreparingRecording else { return }
             guard hasRequiredPermissions else { return }
             guard !selectedCameraID.isEmpty, !selectedMicrophoneID.isEmpty else { return }
 

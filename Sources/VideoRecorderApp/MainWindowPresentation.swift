@@ -9,7 +9,7 @@ struct MainWindowPresentationPolicy {
     let showWindowWhenRecordingStops: Bool
     let hideWindowOnRecordingStart: Bool
 
-    init(showWindowWhenRecordingStops: Bool = true, hideWindowOnRecordingStart: Bool = true) {
+    init(showWindowWhenRecordingStops: Bool = true, hideWindowOnRecordingStart: Bool = false) {
         self.showWindowWhenRecordingStops = showWindowWhenRecordingStops
         self.hideWindowOnRecordingStart = hideWindowOnRecordingStart
     }

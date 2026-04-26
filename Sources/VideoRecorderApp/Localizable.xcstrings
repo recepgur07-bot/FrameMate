@@ -3667,6 +3667,149 @@
         }
       }
     },
+    "Kayıt durdu. Dosya hazırlanıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording stopped. Preparing file"
+          }
+        }
+      }
+    },
+    "Kayıt hazır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording ready"
+          }
+        }
+      }
+    },
+    "Video dosyası hazırlanıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing video file"
+          }
+        }
+      }
+    },
+    "Ses dosyası hazırlanıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing audio file"
+          }
+        }
+      }
+    },
+    "Ekran kaydı dosyası hazırlanıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing screen recording file"
+          }
+        }
+      }
+    },
+    "Komut alındı sesini çal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play command received sound"
+          }
+        }
+      }
+    },
+    "Kayıt başladı sesini çal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play recording started sound"
+          }
+        }
+      }
+    },
+    "Kayıt bitti sesini çal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play recording finished sound"
+          }
+        }
+      }
+    },
+    "Duraklat ve devam sesini çal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play pause and resume sound"
+          }
+        }
+      }
+    },
+    "Kayıt başlatma komutu alındığında kısa bir onay sesi çalar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plays a short confirmation sound when the recording start command is received."
+          }
+        }
+      }
+    },
+    "Hazırlık veya geri sayım bittikten sonra, kayıt gerçekten başlamadan hemen önce başlangıç sesi çalar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plays the start sound after preparation or countdown, just before recording actually begins."
+          }
+        }
+      }
+    },
+    "Kayıt durduktan sonra bitiş sesi çalar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plays the finish sound after the recording stops."
+          }
+        }
+      }
+    },
+    "Kayıt duraklatıldığında veya devam ettirildiğinde geçiş sesi çalar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plays a transition sound when recording is paused or resumed."
+          }
+        }
+      }
+    },
     "3 dakika": {
       "extractionState": "manual",
       "localizations": {

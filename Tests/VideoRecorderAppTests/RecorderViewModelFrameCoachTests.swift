@@ -21,17 +21,83 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
             cameras: [InputDevice(id: "cam-1", name: "Camera")],
             microphones: [InputDevice(id: "mic-1", name: "Mic")]
         )
-        let viewModel = makeViewModel(speaker: speaker, recorder: recorder)
+        let viewModel = makeViewModel(
+            speaker: speaker,
+            recorder: recorder,
+            soundEffectPlayer: FrameCoachMockSoundEffectPlayer()
+        )
 
         await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
 
         viewModel.toggleFrameCoach()
-        await Task.yield()
+        for _ in 0..<20 where recorder.startSessionInBackgroundCallCount == 0 {
+            await Task.yield()
+        }
 
         XCTAssertTrue(viewModel.isFrameCoachEnabled)
         XCTAssertEqual(viewModel.currentFrameCoachInstruction, "Kadraj koçu açık")
         XCTAssertEqual(speaker.spokenTexts, ["Kadraj koçu açık"])
         XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 1)
+    }
+
+    func testToggleFrameCoachDuringRecordingDoesNotReconfigureCameraSession() async {
+        let speaker = MockInstructionSpeaker()
+        let recorder = FrameCoachMockCaptureRecorder(
+            cameras: [InputDevice(id: "cam-1", name: "Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "Mic")]
+        )
+        let viewModel = makeViewModel(speaker: speaker, recorder: recorder)
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
+        viewModel.isRecording = true
+
+        viewModel.toggleFrameCoach()
+        await Task.yield()
+
+        XCTAssertTrue(viewModel.isRecording)
+        XCTAssertTrue(viewModel.isFrameCoachEnabled)
+        XCTAssertEqual(recorder.configureCallCount, 0)
+        XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 0)
+    }
+
+    func testCameraRecordingStopAfterFrameCoachToggleStopsPreviewSession() async {
+        let speaker = MockInstructionSpeaker()
+        let recorder = FrameCoachMockCaptureRecorder(
+            cameras: [InputDevice(id: "cam-1", name: "Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "Mic")]
+        )
+        let viewModel = makeViewModel(
+            speaker: speaker,
+            recorder: recorder,
+            soundEffectPlayer: FrameCoachMockSoundEffectPlayer()
+        )
+
+        await viewModel.setup()
+        viewModel.appAccessState = AppAccessState(accessKind: .lifetime, trialDaysRemaining: 0, offers: [])
+        viewModel.selectPreset(.horizontalCamera)
+        viewModel.recordingCountdown = .none
+        let stopSessionCallCountBeforeRecording = recorder.stopSessionCallCount
+        viewModel.startRecording()
+
+        for _ in 0..<40 where !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+        XCTAssertTrue(viewModel.isRecording, viewModel.errorText ?? viewModel.statusText)
+
+        viewModel.toggleFrameCoach()
+        viewModel.toggleFrameCoach()
+        viewModel.stopRecording()
+
+        for _ in 0..<40 where viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertFalse(viewModel.isRecording)
+        XCTAssertFalse(viewModel.isFrameCoachEnabled)
+        XCTAssertFalse(recorder.previewFramesEnabled)
+        XCTAssertEqual(recorder.stopSessionCallCount, stopSessionCallCountBeforeRecording + 1)
     }
 
     func testToggleFrameCoachDisablesCoachAndClearsInstruction() {
@@ -390,6 +456,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         screenRecordingProvider: any ScreenRecordingProviding = MockScreenRecordingProvider(status: .authorized),
         cameraOverlayRecorder: any CameraOverlayRecording = MockCameraOverlayRecorder(),
         frameAnalysisService: FrameAnalysisService = FrameAnalysisService(),
+        soundEffectPlayer: any SoundEffectPlaying = SoundEffectPlayer(),
         speechCuePlayer: SpeechCuePlayer? = nil,
         spatialCuePlayer: (any SpatialCuePlaying)? = nil
     ) -> RecorderViewModel {
@@ -401,7 +468,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
             cameraOverlayRecorder: cameraOverlayRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
             frameAnalysisService: frameAnalysisService,
-            soundEffectPlayer: SoundEffectPlayer(),
+            soundEffectPlayer: soundEffectPlayer,
             frameCoachSettingsStore: settingsStore,
             permissionProvider: FrameCoachMockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized]),
             openURL: { _ in },
@@ -473,6 +540,12 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
     }
 }
 
+private struct FrameCoachMockSoundEffectPlayer: SoundEffectPlaying {
+    func playStart() -> TimeInterval { 0 }
+    func playStop() -> TimeInterval { 0 }
+    func playPauseResume() -> TimeInterval { 0 }
+}
+
 private struct StubFaceDetector: FaceDetecting {
     let faceBoxes: [NormalizedFaceBox]
 
@@ -487,7 +560,11 @@ private final class FrameCoachMockCaptureRecorder: CaptureRecording {
     var microphones: [InputDevice]
     private(set) var previewFramesEnabled = false
     private(set) var previewFrameHandler: PreviewFrameHandler?
+    private(set) var configureCallCount = 0
     private(set) var startSessionInBackgroundCallCount = 0
+    private(set) var stopSessionCallCount = 0
+    private var recordingCompletion: ((Result<URL, Error>) -> Void)?
+    private var recordingURL: URL?
 
     init(cameras: [InputDevice] = [], microphones: [InputDevice] = []) {
         self.cameras = cameras
@@ -496,13 +573,24 @@ private final class FrameCoachMockCaptureRecorder: CaptureRecording {
 
     func cameraDevices() -> [InputDevice] { cameras }
     func microphoneDevices() -> [InputDevice] { microphones }
-    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode) async throws {}
-    func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {}
-    func stopRecording() {}
+    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode) async throws {
+        configureCallCount += 1
+    }
+    func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {
+        recordingURL = url
+        recordingCompletion = completion
+    }
+    func stopRecording() {
+        if let recordingURL {
+            recordingCompletion?(.success(recordingURL))
+        }
+        recordingURL = nil
+        recordingCompletion = nil
+    }
     func setPreviewFrameHandler(_ handler: PreviewFrameHandler?) { previewFrameHandler = handler }
     func setPreviewFramesEnabled(_ isEnabled: Bool) { previewFramesEnabled = isEnabled }
     func startSessionInBackground() { startSessionInBackgroundCallCount += 1 }
-    func stopSession() {}
+    func stopSession() { stopSessionCallCount += 1 }
 }
 
 private struct FrameCoachMockMediaPermissionProvider: MediaPermissionProviding {

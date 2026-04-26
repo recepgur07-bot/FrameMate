@@ -41,6 +41,28 @@ final class AutoReframeTimelineTests: XCTestCase {
         XCTAssertNil(composition)
     }
 
+    func testCompositionRampRangeClampsToAssetDuration() throws {
+        let range = AutoReframeCompositionBuilder.boundedRampTimeRange(
+            start: CMTime(seconds: 0.5, preferredTimescale: 600),
+            end: CMTime(seconds: 3, preferredTimescale: 600),
+            duration: CMTime(seconds: 1, preferredTimescale: 600)
+        )
+
+        let unwrappedRange = try XCTUnwrap(range)
+        XCTAssertEqual(unwrappedRange.start.seconds, 0.5, accuracy: 0.001)
+        XCTAssertEqual(unwrappedRange.end.seconds, 1, accuracy: 0.001)
+    }
+
+    func testCompositionRampRangeSkipsFramesAfterAssetDuration() {
+        let range = AutoReframeCompositionBuilder.boundedRampTimeRange(
+            start: CMTime(seconds: 2, preferredTimescale: 600),
+            end: CMTime(seconds: 3, preferredTimescale: 600),
+            duration: CMTime(seconds: 1, preferredTimescale: 600)
+        )
+
+        XCTAssertNil(range)
+    }
+
     func testPauseTimelineRemovesPausedRangeFromSegments() {
         let timeline = RecordingPauseTimeline(ranges: [
             RecordingPauseRange(start: 2, end: 5)

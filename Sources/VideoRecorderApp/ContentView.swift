@@ -1217,7 +1217,7 @@ struct ContentView: View {
 
 struct SettingsView: View {
     @Bindable var viewModel: RecorderViewModel
-    @AppStorage(AppBehaviorPreferenceKey.hideWindowOnRecordingStart) private var hideWindowOnRecordingStart = true
+    @AppStorage(AppBehaviorPreferenceKey.hideWindowOnRecordingStart) private var hideWindowOnRecordingStart = false
     @AppStorage(AppBehaviorPreferenceKey.showWindowWhenRecordingStops) private var showWindowWhenRecordingStops = true
     @AppStorage(AppBehaviorPreferenceKey.activationPolicy) private var activationPolicyPreference = AppActivationPolicyPreference.regular.rawValue
     @AppStorage(AppBehaviorPreferenceKey.launchAtLogin) private var launchAtLogin = false
@@ -1302,6 +1302,18 @@ struct SettingsView: View {
                     }
                 }
                 .accessibilityHint(String(localized: "Bu süre dolunca kayıt otomatik olarak durur."))
+
+                Toggle("Komut alındı sesini çal", isOn: $viewModel.isRecordingCommandSoundEnabled)
+                    .accessibilityHint(String(localized: "Kayıt başlatma komutu alındığında kısa bir onay sesi çalar."))
+
+                Toggle("Kayıt başladı sesini çal", isOn: $viewModel.isRecordingStartSoundEnabled)
+                    .accessibilityHint(String(localized: "Hazırlık veya geri sayım bittikten sonra, kayıt gerçekten başlamadan hemen önce başlangıç sesi çalar."))
+
+                Toggle("Kayıt bitti sesini çal", isOn: $viewModel.isRecordingStopSoundEnabled)
+                    .accessibilityHint(String(localized: "Kayıt durduktan sonra bitiş sesi çalar."))
+
+                Toggle("Duraklat ve devam sesini çal", isOn: $viewModel.isRecordingPauseResumeSoundEnabled)
+                    .accessibilityHint(String(localized: "Kayıt duraklatıldığında veya devam ettirildiğinde geçiş sesi çalar."))
 
                 Toggle("Kayıt başlarken pencereyi gizle", isOn: $hideWindowOnRecordingStart)
                     .accessibilityHint(String(localized: "Kayıt başladığında uygulama penceresi ekrandan kaybolur, böylece ekran kaydında uygulamanın arayüzü görünmez."))
