@@ -14,11 +14,11 @@ extension SoundEffectPlaying {
 
 struct SoundEffectPlayer: SoundEffectPlaying {
     @discardableResult func playCommandReceived() -> TimeInterval {
-        play(named: "yeni-ses")
+        play(named: "baslama")
     }
 
     @discardableResult func playStart() -> TimeInterval {
-        play(named: "baslama")
+        play(named: "yeni-ses")
     }
 
     @discardableResult func playStop() -> TimeInterval {

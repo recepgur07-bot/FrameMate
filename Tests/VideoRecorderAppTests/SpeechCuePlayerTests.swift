@@ -2,12 +2,13 @@ import XCTest
 @testable import FrameMate
 
 final class SpeechCuePlayerTests: XCTestCase {
-    func testSpeaksFirstInstruction() {
+    func testAutomaticModeStaysSilentWhenVoiceOverIsNotRunning() {
         let speaker = SpeechInstructionSpeakerStub()
+        let announcer = AccessibilityAnnouncerSpy()
         let now = Date(timeIntervalSince1970: 1_000)
         let player = SpeechCuePlayer(
             speaker: speaker,
-            announcer: nil,
+            announcer: announcer,
             now: { now },
             cooldown: 2,
             isVoiceOverEnabled: { false }
@@ -15,7 +16,8 @@ final class SpeechCuePlayerTests: XCTestCase {
 
         player.speakIfNeeded("Biraz sola", isEnabled: true)
 
-        XCTAssertEqual(speaker.spokenTexts, ["Biraz sola"])
+        XCTAssertTrue(speaker.spokenTexts.isEmpty)
+        XCTAssertTrue(announcer.announcements.isEmpty)
     }
 
     func testSuppressesRepeatedInstructionDuringCooldown() {
@@ -29,9 +31,17 @@ final class SpeechCuePlayerTests: XCTestCase {
             isVoiceOverEnabled: { false }
         )
 
-        player.speakIfNeeded("Biraz sola", isEnabled: true)
+        player.speakIfNeeded(
+            "Biraz sola",
+            isEnabled: true,
+            settings: FrameCoachPreferences(speechMode: .appVoice, feedbackFrequency: .balanced, repeatInterval: .medium, showsOnScreenText: true, spatialAudioMode: .off, playsCenterConfirmation: true)
+        )
         now = now.addingTimeInterval(2)
-        player.speakIfNeeded("Biraz sola", isEnabled: true)
+        player.speakIfNeeded(
+            "Biraz sola",
+            isEnabled: true,
+            settings: FrameCoachPreferences(speechMode: .appVoice, feedbackFrequency: .balanced, repeatInterval: .medium, showsOnScreenText: true, spatialAudioMode: .off, playsCenterConfirmation: true)
+        )
 
         XCTAssertEqual(speaker.spokenTexts, ["Biraz sola"])
     }
@@ -46,8 +56,9 @@ final class SpeechCuePlayerTests: XCTestCase {
             isVoiceOverEnabled: { false }
         )
 
-        player.speakIfNeeded("Biraz sola", isEnabled: true)
-        player.speakIfNeeded("Kamerayı biraz aşağı indir", isEnabled: true)
+        let settings = FrameCoachPreferences(speechMode: .appVoice, feedbackFrequency: .frequent, repeatInterval: .medium, showsOnScreenText: true, spatialAudioMode: .off, playsCenterConfirmation: true)
+        player.speakIfNeeded("Biraz sola", isEnabled: true, settings: settings)
+        player.speakIfNeeded("Kamerayı biraz aşağı indir", isEnabled: true, settings: settings)
 
         XCTAssertEqual(
             speaker.spokenTexts,
@@ -69,7 +80,11 @@ final class SpeechCuePlayerTests: XCTestCase {
         speaker.isSpeaking = true
         let player = SpeechCuePlayer(speaker: speaker, announcer: nil, isVoiceOverEnabled: { false })
 
-        player.speakIfNeeded("Biraz sola", isEnabled: true)
+        player.speakIfNeeded(
+            "Biraz sola",
+            isEnabled: true,
+            settings: FrameCoachPreferences(speechMode: .appVoice, feedbackFrequency: .balanced, repeatInterval: .medium, showsOnScreenText: true, spatialAudioMode: .off, playsCenterConfirmation: true)
+        )
 
         XCTAssertTrue(speaker.spokenTexts.isEmpty)
     }
@@ -85,16 +100,19 @@ final class SpeechCuePlayerTests: XCTestCase {
             isVoiceOverEnabled: { false }
         )
 
+        let settings = FrameCoachPreferences(speechMode: .appVoice, feedbackFrequency: .balanced, repeatInterval: .medium, showsOnScreenText: true, spatialAudioMode: .off, playsCenterConfirmation: true)
         player.speakIfNeeded(
             "Bir kişi görünüyor. Kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün",
             isEnabled: true,
-            key: "Kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün"
+            key: "Kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün",
+            settings: settings
         )
         now = now.addingTimeInterval(1)
         player.speakIfNeeded(
             "Kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün",
             isEnabled: true,
-            key: "Kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün"
+            key: "Kadraj çok yakın, biraz uzaklaş ve omuzlarınla göğüs hizan da görünsün",
+            settings: settings
         )
 
         XCTAssertEqual(

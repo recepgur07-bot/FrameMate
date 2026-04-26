@@ -291,7 +291,7 @@ final class RecorderViewModelTests: XCTestCase {
         )
     }
 
-    func testAnnounceCurrentSettingsSpeaksModeAndAccessibilitySummary() async {
+    func testAnnounceCurrentSettingsStaysSilentWhenVoiceOverIsNotRunning() async {
         let speaker = MockInstructionSpeaker()
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(
@@ -313,10 +313,7 @@ final class RecorderViewModelTests: XCTestCase {
 
         viewModel.announceCurrentSettings()
 
-        XCTAssertEqual(
-            speaker.spokenTexts,
-            ["Mod Yatay video kaydı. Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu kapalı."]
-        )
+        XCTAssertTrue(speaker.spokenTexts.isEmpty)
     }
 
     func testAnnounceCurrentSettingsUsesVoiceOverWhenRunning() async {
@@ -350,6 +347,7 @@ final class RecorderViewModelTests: XCTestCase {
 
     func testAnnounceCurrentSettingsIncludesModeSpecificMissingPermissionsAtEnd() async {
         let speaker = MockInstructionSpeaker()
+        let announcer = MockInstructionAnnouncer()
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(
                 cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
@@ -359,7 +357,7 @@ final class RecorderViewModelTests: XCTestCase {
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
             soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: MockMediaPermissionProvider(statuses: [.video: .denied, .audio: .authorized]),
-            speechCuePlayer: SpeechCuePlayer(speaker: speaker, announcer: nil, isVoiceOverEnabled: { false })
+            speechCuePlayer: SpeechCuePlayer(speaker: speaker, announcer: announcer, isVoiceOverEnabled: { true })
         )
 
         await viewModel.setup()
@@ -371,14 +369,16 @@ final class RecorderViewModelTests: XCTestCase {
 
         viewModel.announceCurrentSettings()
 
+        XCTAssertTrue(speaker.spokenTexts.isEmpty)
         XCTAssertEqual(
-            speaker.spokenTexts,
+            announcer.announcements,
             ["Mod Yatay pencere kaydı. Kaynak pencere, pencere seçilmedi, mikrofon MacBook Mikrofonu, sistem sesi kapalı, imleç vurgusu kapalı, kamera kutusu açık. Eksik izinler: ekran kaydı, kamera."]
         )
     }
 
     func testAnnounceCurrentSettingsIncludesKeyboardShortcutAccessibilityWarning() async {
         let speaker = MockInstructionSpeaker()
+        let announcer = MockInstructionAnnouncer()
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(
                 microphones: [InputDevice(id: "mic-1", name: "MacBook Mikrofonu")]
@@ -389,7 +389,7 @@ final class RecorderViewModelTests: XCTestCase {
             permissionProvider: MockMediaPermissionProvider(statuses: [.audio: .authorized]),
             isAccessibilityPermissionGranted: { false },
             openURL: { _ in },
-            speechCuePlayer: SpeechCuePlayer(speaker: speaker, announcer: nil, isVoiceOverEnabled: { false })
+            speechCuePlayer: SpeechCuePlayer(speaker: speaker, announcer: announcer, isVoiceOverEnabled: { true })
         )
 
         await viewModel.setup()
@@ -402,8 +402,9 @@ final class RecorderViewModelTests: XCTestCase {
 
         viewModel.announceCurrentSettings()
 
+        XCTAssertTrue(speaker.spokenTexts.isEmpty)
         XCTAssertEqual(
-            speaker.spokenTexts,
+            announcer.announcements,
             ["Mod Yatay ekran kaydı. Kaynak tam ekran, ekran seçilmedi, mikrofon MacBook Mikrofonu, sistem sesi kapalı, imleç vurgusu kapalı, klavye kısayolları açık, kamera kutusu açık. Eksik izinler: kamera. Ekran kaydında klavye kısayollarını göstermek ve Cmd+I ayar duyurusunu güvenilir almak için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver."]
         )
     }
@@ -437,6 +438,7 @@ final class RecorderViewModelTests: XCTestCase {
             screenRecordingProvider: MockScreenRecordingProvider(status: .authorized),
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
             soundEffectPlayer: MockSoundEffectPlayer(),
+            lastRecordingConfigurationStore: MockLastRecordingConfigurationStore(),
             permissionProvider: MockMediaPermissionProvider(statuses: [:]),
             isAccessibilityPermissionGranted: { false },
             requestAccessibilityPermissionPrompt: { didRequestPrompt = true },
@@ -448,6 +450,26 @@ final class RecorderViewModelTests: XCTestCase {
 
         XCTAssertTrue(didRequestPrompt)
         XCTAssertEqual(openedURL?.absoluteString, "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+    }
+
+    func testEnablingKeyboardShortcutOverlayRequestsAccessibilityPromptWhenMissing() async {
+        var didRequestPrompt = false
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(status: .authorized),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            lastRecordingConfigurationStore: MockLastRecordingConfigurationStore(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [:]),
+            isAccessibilityPermissionGranted: { false },
+            requestAccessibilityPermissionPrompt: { didRequestPrompt = true },
+            openURL: { _ in }
+        )
+
+        await viewModel.setup()
+        viewModel.isKeyboardShortcutOverlayEnabled = true
+
+        XCTAssertTrue(didRequestPrompt)
     }
 
     func testFrameCoachSettingsDefaultToAccessibleBalancedGuidance() async {
@@ -2895,7 +2917,7 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(soundEffectPlayer.commandReceivedCallCount, 0)
     }
 
-    func testNoCountdownWaitsForCommandSoundBeforeStartSound() async {
+    func testNoCountdownStartsPreparingWithoutWaitingForCommandSound() async {
         let events = RecordingStartEventLog()
         let soundEffectPlayer = MockSoundEffectPlayer()
         soundEffectPlayer.commandReceivedDurations = [0.12]
@@ -2920,8 +2942,8 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.toggleRecording()
         try? await Task.sleep(nanoseconds: 40_000_000)
 
-        XCTAssertFalse(viewModel.isRecording)
-        XCTAssertEqual(events.values, ["command"])
+        XCTAssertTrue(viewModel.isRecording)
+        XCTAssertEqual(events.values, ["command", "start"])
 
         for _ in 0..<20 where !viewModel.isRecording {
             try? await Task.sleep(nanoseconds: 25_000_000)

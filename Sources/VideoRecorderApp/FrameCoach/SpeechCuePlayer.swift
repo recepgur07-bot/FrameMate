@@ -156,9 +156,9 @@ final class SpeechCuePlayer {
             if isVoiceOverEnabled(), announcer != nil {
                 return .voiceOver
             }
-            return .appVoice
+            return .silent
         case .voiceOver:
-            return announcer == nil ? .appVoice : .voiceOver
+            return announcer == nil ? .silent : .voiceOver
         case .appVoice:
             return .appVoice
         case .silent:

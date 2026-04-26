@@ -506,7 +506,10 @@ final class RecorderViewModel {
         didSet { persistLastRecordingConfiguration() }
     }
     var isKeyboardShortcutOverlayEnabled = false {
-        didSet { persistLastRecordingConfiguration() }
+        didSet {
+            persistLastRecordingConfiguration()
+            requestAccessibilityPromptIfNeededForKeyboardShortcuts(wasEnabled: oldValue)
+        }
     }
     var microphoneVolume: Float = 1.0
     var systemAudioVolume: Float = 1.0
@@ -1302,6 +1305,13 @@ final class RecorderViewModel {
         return String(localized: "Ekran kaydında klavye kısayollarını göstermek ve Cmd+I ayar duyurusunu güvenilir almak için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik'ten FrameMate'e izin ver.")
     }
 
+    private func requestAccessibilityPromptIfNeededForKeyboardShortcuts(wasEnabled: Bool) {
+        guard hasSetUp, !isRestoringLastRecordingConfiguration else { return }
+        guard isKeyboardShortcutOverlayEnabled, !wasEnabled else { return }
+        guard !isAccessibilityPermissionGranted() else { return }
+        requestAccessibilityPermissionPrompt()
+    }
+
     func openAccessibilitySettings() {
         requestAccessibilityPermissionPrompt()
         let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
@@ -1455,10 +1465,10 @@ final class RecorderViewModel {
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
 
-        let commandSoundDuration = playCommandReceivedSoundIfEnabled()
+        playCommandReceivedSoundIfEnabled()
 
         if recordingCountdown == .none {
-            startRecording(afterCommandSoundDelay: commandSoundDuration)
+            startRecording()
         } else {
             beginCountdown()
         }
@@ -1732,13 +1742,7 @@ final class RecorderViewModel {
 
     func startRecording(afterCommandSoundDelay commandSoundDelay: TimeInterval = 0) {
         Task {
-            if commandSoundDelay > 0 {
-                do {
-                    try await Task.sleep(for: .seconds(min(commandSoundDelay, 0.8)))
-                } catch {
-                    return
-                }
-            }
+            _ = commandSoundDelay
             await startRecordingAsync()
         }
     }
@@ -1765,10 +1769,10 @@ final class RecorderViewModel {
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
 
-        let commandSoundDuration = playCommandReceivedSoundIfEnabled()
+        playCommandReceivedSoundIfEnabled()
 
         if recordingCountdown == .none {
-            startRecording(afterCommandSoundDelay: commandSoundDuration)
+            startRecording()
         } else {
             beginCountdown()
         }
