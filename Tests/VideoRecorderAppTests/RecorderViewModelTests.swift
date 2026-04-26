@@ -2949,7 +2949,7 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(soundEffectPlayer.commandReceivedCallCount, 0)
     }
 
-    func testNoCountdownStartsPreparingWithoutWaitingForCommandSound() async {
+    func testNoCountdownWaitsForCommandSoundBeforeStartCue() async {
         let events = RecordingStartEventLog()
         let soundEffectPlayer = MockSoundEffectPlayer()
         soundEffectPlayer.commandReceivedDurations = [0.12]
@@ -2974,8 +2974,8 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.toggleRecording()
         try? await Task.sleep(nanoseconds: 40_000_000)
 
-        XCTAssertTrue(viewModel.isRecording)
-        XCTAssertEqual(events.values, ["command", "start"])
+        XCTAssertFalse(viewModel.isRecording)
+        XCTAssertEqual(events.values, ["command"])
 
         for _ in 0..<20 where !viewModel.isRecording {
             try? await Task.sleep(nanoseconds: 25_000_000)

@@ -997,6 +997,7 @@ final class RecorderViewModel {
     private var recordingLifecycle = RecordingLifecycleState()
     private var isRestoringLastRecordingConfiguration = false
     private var recordingStartUptime: TimeInterval?
+    private var commandSoundEndUptime: TimeInterval?
     private var currentPauseStartOffset: TimeInterval?
     private var recordingPauseTimeline = RecordingPauseTimeline()
     @ObservationIgnored private var elapsedTimeAnnouncer = RecordingElapsedTimeAnnouncer()
@@ -1944,6 +1945,7 @@ final class RecorderViewModel {
 
     private func playStartSoundBeforeCapture() async {
         guard isRecordingStartSoundEnabled else { return }
+        await waitForCommandSoundToFinishIfNeeded()
         let duration = soundEffectPlayer.playStart()
         guard duration > 0 else { return }
 
@@ -1957,7 +1959,23 @@ final class RecorderViewModel {
     @discardableResult
     private func playCommandReceivedSoundIfEnabled() -> TimeInterval {
         guard isRecordingCommandSoundEnabled else { return 0 }
-        return soundEffectPlayer.playCommandReceived()
+        let duration = soundEffectPlayer.playCommandReceived()
+        if duration > 0 {
+            commandSoundEndUptime = ProcessInfo.processInfo.systemUptime + duration
+        }
+        return duration
+    }
+
+    private func waitForCommandSoundToFinishIfNeeded() async {
+        guard let commandSoundEndUptime else { return }
+        let remaining = commandSoundEndUptime - ProcessInfo.processInfo.systemUptime
+        guard remaining > 0 else { return }
+
+        do {
+            try await Task.sleep(nanoseconds: UInt64(min(remaining, 3.5) * 1_000_000_000))
+        } catch {
+            // If start is cancelled while the command cue is playing, continue cleanup through the caller.
+        }
     }
 
     @discardableResult
