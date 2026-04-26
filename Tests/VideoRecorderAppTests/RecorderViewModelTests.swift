@@ -583,12 +583,44 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.isScreenCameraOverlayEnabled)
         XCTAssertTrue(viewModel.isSystemAudioEnabled)
         XCTAssertTrue(viewModel.isCursorHighlightEnabled)
-        XCTAssertTrue(viewModel.isKeyboardShortcutOverlayEnabled)
+        XCTAssertFalse(viewModel.isKeyboardShortcutOverlayEnabled)
         XCTAssertFalse(viewModel.isAutoReframeEnabled)
         XCTAssertTrue(viewModel.isFrameCoachEnabled)
         XCTAssertEqual(viewModel.selectedCameraID, "cam-2")
         XCTAssertEqual(viewModel.selectedMicrophoneID, "mic-2")
     }
+
+    func testRestoredKeyboardShortcutOverlayStaysDisabledForRelease() async {
+        let store = MockLastRecordingConfigurationStore()
+        store.configuration = LastRecordingConfiguration(
+            selectedPreset: .horizontalScreen,
+            selectedScreenCaptureSource: .screen,
+            isScreenCameraOverlayEnabled: false,
+            isSystemAudioEnabled: false,
+            isCursorHighlightEnabled: true,
+            isKeyboardShortcutOverlayEnabled: true,
+            isAutoReframeEnabled: false,
+            isFrameCoachEnabled: false,
+            selectedCameraID: "",
+            selectedMicrophoneID: "",
+            selectedDisplayID: "display-1",
+            selectedWindowID: ""
+        )
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            lastRecordingConfigurationStore: store,
+            permissionProvider: MockMediaPermissionProvider(statuses: [:])
+        )
+
+        await viewModel.setup()
+
+        XCTAssertFalse(viewModel.isKeyboardShortcutOverlayEnabled)
+        XCTAssertTrue(viewModel.isCursorHighlightEnabled)
+    }
+
 
     func testPersistsLastRecordingConfigurationWhenSettingsChange() {
         let store = MockLastRecordingConfigurationStore()
@@ -620,7 +652,7 @@ final class RecorderViewModelTests: XCTestCase {
                 isScreenCameraOverlayEnabled: true,
                 isSystemAudioEnabled: true,
                 isCursorHighlightEnabled: true,
-                isKeyboardShortcutOverlayEnabled: true,
+                isKeyboardShortcutOverlayEnabled: false,
                 isAutoReframeEnabled: false,
                 isFrameCoachEnabled: true,
                 selectedCameraID: "cam-1",

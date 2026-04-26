@@ -5,6 +5,6 @@ Includes:
 - Screen + Camera overlay
 - Camera-only and audio-only modes
 - Optional system audio
-- Cursor highlight and shortcut overlays
+- Cursor highlight overlays
 - VoiceOver-friendly controls and live announcements
 - Frame Coach spoken guidance

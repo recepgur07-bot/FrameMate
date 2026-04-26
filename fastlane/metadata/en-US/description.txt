@@ -16,7 +16,6 @@ Record standalone camera videos for quick updates, or capture microphone audio f
 BUILT FOR CLEAR EXPLANATIONS
 • Optional system audio for screen recordings
 • Cursor highlight overlays to make clicks visible
-• Keyboard shortcut overlays for tutorial-style videos
 • Simple pause and resume controls
 
 FRAME COACH

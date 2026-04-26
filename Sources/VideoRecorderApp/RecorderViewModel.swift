@@ -3940,7 +3940,7 @@ final class RecorderViewModel {
         isScreenCameraOverlayEnabled = configuration.isScreenCameraOverlayEnabled
         isSystemAudioEnabled = configuration.isSystemAudioEnabled
         isCursorHighlightEnabled = configuration.isCursorHighlightEnabled
-        isKeyboardShortcutOverlayEnabled = configuration.isKeyboardShortcutOverlayEnabled
+        isKeyboardShortcutOverlayEnabled = false
         isAutoReframeEnabled = configuration.isAutoReframeEnabled
         isFrameCoachEnabled = configuration.isFrameCoachEnabled
         selectedCameraID = configuration.selectedCameraID
@@ -3958,7 +3958,7 @@ final class RecorderViewModel {
             isScreenCameraOverlayEnabled: isScreenCameraOverlayEnabled,
             isSystemAudioEnabled: isSystemAudioEnabled,
             isCursorHighlightEnabled: isCursorHighlightEnabled,
-            isKeyboardShortcutOverlayEnabled: isKeyboardShortcutOverlayEnabled,
+            isKeyboardShortcutOverlayEnabled: false,
             isAutoReframeEnabled: isAutoReframeEnabled,
             isFrameCoachEnabled: isFrameCoachEnabled,
             selectedCameraID: selectedCameraID,

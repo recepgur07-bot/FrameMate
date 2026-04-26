@@ -16,7 +16,6 @@ Kısa anlatımlar için bağımsız kamera kaydı, toplantı özetleri ve podcas
 ANLATIM ODAKLI ARAÇLAR
 • Ekran kaydına sistem sesini dahil etme
 • Tıklamaları belirginleştiren imleç vurgusu
-• Öğretici videolar için klavye kısayolu katmanı
 • Kolay kayıt duraklatma ve devam ettirme
 
 KADRAJ KOÇU

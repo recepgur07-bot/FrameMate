@@ -540,20 +540,6 @@ struct ContentView: View {
                             isOn: $viewModel.isCursorHighlightEnabled
                         )
 
-                        flowToggleRow(
-                            title: String(localized: "Klavye kısayollarını göster"),
-                            detail: String(localized: "Anlamlı kısayolları videoda kısa süre gösterir."),
-                            isOn: $viewModel.isKeyboardShortcutOverlayEnabled
-                        )
-
-                        if let warning = viewModel.keyboardShortcutAccessibilityWarning {
-                            permissionBanner(
-                                message: warning,
-                                buttonTitle: String(localized: "Ayarları Aç"),
-                                buttonHint: String(localized: "Erişilebilirlik ayarlarını açar."),
-                                action: viewModel.openAccessibilitySettings
-                            )
-                        }
                     }
                 }
 
@@ -926,23 +912,6 @@ struct ContentView: View {
                     .accessibilityHint(String(localized: "Kayıt dışa aktarılırken imlecin etrafında yumuşak bir vurgu ve tıklama halkası gösterir."))
             }
 
-                HStack(spacing: 8) {
-                    Image(systemName: "keyboard")
-                        .foregroundStyle(.secondary)
-                        .frame(width: 20)
-                        .accessibilityHidden(true)
-                Toggle(String(localized: "Klavye kısayollarını göster"), isOn: $viewModel.isKeyboardShortcutOverlayEnabled)
-                    .accessibilityHint(String(localized: "Komut, kontrol ve option gibi anlamlı kısayolları videoda kısa süre gösterir."))
-                }
-
-                if let warning = viewModel.keyboardShortcutAccessibilityWarning {
-                    permissionBanner(
-                        message: warning,
-                        buttonTitle: String(localized: "Ayarları Aç"),
-                        buttonHint: String(localized: "Erişilebilirlik ayarlarını açar."),
-                        action: viewModel.openAccessibilitySettings
-                    )
-                }
             }
         }
 
@@ -1471,7 +1440,7 @@ struct QuickHelpContent: Equatable {
                 title: "Recording",
                 items: [
                     "Screen recording can capture a full display or a single window.",
-                    "Screen recordings can include microphone audio, system audio, cursor highlight, keyboard shortcut overlays, and a camera box.",
+                    "Screen recordings can include microphone audio, system audio, cursor highlight, and a camera box.",
                     "Camera recordings support Frame Coach and auto reframe for single-person shots.",
                     "Audio mode can record microphone audio, system audio, or both."
                 ]
@@ -1491,7 +1460,7 @@ struct QuickHelpContent: Equatable {
                 items: [
                     "FrameMate is designed to work well with VoiceOver, keyboard navigation, live status announcements, and spoken guidance.",
                     "Frame Coach is especially helpful for blind and low-vision creators who need spoken framing feedback.",
-                    "Allow FrameMate in System Settings > Privacy & Security > Accessibility when you want keyboard shortcut overlays in screen recordings or reliable Cmd+I setting announcements."
+                    "Allow FrameMate in System Settings > Privacy & Security > Accessibility when you want reliable Cmd+I setting announcements."
                 ]
             ),
             .troubleshooting: QuickHelpSection(
@@ -1501,7 +1470,7 @@ struct QuickHelpContent: Equatable {
                     "If camera, microphone, or screen recording does not work, review permissions in System Settings > Privacy & Security.",
                     "If FrameMate is not listed under Screen Recording, use the plus button, choose FrameMate from Applications, enable it, then reopen the app.",
                     "If system audio is missing, verify Screen Recording permission and reopen the app.",
-                    "If keyboard shortcuts do not appear in exported videos, allow FrameMate under Accessibility."
+                    "If accessibility announcements do not work reliably, allow FrameMate under Accessibility."
                 ]
             )
         ]
@@ -1529,7 +1498,7 @@ struct QuickHelpContent: Equatable {
                 title: "Kayıt",
                 items: [
                     "Ekran kaydı tam ekranı veya tek pencereyi yakalayabilir.",
-                    "Ekran kayıtlarına mikrofon, sistem sesi, imleç vurgusu, klavye kısayolu gösterimi ve kamera kutusu eklenebilir.",
+                    "Ekran kayıtlarına mikrofon, sistem sesi, imleç vurgusu ve kamera kutusu eklenebilir.",
                     "Kamera kayıtlarında Kadraj Koçu ve tek kişilik çekimler için otomatik yeniden kadrajlama kullanılabilir.",
                     "Ses modu mikrofonu, sistem sesini veya ikisini birlikte kaydedebilir."
                 ]
@@ -1549,7 +1518,7 @@ struct QuickHelpContent: Equatable {
                 items: [
                     "FrameMate; VoiceOver, klavye ile kullanım, canlı durum anonsları ve sesli yönlendirme ile güçlü çalışacak şekilde tasarlanmıştır.",
                     "Kadraj Koçu, özellikle kör ve az gören kullanıcılar için konuşmalı kadraj geri bildirimi sunar.",
-                    "Ekran kayıtlarında kısayol gösterimleri veya güvenilir Cmd+I ayar duyurusu için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik bölümünde FrameMate'e izin ver."
+                    "Güvenilir Cmd+I ayar duyurusu için Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik bölümünde FrameMate'e izin ver."
                 ]
             ),
             .troubleshooting: QuickHelpSection(
@@ -1559,7 +1528,7 @@ struct QuickHelpContent: Equatable {
                     "Kamera, mikrofon veya ekran kaydı çalışmıyorsa Sistem Ayarları > Gizlilik ve Güvenlik içindeki izinleri kontrol et.",
                     "FrameMate Ekran Kaydı listesinde görünmüyorsa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç, anahtarı aç ve uygulamayı yeniden başlat.",
                     "Sistem sesi gelmiyorsa Ekran Kaydı iznini doğrula ve uygulamayı yeniden aç.",
-                    "Kısayol gösterimleri görünmüyorsa FrameMate'e Erişilebilirlik izni verildiğinden emin ol."
+                    "Erişilebilirlik duyuruları güvenilir çalışmıyorsa FrameMate'e Erişilebilirlik izni verildiğinden emin ol."
                 ]
             )
         ]
