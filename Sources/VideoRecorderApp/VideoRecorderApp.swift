@@ -243,7 +243,7 @@ struct VideoRecorderApp: App {
         }
         .defaultSize(width: 720, height: 680)
         .commands {
-            CommandMenu("Kayıt Modu") {
+            CommandMenu(String(localized: "Kayıt Modu")) {
                 ForEach(RecordingPreset.allCases) { preset in
                     Button(preset.commandMenuLabel) {
                         viewModel.selectPreset(preset)
@@ -253,7 +253,7 @@ struct VideoRecorderApp: App {
                 }
             }
 
-            CommandMenu("Kayıt") {
+            CommandMenu(String(localized: "Kayıt")) {
                 Button("\(recordingCommandTitle) (\(GlobalHotkeyMonitor.recordingToggleDisplay))") {
                     viewModel.toggleRecording()
                 }
@@ -312,42 +312,36 @@ struct VideoRecorderApp: App {
     }
 
     private var recordingCommandTitle: String {
-        if viewModel.isPreparingRecording { return "Kayıt hazırlanıyor" }
-        if viewModel.isCountingDown { return "Geri sayımı İptal Et (\(viewModel.countdownRemaining))" }
-        return viewModel.isRecording ? "Kaydı Durdur" : "Kaydı Başlat"
+        if viewModel.isPreparingRecording { return String(localized: "Kayıt hazırlanıyor") }
+        if viewModel.isCountingDown { return String(localized: "Geri sayımı İptal Et (\(viewModel.countdownRemaining))") }
+        return viewModel.isRecording ? String(localized: "Kaydı Durdur") : String(localized: "Kaydı Başlat")
     }
 
     private var audioRecordingCommandTitle: String {
         if viewModel.isRecording && viewModel.selectedRecordingSource == .audio {
-            return "Ses Kaydını Durdur"
+            return String(localized: "Ses Kaydını Durdur")
         }
-        return "Ses Kaydını Başlat"
+        return String(localized: "Ses Kaydını Başlat")
     }
 
     private var pauseResumeCommandTitle: String {
-        viewModel.isPaused ? "Devam Et" : "Duraklat"
+        viewModel.isPaused ? String(localized: "Devam Et") : String(localized: "Duraklat")
     }
 
     private var frameCoachCommandTitle: String {
-        viewModel.isFrameCoachEnabled ? "Kadraj Koçunu Kapat" : "Kadraj Koçunu Aç"
+        viewModel.isFrameCoachEnabled ? String(localized: "Kadraj Koçunu Kapat") : String(localized: "Kadraj Koçunu Aç")
     }
 
     private var quickHelpMenuTitle: String {
-        Locale.preferredLanguages.first?.lowercased().hasPrefix("tr") == true
-            ? "FrameMate Yardım"
-            : "FrameMate Help"
+        String(localized: "FrameMate Yardım")
     }
 
     private var onlineHelpMenuTitle: String {
-        Locale.preferredLanguages.first?.lowercased().hasPrefix("tr") == true
-            ? "Çevrimiçi Yardım ve Destek"
-            : "Online Help & Support"
+        String(localized: "Çevrimiçi Yardım ve Destek")
     }
 
     private var privacyMenuTitle: String {
-        Locale.preferredLanguages.first?.lowercased().hasPrefix("tr") == true
-            ? "Gizlilik Politikası"
-            : "Privacy Policy"
+        String(localized: "Gizlilik Politikası")
     }
 
     @MainActor

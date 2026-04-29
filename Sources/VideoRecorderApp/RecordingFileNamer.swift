@@ -22,7 +22,7 @@ struct RecordingFileNamer {
     }
 
     func audioRecordingURL(for date: Date = Date()) -> URL {
-        outputDirectory.appendingPathComponent("Ses Kaydı \(Self.timestampFormatter.string(from: date)).m4a")
+        outputDirectory.appendingPathComponent("\(Self.audioFilePrefix()) \(Self.timestampFormatter.string(from: date)).m4a")
     }
 
     func temporaryMovieURL(for date: Date = Date()) -> URL {
@@ -43,11 +43,15 @@ struct RecordingFileNamer {
 
     private static func filePrefix(for source: RecordingSource) -> String {
         switch source {
-        case .camera: return "Kamera Kaydı"
-        case .screen: return "Ekran Kaydı"
-        case .window: return "Pencere Kaydı"
-        case .audio:  return "Ses Kaydı"
+        case .camera: return String(localized: "Kamera Kaydı")
+        case .screen: return String(localized: "Ekran Kaydı")
+        case .window: return String(localized: "Pencere Kaydı")
+        case .audio:  return audioFilePrefix()
         }
+    }
+
+    private static func audioFilePrefix() -> String {
+        String(localized: "Ses Kaydı")
     }
 
     private static let timestampFormatter: DateFormatter = {

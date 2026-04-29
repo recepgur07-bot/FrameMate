@@ -9,6 +9,12 @@
             "state": "translated",
             "value": "Settings"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ayarlar"
+          }
         }
       }
     },
@@ -19,6 +25,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Opens app settings."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulama ayarlarını açar."
           }
         }
       }
@@ -31,10 +43,31 @@
             "state": "translated",
             "value": ", optional"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", opsiyonel"
+          }
         }
       }
     },
-    "%@": {},
+    "%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@"
+          }
+        }
+      }
+    },
     "%@ hazır.": {
       "extractionState": "manual",
       "localizations": {
@@ -42,6 +75,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%@ is ready."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ hazır."
           }
         }
       }
@@ -54,6 +93,12 @@
             "state": "translated",
             "value": "Ready status: %@."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hazır durumu: %@."
+          }
         }
       }
     },
@@ -64,6 +109,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ is ready."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ hazır."
           }
         }
       }
@@ -76,6 +127,12 @@
             "state": "translated",
             "value": "%1$@ is ready. %2$@"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ hazır. %2$@"
+          }
         }
       }
     },
@@ -86,6 +143,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ ready. Microphone and system audio will be included."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ hazır. Mikrofon ve sistem sesi kayda eklenecek."
           }
         }
       }
@@ -98,6 +161,12 @@
             "state": "translated",
             "value": "%1$@ permission required"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ izni gerekli"
+          }
         }
       }
     },
@@ -108,6 +177,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%1$@ and %2$@ permission required"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ve %2$@ izni gerekli"
           }
         }
       }
@@ -120,6 +195,12 @@
             "state": "translated",
             "value": "%lld seconds"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld saniye"
+          }
         }
       }
     },
@@ -130,6 +211,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "%lld percent"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld yüzde"
           }
         }
       }
@@ -142,6 +229,12 @@
             "state": "translated",
             "value": "3 seconds"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 saniye"
+          }
         }
       }
     },
@@ -152,6 +245,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "5 minutes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 dakika"
           }
         }
       }
@@ -164,6 +263,12 @@
             "state": "translated",
             "value": "5 seconds"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 saniye"
+          }
         }
       }
     },
@@ -174,6 +279,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "10 minutes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "10 dakika"
           }
         }
       }
@@ -186,6 +297,12 @@
             "state": "translated",
             "value": "10 seconds"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "10 saniye"
+          }
         }
       }
     },
@@ -196,6 +313,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "15 minutes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "15 dakika"
           }
         }
       }
@@ -208,6 +331,12 @@
             "state": "translated",
             "value": "30 minutes"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 dakika"
+          }
         }
       }
     },
@@ -218,6 +347,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "60 minutes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "60 dakika"
           }
         }
       }
@@ -230,6 +365,12 @@
             "state": "translated",
             "value": "Open"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aç"
+          }
         }
       }
     },
@@ -240,6 +381,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Step 3 of 3: We Need a Few Permissions"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adım 3 / 3: Birkaç İzne İhtiyacımız Var"
           }
         }
       }
@@ -252,6 +399,12 @@
             "state": "translated",
             "value": "Bottom Center"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alt Orta"
+          }
         }
       }
     },
@@ -262,6 +415,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Bottom Right"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alt Sağ"
           }
         }
       }
@@ -274,6 +433,12 @@
             "state": "translated",
             "value": "Bottom Left"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alt Sol"
+          }
         }
       }
     },
@@ -284,6 +449,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Keyframe count: %lld"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ana kare sayısı: %lld"
           }
         }
       }
@@ -296,6 +467,12 @@
             "state": "translated",
             "value": "Repeat same warning"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aynı uyarıyı tekrarla"
+          }
         }
       }
     },
@@ -306,6 +483,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Get Started"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Başla"
           }
         }
       }
@@ -318,6 +501,12 @@
             "state": "translated",
             "value": "Waiting…"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bekleniyor"
+          }
         }
       }
     },
@@ -328,6 +517,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "unknown"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bilinmiyor"
           }
         }
       }
@@ -374,6 +569,12 @@
             "state": "translated",
             "value": "We Need a Few Permissions"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Birkaç İzne İhtiyacımız Var"
+          }
         }
       }
     },
@@ -384,6 +585,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "The recording stops automatically when this duration is reached."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu süre dolunca kayıt otomatik olarak durur."
           }
         }
       }
@@ -396,6 +603,12 @@
             "state": "translated",
             "value": "Output preview"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çıktı önizlemesi"
+          }
         }
       }
     },
@@ -407,6 +620,12 @@
             "state": "translated",
             "value": "Output preview. Camera box at %1$@ position and in %2$@ size."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çıktı önizlemesi. Kamera kutusu %1$@ konumunda ve %2$@ boyutta."
+          }
         }
       }
     },
@@ -417,6 +636,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Output preview. Camera box is off."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çıktı önizlemesi. Kamera kutusu kapalı."
           }
         }
       }
@@ -463,6 +688,12 @@
             "state": "translated",
             "value": "Balanced"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dengeli"
+          }
         }
       }
     },
@@ -473,6 +704,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Resume"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devam Et"
           }
         }
       }
@@ -485,6 +722,12 @@
             "state": "translated",
             "value": "Vertical screen recording"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dikey ekran kaydı"
+          }
         }
       }
     },
@@ -495,6 +738,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vertical screen recording mode"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dikey ekran kaydı modu"
           }
         }
       }
@@ -507,6 +756,12 @@
             "state": "translated",
             "value": "Vertical window recording"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dikey pencere kaydı"
+          }
         }
       }
     },
@@ -517,6 +772,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vertical Conversation"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dikey Sohbet"
           }
         }
       }
@@ -529,6 +790,12 @@
             "state": "translated",
             "value": "Vertical Social Video"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dikey Sosyal Video"
+          }
         }
       }
     },
@@ -539,6 +806,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Vertical video recording mode"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dikey video kaydı modu"
           }
         }
       }
@@ -551,6 +824,12 @@
             "state": "translated",
             "value": "File name"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosya adı"
+          }
         }
       }
     },
@@ -561,6 +840,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Pause"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duraklat"
           }
         }
       }
@@ -573,6 +858,12 @@
             "state": "translated",
             "value": "Status %1$@"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum %1$@"
+          }
         }
       }
     },
@@ -583,6 +874,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Status: %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum: %1$@"
           }
         }
       }
@@ -595,6 +892,12 @@
             "state": "translated",
             "value": "Screen"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran"
+          }
         }
       }
     },
@@ -605,6 +908,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "screen %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ekran %1$@"
           }
         }
       }
@@ -617,6 +926,12 @@
             "state": "translated",
             "value": "Screen + Camera"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran + Kamera"
+          }
         }
       }
     },
@@ -627,6 +942,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Screen Guide"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran Anlatımı"
           }
         }
       }
@@ -639,6 +960,12 @@
             "state": "translated",
             "value": "Screen Recording"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran Kaydı"
+          }
         }
       }
     },
@@ -649,6 +976,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Open Screen Recording Settings"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran Kaydı Ayarları'nı aç"
           }
         }
       }
@@ -661,6 +994,12 @@
             "state": "translated",
             "value": "macOS screen recording permission is required for screen recording."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydı için macOS ekran kaydı izni gerekli."
+          }
         }
       }
     },
@@ -671,6 +1010,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "If you granted screen recording permission, quit and reopen the app. Otherwise check System Settings > Privacy & Security > Screen Recording."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydı izni verdiysen uygulamayı kapatıp yeniden aç. Olmazsa Sistem Ayarları > Gizlilik ve Güvenlik > Ekran Kaydı'nı kontrol et."
           }
         }
       }
@@ -683,6 +1028,12 @@
             "state": "translated",
             "value": "Screen recording permission granted. You'll need to reopen the app."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydı izni verildi. Uygulamayı yeniden açman gerekecek."
+          }
         }
       }
     },
@@ -693,6 +1044,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Screen recording permission: %1$@."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydı izni: %1$@."
           }
         }
       }
@@ -705,6 +1062,12 @@
             "state": "translated",
             "value": "Request screen recording permission"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydı iznini iste"
+          }
         }
       }
     },
@@ -715,6 +1078,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Screen source"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaynağı"
           }
         }
       }
@@ -727,6 +1096,12 @@
             "state": "translated",
             "value": "Screen source selection"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaynağı seçimi"
+          }
         }
       }
     },
@@ -737,6 +1112,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Screen selection"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran seçimi"
           }
         }
       }
@@ -749,6 +1130,12 @@
             "state": "translated",
             "value": "Show guidance text on screen"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekranda yönlendirme metnini göster"
+          }
         }
       }
     },
@@ -759,6 +1146,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Easily record your screen, audio, and camera."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekranını, sesini ve kameranı kolayca kaydet."
           }
         }
       }
@@ -771,6 +1164,12 @@
             "state": "translated",
             "value": "Missing permissions: %1$@."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eksik izinler: %1$@."
+          }
         }
       }
     },
@@ -781,6 +1180,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Accessibility and Guidance"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erişilebilirlik ve Yönlendirme"
           }
         }
       }
@@ -793,6 +1198,12 @@
             "state": "translated",
             "value": "Access & Purchase"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erişim ve Satın Alma"
+          }
         }
       }
     },
@@ -803,6 +1214,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "yes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "evet"
           }
         }
       }
@@ -815,6 +1232,12 @@
             "state": "translated",
             "value": "Saved as: %1$@"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farklı kaydedildi: %1$@"
+          }
         }
       }
     },
@@ -826,10 +1249,31 @@
             "state": "translated",
             "value": "Save As"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Farklı Kaydet"
+          }
         }
       }
     },
-    "FrameMate": {},
+    "FrameMate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FrameMate"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FrameMate"
+          }
+        }
+      }
+    },
     "FrameMate'e Hoş Geldin": {
       "extractionState": "manual",
       "localizations": {
@@ -837,6 +1281,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Welcome to FrameMate"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FrameMate'e Hoş Geldin"
           }
         }
       }
@@ -849,6 +1299,12 @@
             "state": "translated",
             "value": "required"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "gerekli"
+          }
         }
       }
     },
@@ -859,6 +1315,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Feedback frequency"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri bildirim sıklığı"
           }
         }
       }
@@ -871,6 +1333,12 @@
             "state": "translated",
             "value": "Countdown duration"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri sayım süresi"
+          }
         }
       }
     },
@@ -881,6 +1349,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Countdown: %lld seconds"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri sayım: %lld saniye"
           }
         }
       }
@@ -893,6 +1367,12 @@
             "state": "translated",
             "value": "Visual"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Görüntü"
+          }
         }
       }
     },
@@ -903,6 +1383,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Error: %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hata: %1$@"
           }
         }
       }
@@ -915,6 +1401,12 @@
             "state": "translated",
             "value": "no"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hayır"
+          }
         }
       }
     },
@@ -925,6 +1417,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "ready"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hazır"
           }
         }
       }
@@ -937,6 +1435,12 @@
             "state": "translated",
             "value": "Ready"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hazır"
+          }
         }
       }
     },
@@ -947,6 +1451,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "A file with the same name already exists at the destination."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hedefte aynı isimde bir dosya zaten var."
           }
         }
       }
@@ -959,6 +1469,12 @@
             "state": "translated",
             "value": "not requested yet"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "henüz sorulmadı"
+          }
         }
       }
     },
@@ -969,6 +1485,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Two-Person Podcast"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İki Kişi Podcast"
           }
         }
       }
@@ -981,6 +1503,12 @@
             "state": "translated",
             "value": "Next"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İleri"
+          }
         }
       }
     },
@@ -991,6 +1519,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "cursor highlight on"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "imleç vurgusu açık"
           }
         }
       }
@@ -1003,6 +1537,12 @@
             "state": "translated",
             "value": "cursor highlight off"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "imleç vurgusu kapalı"
+          }
         }
       }
     },
@@ -1013,6 +1553,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Highlight cursor"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İmleci vurgula"
           }
         }
       }
@@ -1025,6 +1571,12 @@
             "state": "translated",
             "value": "Cancelled"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İptal edildi"
+          }
         }
       }
     },
@@ -1035,6 +1587,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cancel (%lld)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İptal Et (%lld)"
           }
         }
       }
@@ -1047,6 +1605,12 @@
             "state": "translated",
             "value": "Permission status not checked"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İzin durumu kontrol edilmedi"
+          }
         }
       }
     },
@@ -1057,6 +1621,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "If you granted permission, you may need to quit and reopen the app for macOS to reflect the change."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İzin verdiysen macOS değişikliği görmek için uygulamayı kapatıp yeniden açman gerekebilir."
           }
         }
       }
@@ -1256,6 +1826,12 @@
             "state": "translated",
             "value": "camera"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kamera"
+          }
         }
       }
     },
@@ -1266,6 +1842,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Camera"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera"
           }
         }
       }
@@ -1278,6 +1860,12 @@
             "state": "translated",
             "value": "Camera %1$@"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera %1$@"
+          }
         }
       }
     },
@@ -1288,6 +1876,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Camera not found."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera bulunamadı."
           }
         }
       }
@@ -1300,6 +1894,12 @@
             "state": "translated",
             "value": "Your camera selection will appear here once detected."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera bulunduğunda seçim burada görünecek."
+          }
         }
       }
     },
@@ -1310,6 +1910,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Video effects are active in the camera control center: %1$@. Turn them off and try again."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera denetim merkezindeki video efektleri açık: %1$@. Bu efektleri kapatıp tekrar deneyin."
           }
         }
       }
@@ -1322,6 +1928,12 @@
             "state": "translated",
             "value": "Camera permission required"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera izni gerekli"
+          }
         }
       }
     },
@@ -1332,6 +1944,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Camera permission denied — Open System Settings"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera izni reddedildi — Sistem Ayarları'nı aç"
           }
         }
       }
@@ -1344,6 +1962,12 @@
             "state": "translated",
             "value": "Camera permission granted."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera izni verildi."
+          }
         }
       }
     },
@@ -1354,6 +1978,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Camera permission denied."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera izni verilmedi."
           }
         }
       }
@@ -1366,6 +1996,12 @@
             "state": "translated",
             "value": "Camera permission is only required in Screen + Camera mode."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera izni yalnızca Ekran + Kamera modunda gereklidir."
+          }
         }
       }
     },
@@ -1376,6 +2012,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Camera permission: %1$@. Microphone permission: %2$@."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera izni: %1$@. Mikrofon izni: %2$@."
           }
         }
       }
@@ -1422,6 +2064,12 @@
             "state": "translated",
             "value": "Camera box size"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera kutusu boyutu"
+          }
         }
       }
     },
@@ -1432,6 +2080,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Select a camera for the camera overlay."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera kutusu için bir kamera seçin."
           }
         }
       }
@@ -1444,6 +2098,12 @@
             "state": "translated",
             "value": "Camera permission is required for the camera overlay."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera kutusu için kamera izni gerekli."
+          }
         }
       }
     },
@@ -1454,6 +2114,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Camera permission for camera overlay: %1$@."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera kutusu için kamera izni: %1$@."
           }
         }
       }
@@ -1466,6 +2132,12 @@
             "state": "translated",
             "value": "No available camera found for the camera overlay."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera kutusu için kullanılabilir kamera bulunamadı."
+          }
         }
       }
     },
@@ -1476,6 +2148,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Camera box position"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera kutusu konumu"
           }
         }
       }
@@ -1488,6 +2166,12 @@
             "state": "translated",
             "value": "Show camera box"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera kutusunu göster"
+          }
         }
       }
     },
@@ -1499,17 +2183,38 @@
             "state": "translated",
             "value": "Camera selection"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera seçimi"
+          }
         }
       }
     },
-    "Kamera, mikrofon ve ekran kaydı izinleri yalnızca seçtiğin kayıt özellikleri için kullanılır. Kayıt dosyaları varsayılan olarak Mac'inde saklanır.": {},
+    "Kamera, mikrofon ve ekran kaydı izinleri yalnızca seçtiğin kayıt özellikleri için kullanılır. Kayıt dosyaları varsayılan olarak Mac'inde saklanır.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera, microphone, and screen recording permissions are used only for the recording features you choose. Recording files are stored on your Mac by default."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera, mikrofon ve ekran kaydı izinleri yalnızca seçtiğin kayıt özellikleri için kullanılır. Kayıt dosyaları varsayılan olarak Mac'inde saklanır."
+          }
+        }
+      }
+    },
     "kamerayı biraz aşağı indir": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tilt camera down slightly"
+            "value": "Lower the camera slightly"
           }
         },
         "tr": {
@@ -1526,7 +2231,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tilt camera up slightly"
+            "value": "Raise the camera slightly"
           }
         },
         "tr": {
@@ -1545,6 +2250,12 @@
             "state": "translated",
             "value": "off"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kapalı"
+          }
         }
       }
     },
@@ -1555,6 +2266,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Off"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapalı"
           }
         }
       }
@@ -1567,6 +2284,12 @@
             "state": "translated",
             "value": "Close"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kapat"
+          }
         }
       }
     },
@@ -1577,6 +2300,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Saved: %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedildi: %1$@"
           }
         }
       }
@@ -1589,6 +2318,12 @@
             "state": "translated",
             "value": "Saved: %1$@ (%2$@, %3$@)"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedildi: %1$@ (%2$@, %3$@)"
+          }
         }
       }
     },
@@ -1599,6 +2334,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Saved: %1$@ (%2$@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydedildi: %1$@ (%2$@)"
           }
         }
       }
@@ -1611,6 +2352,12 @@
             "state": "translated",
             "value": "Start Recording"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı Başlat"
+          }
         }
       }
     },
@@ -1621,6 +2368,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stop Recording"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı Durdur"
           }
         }
       }
@@ -1633,6 +2386,12 @@
             "state": "translated",
             "value": "Recording starts in %lld seconds…"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt %lld saniye sonra başlıyor…"
+          }
         }
       }
     },
@@ -1643,6 +2402,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recording Settings"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt Ayarları"
           }
         }
       }
@@ -1655,6 +2420,12 @@
             "state": "translated",
             "value": "Determines how many seconds to wait after the recording is started."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt başlatıldıktan sonra kaç saniye bekleyeceğini belirler."
+          }
         }
       }
     },
@@ -1665,6 +2436,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Shows a soft highlight and click ring around the cursor when exporting the recording."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt dışa aktarılırken imlecin etrafında yumuşak bir vurgu ve tıklama halkası gösterir."
           }
         }
       }
@@ -1677,6 +2454,12 @@
             "state": "translated",
             "value": "Recording paused"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt duraklatıldı"
+          }
         }
       }
     },
@@ -1687,6 +2470,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stopping recording…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt durduruluyor"
           }
         }
       }
@@ -1699,6 +2488,12 @@
             "state": "translated",
             "value": "Recording is being prepared"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt hazırlanıyor"
+          }
         }
       }
     },
@@ -1709,6 +2504,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Preparing recording…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt hazırlanıyor…"
           }
         }
       }
@@ -1721,6 +2522,12 @@
             "state": "translated",
             "value": "Select a screen to record."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt için bir ekran seçin."
+          }
         }
       }
     },
@@ -1731,6 +2538,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Select a window to record."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt için bir pencere seçin."
           }
         }
       }
@@ -1760,6 +2573,12 @@
             "state": "translated",
             "value": "Recording mode"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt modu"
+          }
         }
       }
     },
@@ -1770,6 +2589,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recording mode selection"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt modu seçimi"
           }
         }
       }
@@ -1782,6 +2607,12 @@
             "state": "translated",
             "value": "Recording session is not ready yet."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt oturumu henüz hazır değil."
+          }
         }
       }
     },
@@ -1792,6 +2623,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recording Completed"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt Tamamlandı"
           }
         }
       }
@@ -1804,6 +2641,12 @@
             "state": "translated",
             "value": "Recording"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt yapılıyor"
+          }
         }
       }
     },
@@ -1814,6 +2657,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recording is already in progress."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt zaten devam ediyor."
           }
         }
       }
@@ -1826,6 +2675,12 @@
             "state": "translated",
             "value": "Source"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaynak"
+          }
         }
       }
     },
@@ -1836,6 +2691,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "source: window"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaynak pencere"
           }
         }
       }
@@ -1848,6 +2709,12 @@
             "state": "translated",
             "value": "source: full screen"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaynak tam ekran"
+          }
         }
       }
     },
@@ -1858,6 +2725,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Record with your own video overlay."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kendi görüntünle birlikte kaydet."
           }
         }
       }
@@ -1870,6 +2743,12 @@
             "state": "translated",
             "value": "Shortcut: ⌘%@"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kısayol: ⌘%@"
+          }
         }
       }
     },
@@ -1880,6 +2759,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "restricted"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kısıtlı"
           }
         }
       }
@@ -1892,6 +2777,12 @@
             "state": "translated",
             "value": "Choose Folder"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klasör Seç"
+          }
         }
       }
     },
@@ -1903,6 +2794,12 @@
             "state": "translated",
             "value": "Show in Finder"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klasörde Göster"
+          }
         }
       }
     },
@@ -1913,6 +2810,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Choose Folder"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klasörü Seç"
           }
         }
       }
@@ -1959,6 +2862,12 @@
             "state": "translated",
             "value": "Show keyboard shortcuts"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klavye kısayollarını göster"
+          }
         }
       }
     },
@@ -1969,6 +2878,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Composition used: %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kompozisyon kullanıldı: %1$@"
           }
         }
       }
@@ -1981,6 +2896,12 @@
             "state": "translated",
             "value": "Briefly shows meaningful shortcuts like command, control, and option in the video."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Komut, kontrol ve option gibi anlamlı kısayolları videoda kısa süre gösterir."
+          }
         }
       }
     },
@@ -1991,6 +2912,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Preparing M4A…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "M4A hazırlanıyor"
           }
         }
       }
@@ -2003,6 +2930,12 @@
             "state": "translated",
             "value": "Maximum recording duration"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maksimum kayıt süresi"
+          }
         }
       }
     },
@@ -2013,6 +2946,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Maximum recording duration reached, stopping recording"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maksimum kayıt süresine ulaşıldı, kayıt durduruluyor"
           }
         }
       }
@@ -2025,6 +2964,12 @@
             "state": "translated",
             "value": "Center"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merkez"
+          }
         }
       }
     },
@@ -2035,6 +2980,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "microphone"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mikrofon"
           }
         }
       }
@@ -2047,6 +2998,12 @@
             "state": "translated",
             "value": "Microphone"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon"
+          }
         }
       }
     },
@@ -2057,6 +3014,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microphone (optional)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon (isteğe bağlı)"
           }
         }
       }
@@ -2069,6 +3032,12 @@
             "state": "translated",
             "value": "microphone %1$@"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mikrofon %1$@"
+          }
         }
       }
     },
@@ -2079,6 +3048,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microphone %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon %1$@"
           }
         }
       }
@@ -2091,6 +3066,12 @@
             "state": "translated",
             "value": "Microphone not found."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon bulunamadı."
+          }
         }
       }
     },
@@ -2101,6 +3082,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Your microphone selection will appear here once detected."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon bulunduğunda seçim burada görünecek."
           }
         }
       }
@@ -2113,6 +3100,12 @@
             "state": "translated",
             "value": "Microphone permission denied — Open System Settings"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon izni reddedildi — Sistem Ayarları'nı aç"
+          }
         }
       }
     },
@@ -2123,6 +3116,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microphone permission granted."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon izni verildi."
           }
         }
       }
@@ -2135,6 +3134,12 @@
             "state": "translated",
             "value": "Microphone permission denied."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon izni verilmedi."
+          }
         }
       }
     },
@@ -2145,6 +3150,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microphone permission: %1$@."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon izni: %1$@."
           }
         }
       }
@@ -2157,6 +3168,12 @@
             "state": "translated",
             "value": "Microphone off"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon kapalı"
+          }
         }
       }
     },
@@ -2167,6 +3184,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "No audio received in microphone recording."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon kaydında ses alınamadı."
           }
         }
       }
@@ -2179,6 +3202,12 @@
             "state": "translated",
             "value": "Microphone audio file could not be created."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon ses dosyası oluşturulamadı."
+          }
         }
       }
     },
@@ -2189,6 +3218,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microphone audio recording could not be prepared."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon ses kaydı hazırlanamadı."
           }
         }
       }
@@ -2201,6 +3236,12 @@
             "state": "translated",
             "value": "microphone audio could not be added"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "mikrofon sesi eklenemedi"
+          }
         }
       }
     },
@@ -2211,6 +3252,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microphone level"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon seviyesi"
           }
         }
       }
@@ -2223,6 +3270,12 @@
             "state": "translated",
             "value": "Microphone level: %lld%%"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon seviyesi: %lld%%"
+          }
         }
       }
     },
@@ -2233,6 +3286,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microphone and system audio are off."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon ve sistem sesi kapalı."
           }
         }
       }
@@ -2245,6 +3304,12 @@
             "state": "translated",
             "value": "Microphone and system audio will be included."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon ve sistem sesi kayda eklenecek."
+          }
         }
       }
     },
@@ -2252,6 +3317,12 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimal"
+          }
+        },
+        "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "Minimal"
@@ -2267,6 +3338,12 @@
             "state": "translated",
             "value": "Could not create MP4 file."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 dosyası oluşturulamadı."
+          }
         }
       }
     },
@@ -2277,6 +3354,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Preparing MP4…"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MP4 hazırlanıyor"
           }
         }
       }
@@ -2289,6 +3372,12 @@
             "state": "translated",
             "value": "How Can You Record?"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nasıl Kayıt Yapabilirsin?"
+          }
         }
       }
     },
@@ -2299,6 +3388,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Optional"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opsiyonel"
           }
         }
       }
@@ -2311,6 +3406,12 @@
             "state": "translated",
             "value": "Center Right"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orta Sağ"
+          }
         }
       }
     },
@@ -2321,6 +3422,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Center Left"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orta Sol"
           }
         }
       }
@@ -2333,6 +3440,12 @@
             "state": "translated",
             "value": "Automatic"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatik"
+          }
         }
       }
     },
@@ -2344,6 +3457,12 @@
             "state": "translated",
             "value": "Auto Reframe Diagnostics"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatik Kadraj Tanılama"
+          }
         }
       }
     },
@@ -2354,6 +3473,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "auto-reframe applied, %1$lld keyframes used"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "otomatik kadraj uygulandı, %1$lld ana kare kullanıldı"
           }
         }
       }
@@ -2383,6 +3508,12 @@
             "state": "translated",
             "value": "Auto reframe"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otomatik yeniden kadrajlama"
+          }
         }
       }
     },
@@ -2393,6 +3524,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "No shareable screen found."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paylaşılabilir ekran bulunamadı."
           }
         }
       }
@@ -2405,6 +3542,12 @@
             "state": "translated",
             "value": "No shareable window found."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paylaşılabilir pencere bulunamadı."
+          }
         }
       }
     },
@@ -2415,6 +3558,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Window"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pencere"
           }
         }
       }
@@ -2427,6 +3576,12 @@
             "state": "translated",
             "value": "window %1$@"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "pencere %1$@"
+          }
         }
       }
     },
@@ -2437,6 +3592,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Window selection"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pencere seçimi"
           }
         }
       }
@@ -2449,6 +3610,12 @@
             "state": "translated",
             "value": "View Plans"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Planları Gör"
+          }
         }
       }
     },
@@ -2459,6 +3626,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "denied"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "reddedildi"
           }
         }
       }
@@ -2471,6 +3644,12 @@
             "state": "translated",
             "value": "Audio Only"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sadece Ses"
+          }
         }
       }
     },
@@ -2481,6 +3660,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Direction tones only"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sadece yön sesi"
           }
         }
       }
@@ -2510,6 +3695,12 @@
             "state": "translated",
             "value": "Restore Purchases"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Satın Alımları Geri Yükle"
+          }
         }
       }
     },
@@ -2520,6 +3711,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Could not add selected camera to the session."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilen kamera oturuma eklenemedi."
           }
         }
       }
@@ -2532,6 +3729,12 @@
             "state": "translated",
             "value": "Selected microphone not found."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilen mikrofon bulunamadı."
+          }
         }
       }
     },
@@ -2542,6 +3745,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Could not add selected microphone to the session."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilen mikrofon oturuma eklenemedi."
           }
         }
       }
@@ -2554,6 +3763,12 @@
             "state": "translated",
             "value": "not selected"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "seçilmedi"
+          }
         }
       }
     },
@@ -2564,6 +3779,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Audio"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses"
           }
         }
       }
@@ -2576,6 +3797,12 @@
             "state": "translated",
             "value": "Audio recording"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses kaydı"
+          }
         }
       }
     },
@@ -2586,6 +3813,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Audio recording paused"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses kaydı duraklatıldı"
           }
         }
       }
@@ -2598,6 +3831,12 @@
             "state": "translated",
             "value": "Select a microphone or enable system audio for recording."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses kaydı için bir mikrofon seçin ya da sistem sesini dahil edin."
+          }
         }
       }
     },
@@ -2608,6 +3847,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Microphone permission is required for audio recording."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses kaydı için mikrofon izni gerekli."
           }
         }
       }
@@ -2620,6 +3865,12 @@
             "state": "translated",
             "value": "Audio recording mode"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses kaydı modu"
+          }
         }
       }
     },
@@ -2630,6 +3881,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Audio recording in progress"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses kaydı yapılıyor"
           }
         }
       }
@@ -2642,6 +3899,12 @@
             "state": "translated",
             "value": "Silent"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessiz"
+          }
         }
       }
     },
@@ -2652,6 +3915,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "system audio on"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sistem sesi açık"
           }
         }
       }
@@ -2664,6 +3933,12 @@
             "state": "translated",
             "value": "system audio could not be added"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sistem sesi eklenemedi"
+          }
         }
       }
     },
@@ -2674,6 +3949,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Screen recording permission for system audio: %1$@."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem sesi için ekran kaydı izni: %1$@."
           }
         }
       }
@@ -2686,6 +3967,12 @@
             "state": "translated",
             "value": "macOS screen recording permission is required for system audio."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem sesi için macOS ekran kaydı izni gerekli."
+          }
         }
       }
     },
@@ -2696,6 +3983,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "system audio off"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sistem sesi kapalı"
           }
         }
       }
@@ -2708,6 +4001,12 @@
             "state": "translated",
             "value": "System audio level"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem sesi seviyesi"
+          }
         }
       }
     },
@@ -2718,6 +4017,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "System audio level: %lld%%"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem sesi seviyesi: %lld%%"
           }
         }
       }
@@ -2730,6 +4035,12 @@
             "state": "translated",
             "value": "Include system audio"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem sesini dahil et"
+          }
         }
       }
     },
@@ -2740,6 +4051,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Frequent"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sık"
           }
         }
       }
@@ -2752,6 +4069,12 @@
             "state": "translated",
             "value": "Unlimited"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sınırsız"
+          }
         }
       }
     },
@@ -2762,6 +4085,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Last recording file %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son kayıt dosyası %1$@"
           }
         }
       }
@@ -2774,6 +4103,12 @@
             "state": "translated",
             "value": "Last recording: %1$@"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son kayıt: %1$@"
+          }
         }
       }
     },
@@ -2784,6 +4119,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Strategy: %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strateji: %1$@"
           }
         }
       }
@@ -2796,6 +4137,12 @@
             "state": "translated",
             "value": "full screen"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tam ekran"
+          }
         }
       }
     },
@@ -2806,6 +4153,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "OK"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tamam"
           }
         }
       }
@@ -2818,6 +4171,12 @@
             "state": "translated",
             "value": "Diagnostics"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tanılama"
+          }
         }
       }
     },
@@ -2828,6 +4187,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Single Desk Speaker"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tek Kişi Masabaşı"
           }
         }
       }
@@ -2840,6 +4205,12 @@
             "state": "translated",
             "value": "Pure audio recording for meetings and podcasts."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toplantı ve podcast için saf ses kaydı."
+          }
         }
       }
     },
@@ -2850,6 +4221,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Capture your entire screen or a window."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tüm ekranı veya bir pencereyi yakala."
           }
         }
       }
@@ -2862,6 +4239,12 @@
             "state": "translated",
             "value": "Top Center"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üst Orta"
+          }
         }
       }
     },
@@ -2872,6 +4255,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Top Right"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üst Sağ"
           }
         }
       }
@@ -2884,6 +4273,12 @@
             "state": "translated",
             "value": "Top Left"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üst Sol"
+          }
         }
       }
     },
@@ -2894,6 +4289,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "App Voice"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uygulama sesi"
           }
         }
       }
@@ -2906,6 +4307,12 @@
             "state": "translated",
             "value": "Default recording folder"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varsayılan kayıt klasörü"
+          }
         }
       }
     },
@@ -2916,6 +4323,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Default recording folder: %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Varsayılan kayıt klasörü: %1$@"
           }
         }
       }
@@ -2928,6 +4341,12 @@
             "state": "translated",
             "value": "granted"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "verildi"
+          }
         }
       }
     },
@@ -2938,6 +4357,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Video Recorder"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video Kaydedici"
           }
         }
       }
@@ -2950,6 +4375,12 @@
             "state": "translated",
             "value": "Could not prepare video recording output."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video kayıt çıkışı hazırlanamadı."
+          }
         }
       }
     },
@@ -2957,6 +4388,12 @@
       "extractionState": "manual",
       "localizations": {
         "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VoiceOver"
+          }
+        },
+        "tr": {
           "stringUnit": {
             "state": "translated",
             "value": "VoiceOver"
@@ -2972,6 +4409,12 @@
             "state": "translated",
             "value": "Microphone only will be included."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yalnızca mikrofon kayda eklenecek."
+          }
         }
       }
     },
@@ -2982,6 +4425,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "System audio only will be included."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yalnızca sistem sesi kayda eklenecek."
           }
         }
       }
@@ -2994,6 +4443,12 @@
             "state": "translated",
             "value": "Horizontal screen recording"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yatay ekran kaydı"
+          }
         }
       }
     },
@@ -3004,6 +4459,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Horizontal screen recording mode"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yatay ekran kaydı modu"
           }
         }
       }
@@ -3016,6 +4477,12 @@
             "state": "translated",
             "value": "Horizontal window recording"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yatay pencere kaydı"
+          }
         }
       }
     },
@@ -3026,6 +4493,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Horizontal video recording mode"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yatay video kaydı modu"
           }
         }
       }
@@ -3038,6 +4511,12 @@
             "state": "translated",
             "value": "Fallback export: %1$@"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yedek dışa aktarım: %1$@"
+          }
         }
       }
     },
@@ -3048,6 +4527,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "may be awaiting restart"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "yeniden açılış bekleniyor olabilir"
           }
         }
       }
@@ -3060,6 +4545,12 @@
             "state": "translated",
             "value": "Rename"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeniden Adlandır"
+          }
         }
       }
     },
@@ -3070,6 +4561,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Renamed: %1$@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yeniden adlandırıldı: %1$@"
           }
         }
       }
@@ -3082,6 +4579,12 @@
             "state": "translated",
             "value": "None"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yok"
+          }
         }
       }
     },
@@ -3092,6 +4595,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Direction tones"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yön sesi"
           }
         }
       }
@@ -3104,6 +4613,12 @@
             "state": "translated",
             "value": "Direction tones and speech"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yön sesi ve konuşma"
+          }
         }
       }
     },
@@ -3115,6 +4630,12 @@
             "state": "translated",
             "value": "Guidance voice"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yönlendirme sesi"
+          }
         }
       }
     },
@@ -3125,6 +4646,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Face not detected"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yüz algılanamıyor"
           }
         }
       }
@@ -3154,6 +4681,12 @@
             "state": "translated",
             "value": "Grant microphone access"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon iznini ver"
+          }
         }
       }
     },
@@ -3164,6 +4697,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Grant camera access"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera iznini ver"
           }
         }
       }
@@ -3176,6 +4715,12 @@
             "state": "translated",
             "value": "standard export completed"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "dışa aktarım tamamlandı"
+          }
         }
       }
     },
@@ -3186,6 +4731,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Adds app and system sounds playing on the Mac to the recording."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac'te çalan uygulama ve sistem seslerini kayda ekler."
           }
         }
       }
@@ -3198,6 +4749,12 @@
             "state": "translated",
             "value": "Step 1 of 3: Welcome to FrameMate"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adım 1 / 3: FrameMate'e Hoş Geldin"
+          }
         }
       }
     },
@@ -3208,6 +4765,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Step 2 of 3: Recording Modes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adım 2 / 3: Kayıt Modları"
           }
         }
       }
@@ -3220,6 +4783,12 @@
             "state": "translated",
             "value": "Collapse"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Daraltmak için tıkla"
+          }
         }
       }
     },
@@ -3231,6 +4800,12 @@
             "state": "translated",
             "value": "Expand"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Genişletmek için tıkla"
+          }
         }
       }
     },
@@ -3241,6 +4816,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Edit the file name. The extension is added automatically."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dosyanın adını düzenle. Uzantı otomatik eklenir."
           }
         }
       }
@@ -3355,6 +4936,12 @@
             "state": "translated",
             "value": "Recording duration: %lld minutes %lld seconds"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt süresi: %lld dakika %lld saniye"
+          }
         }
       }
     },
@@ -3365,6 +4952,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recording duration: %lld seconds"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt süresi: %lld saniye"
           }
         }
       }
@@ -3377,6 +4970,12 @@
             "state": "translated",
             "value": ", %lld minutes %lld seconds"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", %lld dakika %lld saniye"
+          }
         }
       }
     },
@@ -3387,6 +4986,12 @@
           "stringUnit": {
             "state": "translated",
             "value": ", %lld seconds"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": ", %lld saniye"
           }
         }
       }
@@ -3620,6 +5225,12 @@
             "state": "translated",
             "value": "The app launches automatically when your Mac starts. Saves time if you use it frequently."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac açıldığında uygulama otomatik olarak başlar. Sık kullanıyorsan zaman kazandırır."
+          }
         }
       }
     },
@@ -3630,6 +5241,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "90 seconds"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "90 saniye"
           }
         }
       }
@@ -3642,6 +5259,12 @@
             "state": "translated",
             "value": "2 minutes"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 dakika"
+          }
         }
       }
     },
@@ -3652,6 +5275,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Accessibility missing"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erişilebilirlik eksik"
           }
         }
       }
@@ -3664,6 +5293,12 @@
             "state": "translated",
             "value": "Accessibility ready"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erişilebilirlik tamam"
+          }
         }
       }
     },
@@ -3674,6 +5309,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Recording stopped. Preparing file"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt durdu. Dosya hazırlanıyor"
           }
         }
       }
@@ -3686,6 +5327,12 @@
             "state": "translated",
             "value": "Recording ready"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt hazır"
+          }
         }
       }
     },
@@ -3696,6 +5343,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Preparing video file"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Video dosyası hazırlanıyor"
           }
         }
       }
@@ -3708,6 +5361,12 @@
             "state": "translated",
             "value": "Preparing audio file"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses dosyası hazırlanıyor"
+          }
         }
       }
     },
@@ -3718,6 +5377,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Preparing screen recording file"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydı dosyası hazırlanıyor"
           }
         }
       }
@@ -3730,6 +5395,12 @@
             "state": "translated",
             "value": "Play command received sound"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Komut alındı sesini çal"
+          }
         }
       }
     },
@@ -3740,6 +5411,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Play recording started sound"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt başladı sesini çal"
           }
         }
       }
@@ -3752,6 +5429,12 @@
             "state": "translated",
             "value": "Play recording finished sound"
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt bitti sesini çal"
+          }
         }
       }
     },
@@ -3762,6 +5445,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Play pause and resume sound"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duraklat ve devam sesini çal"
           }
         }
       }
@@ -3774,6 +5463,12 @@
             "state": "translated",
             "value": "Plays a short confirmation sound when the recording start command is received."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt başlatma komutu alındığında kısa bir onay sesi çalar."
+          }
         }
       }
     },
@@ -3784,6 +5479,12 @@
           "stringUnit": {
             "state": "translated",
             "value": "Plays the start sound after preparation or countdown, just before recording actually begins."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hazırlık veya geri sayım bittikten sonra, kayıt gerçekten başlamadan hemen önce başlangıç sesi çalar."
           }
         }
       }
@@ -3796,6 +5497,12 @@
             "state": "translated",
             "value": "Plays the finish sound after the recording stops."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt durduktan sonra bitiş sesi çalar."
+          }
         }
       }
     },
@@ -3807,6 +5514,12 @@
             "state": "translated",
             "value": "Plays a transition sound when recording is paused or resumed."
           }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt duraklatıldığında veya devam ettirildiğinde geçiş sesi çalar."
+          }
         }
       }
     },
@@ -3817,6 +5530,1185 @@
           "stringUnit": {
             "state": "translated",
             "value": "3 minutes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 dakika"
+          }
+        }
+      }
+    },
+    "Bir kişi görünüyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One person visible"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bir kişi görünüyor"
+          }
+        }
+      }
+    },
+    "İki kişi görünüyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Two people visible"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "İki kişi görünüyor"
+          }
+        }
+      }
+    },
+    "Üç kişi görünüyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Three people visible"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üç kişi görünüyor"
+          }
+        }
+      }
+    },
+    "kişi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "person"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kişi"
+          }
+        }
+      }
+    },
+    "soldaki kişi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "person on the left"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "soldaki kişi"
+          }
+        }
+      }
+    },
+    "ortadaki kişi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "person in the center"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ortadaki kişi"
+          }
+        }
+      }
+    },
+    "sağdaki kişi": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "person on the right"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sağdaki kişi"
+          }
+        }
+      }
+    },
+    "Kadraja tam girmiyorsun, biraz sağa gel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are partly out of frame, move slightly right"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraja tam girmiyorsun, biraz sağa gel"
+          }
+        }
+      }
+    },
+    "Kadraja tam girmiyorsun, biraz sola gel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are partly out of frame, move slightly left"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraja tam girmiyorsun, biraz sola gel"
+          }
+        }
+      }
+    },
+    "%@ kadraja tam girmiyor, biraz sağa gelsin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is partly out of frame, move slightly right"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kadraja tam girmiyor, biraz sağa gelsin"
+          }
+        }
+      }
+    },
+    "%@ kadraja tam girmiyor, biraz sola gelsin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is partly out of frame, move slightly left"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kadraja tam girmiyor, biraz sola gelsin"
+          }
+        }
+      }
+    },
+    "%@ arkada kalmış, biraz yana açılsın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is blocked, move slightly to the side"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ arkada kalmış, biraz yana açılsın"
+          }
+        }
+      }
+    },
+    "%@ kameraya daha yakın, biraz geri gelsin": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is closer to the camera, move slightly back"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kameraya daha yakın, biraz geri gelsin"
+          }
+        }
+      }
+    },
+    "%@ kadrajda çok aşağıda, biraz yukarı otursun": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is too low in frame, sit a little higher"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kadrajda çok aşağıda, biraz yukarı otursun"
+          }
+        }
+      }
+    },
+    "%@ kadrajda çok yukarıda, biraz aşağı otursun": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is too high in frame, sit a little lower"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ kadrajda çok yukarıda, biraz aşağı otursun"
+          }
+        }
+      }
+    },
+    "çok yakınsın, biraz uzaklaş — omuzların ve göğsün de görünsün": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too close, move back so your shoulders and chest are visible"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "çok yakınsın, biraz uzaklaş — omuzların ve göğsün de görünsün"
+          }
+        }
+      }
+    },
+    "kadraj çok uzak, biraz yaklaş": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frame is too far, move closer"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kadraj çok uzak, biraz yaklaş"
+          }
+        }
+      }
+    },
+    "Çok uzaktasınız, ikiniz de biraz yaklaşın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too far away, both of you move closer"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çok uzaktasınız, ikiniz de biraz yaklaşın"
+          }
+        }
+      }
+    },
+    "Çok uzaktasınız, hepiniz biraz yaklaşın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too far away, everyone move closer"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çok uzaktasınız, hepiniz biraz yaklaşın"
+          }
+        }
+      }
+    },
+    "aranız biraz açık, birbirinize yaklaşın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are a little far apart, move closer together"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aranız biraz açık, birbirinize yaklaşın"
+          }
+        }
+      }
+    },
+    "aranız çok açık, birbirinize biraz yaklaşın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You are too far apart, move closer together"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "aranız çok açık, birbirinize biraz yaklaşın"
+          }
+        }
+      }
+    },
+    "grup çok açılmış, birbirinize biraz yaklaşın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The group is spread out, move closer together"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "grup çok açılmış, birbirinize biraz yaklaşın"
+          }
+        }
+      }
+    },
+    "kamerayı belirgin şekilde yukarı al": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raise the camera noticeably"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kamerayı belirgin şekilde yukarı al"
+          }
+        }
+      }
+    },
+    "kamerayı belirgin şekilde aşağı indir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lower the camera noticeably"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kamerayı belirgin şekilde aşağı indir"
+          }
+        }
+      }
+    },
+    "belirgin şekilde sağa geç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move clearly to the right"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "belirgin şekilde sağa geç"
+          }
+        }
+      }
+    },
+    "grup çok solda kalmış, belirgin şekilde sağa kayın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The group is too far left, move clearly right"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "grup çok solda kalmış, belirgin şekilde sağa kayın"
+          }
+        }
+      }
+    },
+    "grup biraz solda kalmış, biraz sağa kayın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The group is a little left, move slightly right"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "grup biraz solda kalmış, biraz sağa kayın"
+          }
+        }
+      }
+    },
+    "belirgin şekilde sola geç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move clearly to the left"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "belirgin şekilde sola geç"
+          }
+        }
+      }
+    },
+    "grup çok sağda kalmış, belirgin şekilde sola kayın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The group is too far right, move clearly left"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "grup çok sağda kalmış, belirgin şekilde sola kayın"
+          }
+        }
+      }
+    },
+    "grup biraz sağda kalmış, biraz sola kayın": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The group is a little right, move slightly left"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "grup biraz sağda kalmış, biraz sola kayın"
+          }
+        }
+      }
+    },
+    "Son kayıt hazır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last recording ready"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son kayıt hazır"
+          }
+        }
+      }
+    },
+    "Son kayıt hazır: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last recording ready: %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son kayıt hazır: %@"
+          }
+        }
+      }
+    },
+    "Kaydı Durdur (%@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Recording (%@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı Durdur (%@)"
+          }
+        }
+      }
+    },
+    "Kaydı Başlat (%@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Recording (%@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kaydı Başlat (%@)"
+          }
+        }
+      }
+    },
+    "Ses Kaydını Durdur (%@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Audio Recording (%@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses Kaydını Durdur (%@)"
+          }
+        }
+      }
+    },
+    "Ses Kaydını Başlat (%@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Audio Recording (%@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses Kaydını Başlat (%@)"
+          }
+        }
+      }
+    },
+    "Devam Et (%@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume (%@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devam Et (%@)"
+          }
+        }
+      }
+    },
+    "Duraklat (%@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause (%@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duraklat (%@)"
+          }
+        }
+      }
+    },
+    "Hazır Çalışma Modları": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready Workflows"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hazır Çalışma Modları"
+          }
+        }
+      }
+    },
+    "Ana Pencereyi Göster": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show Main Window"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ana Pencereyi Göster"
+          }
+        }
+      }
+    },
+    "Son Kaydı Aç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Last Recording"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Son Kaydı Aç"
+          }
+        }
+      }
+    },
+    "Durum: Kayıt duraklatıldı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: Recording paused"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum: Kayıt duraklatıldı"
+          }
+        }
+      }
+    },
+    "Durum: Kayıt yapılıyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: Recording"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum: Kayıt yapılıyor"
+          }
+        }
+      }
+    },
+    "Durum: Son kayıt hazır (%@)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: Last recording ready (%@)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum: Son kayıt hazır (%@)"
+          }
+        }
+      }
+    },
+    "Durum: Son kayıt hazır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: Last recording ready"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum: Son kayıt hazır"
+          }
+        }
+      }
+    },
+    "Durum: Hazır": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: Ready"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum: Hazır"
+          }
+        }
+      }
+    },
+    "Kayıt süresi: %02d:%02d": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording duration: %02d:%02d"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt süresi: %02d:%02d"
+          }
+        }
+      }
+    },
+    "Kayıt Modu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording Mode"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt Modu"
+          }
+        }
+      }
+    },
+    "Geri sayımı İptal Et (%lld)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel Countdown (%lld)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geri sayımı İptal Et (%lld)"
+          }
+        }
+      }
+    },
+    "Ses Kaydını Durdur": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Audio Recording"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses Kaydını Durdur"
+          }
+        }
+      }
+    },
+    "Ses Kaydını Başlat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start Audio Recording"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses Kaydını Başlat"
+          }
+        }
+      }
+    },
+    "Kadraj Koçunu Kapat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn Frame Coach Off"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçunu Kapat"
+          }
+        }
+      }
+    },
+    "Kadraj Koçunu Aç": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn Frame Coach On"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kadraj Koçunu Aç"
+          }
+        }
+      }
+    },
+    "FrameMate Yardım": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FrameMate Help"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "FrameMate Yardım"
+          }
+        }
+      }
+    },
+    "Çevrimiçi Yardım ve Destek": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Online Help & Support"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Çevrimiçi Yardım ve Destek"
+          }
+        }
+      }
+    },
+    "Gizlilik Politikası": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy Policy"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gizlilik Politikası"
+          }
+        }
+      }
+    },
+    "Küçük": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Small"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Küçük"
+          }
+        }
+      }
+    },
+    "Büyük": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Large"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Büyük"
+          }
+        }
+      }
+    },
+    "Seçilen ekran bulunamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected screen not found."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilen ekran bulunamadı."
+          }
+        }
+      }
+    },
+    "Seçilen pencere bulunamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected window not found."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seçilen pencere bulunamadı."
+          }
+        }
+      }
+    },
+    "Ekran kaydı dosyası hazırlanamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen recording file could not be prepared."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydı dosyası hazırlanamadı."
+          }
+        }
+      }
+    },
+    "Ekran kaydı başlatılamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen recording could not be started."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydı başlatılamadı."
+          }
+        }
+      }
+    },
+    "Ekran kaydında yeterli görüntü alınamadı.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enough video was captured in the screen recording."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ekran kaydında yeterli görüntü alınamadı."
+          }
+        }
+      }
+    },
+    "Kamera Kaydı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Camera Recording"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kamera Kaydı"
+          }
+        }
+      }
+    },
+    "Pencere Kaydı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Window Recording"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pencere Kaydı"
+          }
+        }
+      }
+    },
+    "Portre": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portrait"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Portre"
+          }
+        }
+      }
+    },
+    "Stüdyo Işığı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Studio Light"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stüdyo Işığı"
+          }
+        }
+      }
+    },
+    "Arka Plan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Background"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arka Plan"
+          }
+        }
+      }
+    },
+    "Ses kaydı dışa aktarılamadı: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio recording could not be exported: %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses kaydı dışa aktarılamadı: %@"
           }
         }
       }

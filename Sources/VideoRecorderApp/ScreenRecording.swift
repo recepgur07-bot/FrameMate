@@ -54,17 +54,17 @@ enum ScreenRecordingError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .displayNotFound:
-            return "Seçilen ekran bulunamadı."
+            return String(localized: "Seçilen ekran bulunamadı.")
         case .windowNotFound:
-            return "Seçilen pencere bulunamadı."
+            return String(localized: "Seçilen pencere bulunamadı.")
         case .microphoneNotFound:
-            return "Seçilen mikrofon bulunamadı."
+            return String(localized: "Seçilen mikrofon bulunamadı.")
         case .cannotCreateWriter:
-            return "Ekran kaydı dosyası hazırlanamadı."
+            return String(localized: "Ekran kaydı dosyası hazırlanamadı.")
         case .cannotStartStream:
-            return "Ekran kaydı başlatılamadı."
+            return String(localized: "Ekran kaydı başlatılamadı.")
         case .emptyRecording:
-            return "Ekran kaydında yeterli görüntü alınamadı."
+            return String(localized: "Ekran kaydında yeterli görüntü alınamadı.")
         }
     }
 }

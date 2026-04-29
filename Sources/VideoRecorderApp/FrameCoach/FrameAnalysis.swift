@@ -52,13 +52,13 @@ enum FrameSubjectRole: Equatable {
     var label: String {
         switch self {
         case .solo:
-            return "kişi"
+            return String(localized: "kişi")
         case .left:
-            return "soldaki kişi"
+            return String(localized: "soldaki kişi")
         case .center:
-            return "ortadaki kişi"
+            return String(localized: "ortadaki kişi")
         case .right:
-            return "sağdaki kişi"
+            return String(localized: "sağdaki kişi")
         }
     }
 }

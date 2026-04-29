@@ -7,7 +7,13 @@
       "localizations": {
         "tr": {
           "stringUnit": {
-            "state": "new",
+            "state": "translated",
+            "value": "FrameMate"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
             "value": "FrameMate"
           }
         }
@@ -19,7 +25,13 @@
       "localizations": {
         "tr": {
           "stringUnit": {
-            "state": "new",
+            "state": "translated",
+            "value": "FrameMate"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
             "value": "FrameMate"
           }
         }
@@ -48,7 +60,13 @@
       "localizations": {
         "tr": {
           "stringUnit": {
-            "state": "new",
+            "state": "translated",
+            "value": "Telif hakkı © 2026 Recep Gür. Tüm hakları saklıdır."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
             "value": "Copyright © 2026 Recep Gür. All rights reserved."
           }
         }

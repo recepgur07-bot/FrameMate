@@ -1696,7 +1696,7 @@ final class RecorderViewModel {
             return
         }
 
-        let isGood = guidance == "kadraj uygun" || guidance == "kadraj dengeli"
+        let isGood = guidance == String(localized: "kadraj uygun") || guidance == String(localized: "kadraj dengeli")
         if isGood {
             lastGoodFrameAt = Date()
             lastGoodInstruction = guidance
@@ -1734,11 +1734,25 @@ final class RecorderViewModel {
         }
     }
 
-    /// Matches against Turkish coaching phrases produced by the frame coach engine.
-    /// These are pattern strings used for internal matching — intentionally not localized.
+    /// Matches against coaching phrases produced by the frame coach engine.
+    /// These are internal pattern strings, so keep both supported app languages here.
     private func isHardFrameCoachInstruction(_ instruction: String) -> Bool {
-        let hardKeywords = ["algılanam", "tam girmiyor", "arkada kalmış", "daha yakın", "Çok yakınsın", "Çok uzaktasın", "Çok uzaktasınız"]
-        return hardKeywords.contains { instruction.contains($0) }
+        let normalized = instruction.lowercased()
+        let hardKeywords = [
+            "algılanam",
+            "tam girmiyor",
+            "arkada kalmış",
+            "daha yakın",
+            "çok yakınsın",
+            "çok uzaktasın",
+            "çok uzaktasınız",
+            "not fully in frame",
+            "further back",
+            "closer to the camera",
+            "too close",
+            "too far"
+        ]
+        return hardKeywords.contains { normalized.contains($0) }
     }
 
     func startRecording(afterCommandSoundDelay commandSoundDelay: TimeInterval = 0) {
@@ -2397,7 +2411,7 @@ final class RecorderViewModel {
                             element: NSApp as AnyObject,
                             notification: .announcementRequested,
                             userInfo: [
-                                NSAccessibility.NotificationUserInfoKey.announcement: "Ses kaydı dışa aktarılamadı: \(error.localizedDescription)",
+                                NSAccessibility.NotificationUserInfoKey.announcement: String(localized: "Ses kaydı dışa aktarılamadı: \(error.localizedDescription)"),
                                 NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
                             ]
                         )

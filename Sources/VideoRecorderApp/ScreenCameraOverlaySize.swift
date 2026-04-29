@@ -11,11 +11,11 @@ enum ScreenCameraOverlaySize: String, CaseIterable, Identifiable {
     var label: String {
         switch self {
         case .small:
-            return "Küçük"
+            return String(localized: "Küçük")
         case .medium:
-            return "Orta"
+            return String(localized: "Orta")
         case .large:
-            return "Büyük"
+            return String(localized: "Büyük")
         }
     }
 

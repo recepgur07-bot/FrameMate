@@ -13,13 +13,13 @@ enum CameraVideoEffectsGuard {
         var names: [String] = []
 
         if state.portraitEffectActive {
-            names.append("Portre")
+            names.append(String(localized: "Portre"))
         }
         if state.studioLightActive {
-            names.append("Stüdyo Işığı")
+            names.append(String(localized: "Stüdyo Işığı"))
         }
         if state.backgroundReplacementActive {
-            names.append("Arka Plan")
+            names.append(String(localized: "Arka Plan"))
         }
         if state.centerStageActive {
             names.append("Center Stage")

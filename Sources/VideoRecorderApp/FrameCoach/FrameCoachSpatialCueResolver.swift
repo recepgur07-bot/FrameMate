@@ -20,7 +20,8 @@ struct FrameCoachSpatialCueResolver {
             return nil
         }
 
-        if normalized == "kadraj uygun" || normalized == "kadraj dengeli" {
+        if normalized == String(localized: "kadraj uygun").lowercased(with: Locale(identifier: "tr_TR")) ||
+            normalized == String(localized: "kadraj dengeli").lowercased(with: Locale(identifier: "tr_TR")) {
             return FrameCoachSpatialCue(direction: .center, severity: .mild, confirmsCentered: true)
         }
 
@@ -82,19 +83,19 @@ struct FrameCoachSpatialCueResolver {
     }
 
     private func cueFromGuidanceFallback(_ normalized: String) -> FrameCoachSpatialCue? {
-        if normalized.contains("sağa") {
+        if normalized.contains("sağa") || normalized.contains("right") {
             return FrameCoachSpatialCue(direction: .right, severity: .mild, confirmsCentered: false)
         }
 
-        if normalized.contains("sola") {
+        if normalized.contains("sola") || normalized.contains("left") {
             return FrameCoachSpatialCue(direction: .left, severity: .mild, confirmsCentered: false)
         }
 
-        if normalized.contains("yukarı") {
+        if normalized.contains("yukarı") || normalized.contains("up") {
             return FrameCoachSpatialCue(direction: .up, severity: .mild, confirmsCentered: false)
         }
 
-        if normalized.contains("aşağı") || normalized.contains("indir") {
+        if normalized.contains("aşağı") || normalized.contains("indir") || normalized.contains("down") || normalized.contains("lower") {
             return FrameCoachSpatialCue(direction: .down, severity: .mild, confirmsCentered: false)
         }
 

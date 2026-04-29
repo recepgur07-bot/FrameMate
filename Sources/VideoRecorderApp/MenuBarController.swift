@@ -166,15 +166,15 @@ final class MenuBarController {
 
     private var currentToolTip: String {
         if isRecording {
-            return isPaused ? "Kayıt duraklatıldı" : "Kayıt devam ediyor"
+            return isPaused ? String(localized: "Kayıt duraklatıldı") : String(localized: "Kayıt devam ediyor")
         }
         if hasLastRecording, let lastRecordingName {
-            return "Son kayıt hazır: \(lastRecordingName)"
+            return String(localized: "Son kayıt hazır: \(lastRecordingName)")
         }
         if hasLastRecording {
-            return "Son kayıt hazır"
+            return String(localized: "Son kayıt hazır")
         }
-        return "Video Kaydedici"
+        return String(localized: "Video Kaydedici")
     }
 
     private func startPulsing() {
@@ -212,8 +212,8 @@ final class MenuBarController {
 
         let toggleItem = NSMenuItem(
             title: isRecording
-                ? "Kaydı Durdur (\(GlobalHotkeyMonitor.recordingToggleDisplay))"
-                : "Kaydı Başlat (\(GlobalHotkeyMonitor.recordingToggleDisplay))",
+                ? String(localized: "Kaydı Durdur (\(GlobalHotkeyMonitor.recordingToggleDisplay))")
+                : String(localized: "Kaydı Başlat (\(GlobalHotkeyMonitor.recordingToggleDisplay))"),
             action: #selector(toggleTapped),
             keyEquivalent: ""
         )
@@ -222,8 +222,8 @@ final class MenuBarController {
 
         let audioToggleItem = NSMenuItem(
             title: isRecording
-                ? "Ses Kaydını Durdur (\(GlobalHotkeyMonitor.audioRecordingToggleDisplay))"
-                : "Ses Kaydını Başlat (\(GlobalHotkeyMonitor.audioRecordingToggleDisplay))",
+                ? String(localized: "Ses Kaydını Durdur (\(GlobalHotkeyMonitor.audioRecordingToggleDisplay))")
+                : String(localized: "Ses Kaydını Başlat (\(GlobalHotkeyMonitor.audioRecordingToggleDisplay))"),
             action: #selector(audioToggleTapped),
             keyEquivalent: ""
         )
@@ -232,8 +232,8 @@ final class MenuBarController {
 
         let pauseResumeItem = NSMenuItem(
             title: isPaused
-                ? "Devam Et (\(GlobalHotkeyMonitor.pauseResumeToggleDisplay))"
-                : "Duraklat (\(GlobalHotkeyMonitor.pauseResumeToggleDisplay))",
+                ? String(localized: "Devam Et (\(GlobalHotkeyMonitor.pauseResumeToggleDisplay))")
+                : String(localized: "Duraklat (\(GlobalHotkeyMonitor.pauseResumeToggleDisplay))"),
             action: #selector(pauseResumeTapped),
             keyEquivalent: ""
         )
@@ -242,7 +242,7 @@ final class MenuBarController {
         menu.addItem(pauseResumeItem)
         menu.addItem(.separator())
 
-        let presetsItem = NSMenuItem(title: "Hazır Çalışma Modları", action: nil, keyEquivalent: "")
+        let presetsItem = NSMenuItem(title: String(localized: "Hazır Çalışma Modları"), action: nil, keyEquivalent: "")
         let presetsMenu = NSMenu()
         for preset in RecordingPreset.allCases {
             let item = NSMenuItem(
@@ -258,33 +258,33 @@ final class MenuBarController {
         menu.addItem(presetsItem)
         menu.addItem(.separator())
 
-        menu.addItem(makeMenuItem(title: "Ana Pencereyi Göster", action: #selector(showTapped)))
+        menu.addItem(makeMenuItem(title: String(localized: "Ana Pencereyi Göster"), action: #selector(showTapped)))
 
-        let openLastItem = makeMenuItem(title: "Son Kaydı Aç", action: #selector(openLastRecordingTapped))
+        let openLastItem = makeMenuItem(title: String(localized: "Son Kaydı Aç"), action: #selector(openLastRecordingTapped))
         openLastItem.isEnabled = hasLastRecording
         menu.addItem(openLastItem)
 
-        let revealLastItem = makeMenuItem(title: "Klasörde Göster", action: #selector(revealLastRecordingTapped))
+        let revealLastItem = makeMenuItem(title: String(localized: "Klasörde Göster"), action: #selector(revealLastRecordingTapped))
         revealLastItem.isEnabled = hasLastRecording
         menu.addItem(revealLastItem)
 
         menu.addItem(.separator())
-        menu.addItem(makeMenuItem(title: "Ayarlar", action: #selector(openSettingsTapped)))
-        menu.addItem(makeMenuItem(title: "Çık", action: #selector(quitTapped)))
+        menu.addItem(makeMenuItem(title: String(localized: "Ayarlar"), action: #selector(openSettingsTapped)))
+        menu.addItem(makeMenuItem(title: String(localized: "Çık"), action: #selector(quitTapped)))
         return menu
     }
 
     private var currentStatusLine: String {
         if isRecording {
-            return isPaused ? "Durum: Kayıt duraklatıldı" : "Durum: Kayıt yapılıyor"
+            return isPaused ? String(localized: "Durum: Kayıt duraklatıldı") : String(localized: "Durum: Kayıt yapılıyor")
         }
         if hasLastRecording, let lastRecordingName {
-            return "Durum: Son kayıt hazır (\(lastRecordingName))"
+            return String(localized: "Durum: Son kayıt hazır (\(lastRecordingName))")
         }
         if hasLastRecording {
-            return "Durum: Son kayıt hazır"
+            return String(localized: "Durum: Son kayıt hazır")
         }
-        return "Durum: Hazır"
+        return String(localized: "Durum: Hazır")
     }
 
     private var recordingDurationLine: String? {
@@ -292,7 +292,7 @@ final class MenuBarController {
         let totalSeconds = max(0, Int(recordingDuration.rounded(.down)))
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
-        return String(format: "Kayıt süresi: %02d:%02d", minutes, seconds)
+        return String(format: String(localized: "Kayıt süresi: %02d:%02d"), minutes, seconds)
     }
 
     private func makeMenuItem(title: String, action: Selector?) -> NSMenuItem {
@@ -355,7 +355,7 @@ final class MenuBarController {
 
     private func recordingIcon(alpha: CGFloat) -> NSImage {
         let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .regular)
-        let symbol = (NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: "Kayıt")?
+        let symbol = (NSImage(systemSymbolName: "record.circle.fill", accessibilityDescription: String(localized: "Kayıt"))?
             .withSymbolConfiguration(config)) ?? NSImage(size: NSSize(width: 16, height: 16))
         let size = symbol.size.width > 0 ? symbol.size : NSSize(width: 16, height: 16)
         return NSImage(size: size, flipped: false) { rect in
@@ -368,13 +368,13 @@ final class MenuBarController {
 
     private func idleIcon() -> NSImage {
         let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
-        return (NSImage(systemSymbolName: "video", accessibilityDescription: "Video Kaydedici")?
+        return (NSImage(systemSymbolName: "video", accessibilityDescription: String(localized: "Video Kaydedici"))?
             .withSymbolConfiguration(config)) ?? NSImage(size: NSSize(width: 16, height: 16))
     }
 
     private func readyIcon() -> NSImage {
         let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
-        return (NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "Son kayıt hazır")?
+        return (NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: String(localized: "Son kayıt hazır"))?
             .withSymbolConfiguration(config)) ?? NSImage(size: NSSize(width: 16, height: 16))
     }
 

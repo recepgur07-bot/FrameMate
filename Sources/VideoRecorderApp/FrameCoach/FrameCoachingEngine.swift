@@ -94,14 +94,14 @@ final class FrameCoachingEngine {
                 if analysis.subjectCount == .one {
                     return String(localized: "Kadraja tam girmiyorsun, biraz sağa gel")
                 }
-                return String(localized: "\(subject.role.label) kadraja tam girmiyor, biraz sağa gelsin")
+                return String(format: String(localized: "%@ kadraja tam girmiyor, biraz sağa gelsin"), subject.role.label)
             }
 
             if subject.faceBox.maxX > 0.98 {
                 if analysis.subjectCount == .one {
                     return String(localized: "Kadraja tam girmiyorsun, biraz sola gel")
                 }
-                return String(localized: "\(subject.role.label) kadraja tam girmiyor, biraz sola gelsin")
+                return String(format: String(localized: "%@ kadraja tam girmiyor, biraz sola gelsin"), subject.role.label)
             }
         }
 
@@ -115,7 +115,7 @@ final class FrameCoachingEngine {
             return nil
         }
 
-        return String(localized: "\(smallestSubject.role.label) arkada kalmış, biraz yana açılsın")
+        return String(format: String(localized: "%@ arkada kalmış, biraz yana açılsın"), smallestSubject.role.label)
     }
 
     private func scaleImbalanceInstruction(in analysis: FrameAnalysis) -> String? {
@@ -126,7 +126,7 @@ final class FrameCoachingEngine {
             return nil
         }
 
-        return String(localized: "\(largestSubject.role.label) kameraya daha yakın, biraz geri gelsin")
+        return String(format: String(localized: "%@ kameraya daha yakın, biraz geri gelsin"), largestSubject.role.label)
     }
 
     private func distanceInstruction(
@@ -251,14 +251,14 @@ final class FrameCoachingEngine {
         for subject in analysis.subjects {
             let delta = subject.faceBox.centerY - averageCenterY
             if delta > 0.14 {
-                return String(localized: "\(subject.role.label) kadrajda çok aşağıda, biraz yukarı otursun")
+                return String(format: String(localized: "%@ kadrajda çok aşağıda, biraz yukarı otursun"), subject.role.label)
             }
         }
 
         for subject in analysis.subjects {
             let delta = subject.faceBox.centerY - averageCenterY
             if delta < -0.14 {
-                return String(localized: "\(subject.role.label) kadrajda çok yukarıda, biraz aşağı otursun")
+                return String(format: String(localized: "%@ kadrajda çok yukarıda, biraz aşağı otursun"), subject.role.label)
             }
         }
 
