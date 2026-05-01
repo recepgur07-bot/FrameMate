@@ -43,7 +43,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
             }?.frame ?? .zero
             return ScreenDisplayOption(
                 id: String(display.displayID),
-                name: "Ekran \(display.displayID)",
+                name: String(format: String(localized: "Ekran %@"), String(display.displayID)),
                 frame: frame
             )
         }
@@ -58,7 +58,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
             }
             .map { window in
                 let appName = window.owningApplication?.applicationName ?? "Uygulama"
-                let title = window.title ?? "Adsiz pencere"
+                let title = window.title ?? String(localized: "Adsız pencere")
                 return ScreenWindowOption(
                     id: String(window.windowID),
                     name: "\(appName) - \(title)",

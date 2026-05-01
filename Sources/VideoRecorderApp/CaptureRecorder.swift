@@ -35,6 +35,10 @@ struct SystemMediaPermissionProvider: MediaPermissionProviding {
 struct InputDevice: Identifiable, Hashable {
     let id: String
     let name: String
+
+    var localizedName: String {
+        DeviceDisplayNameLocalizer.localizedCaptureDeviceName(name)
+    }
 }
 
 enum CaptureRecorderError: LocalizedError {

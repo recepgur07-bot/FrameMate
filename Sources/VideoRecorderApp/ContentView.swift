@@ -415,7 +415,7 @@ struct ContentView: View {
                                         Text(String(localized: "Ekran bulunamadı")).tag("")
                                     } else {
                                         ForEach(viewModel.availableDisplays) { display in
-                                            Text(display.name).tag(display.id)
+                                            Text(display.localizedName).tag(display.id)
                                         }
                                     }
                                 }
@@ -465,7 +465,7 @@ struct ContentView: View {
                                         Text(String(localized: "Mikrofon kapalı")).tag("")
                                     }
                                     ForEach(viewModel.microphones) { microphone in
-                                        Text(microphone.name).tag(microphone.id)
+                                        Text(microphone.localizedName).tag(microphone.id)
                                     }
                                 }
                             }
@@ -783,7 +783,7 @@ struct ContentView: View {
                             Text(String(localized: "Mikrofon kapalı")).tag("")
                         }
                         ForEach(viewModel.microphones) { microphone in
-                            Text(microphone.name).tag(microphone.id)
+                            Text(microphone.localizedName).tag(microphone.id)
                         }
                     }
                 }
@@ -871,7 +871,7 @@ struct ContentView: View {
                         Text(String(localized: "Ekran bulunamadı")).tag("")
                     } else {
                         ForEach(viewModel.availableDisplays) { display in
-                            Text(display.name).tag(display.id)
+                            Text(display.localizedName).tag(display.id)
                         }
                     }
                 }
@@ -1127,7 +1127,7 @@ struct ContentView: View {
 
             // Status row — hata detayı toast'ta gösterildiği için burada kısa tutulur
             HStack {
-                Text(String(localized: "Durum: \(viewModel.errorText != nil ? "Hata oluştu" : viewModel.statusText)"))
+                Text(String(localized: "Durum: \(viewModel.errorText != nil ? String(localized: "Hata oluştu") : viewModel.statusText)"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

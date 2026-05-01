@@ -3472,8 +3472,8 @@ final class RecorderViewModel {
     }
 
     private var selectedCameraNameOrFallback: String {
-        cameras.first(where: { $0.id == selectedCameraID })?.name
-            ?? cameras.first?.name
+        cameras.first(where: { $0.id == selectedCameraID })?.localizedName
+            ?? cameras.first?.localizedName
             ?? String(localized: "seçilmedi")
     }
 
@@ -3481,12 +3481,12 @@ final class RecorderViewModel {
         if selectedMicrophoneID.isEmpty {
             return required ? String(localized: "seçilmedi") : String(localized: "kapalı")
         }
-        return microphones.first(where: { $0.id == selectedMicrophoneID })?.name
+        return microphones.first(where: { $0.id == selectedMicrophoneID })?.localizedName
             ?? String(localized: "seçilmedi")
     }
 
     private var selectedDisplayNameOrFallback: String {
-        availableDisplays.first(where: { $0.id == selectedDisplayID })?.name
+        availableDisplays.first(where: { $0.id == selectedDisplayID })?.localizedName
             ?? String(localized: "seçilmedi")
     }
 

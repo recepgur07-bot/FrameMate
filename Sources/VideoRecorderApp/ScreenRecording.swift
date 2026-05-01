@@ -13,6 +13,10 @@ struct ScreenDisplayOption: Identifiable, Hashable {
         self.name = name
         self.frame = frame
     }
+
+    var localizedName: String {
+        DeviceDisplayNameLocalizer.localizedDisplayName(name)
+    }
 }
 
 struct ScreenWindowOption: Identifiable, Hashable {
@@ -24,6 +28,26 @@ struct ScreenWindowOption: Identifiable, Hashable {
         self.id = id
         self.name = name
         self.frame = frame
+    }
+}
+
+enum DeviceDisplayNameLocalizer {
+    static func localizedDisplayName(_ name: String) -> String {
+        if let displayNumber = name.wholeMatch(of: /Ekran\s+(\d+)/)?.1 {
+            return String(format: String(localized: "Ekran %@"), String(displayNumber))
+        }
+        return name
+    }
+
+    static func localizedCaptureDeviceName(_ name: String) -> String {
+        switch name {
+        case "Harici Mikrofon":
+            return String(localized: "Harici Mikrofon")
+        case "MacBook Mikrofonu":
+            return String(localized: "MacBook Mikrofonu")
+        default:
+            return name
+        }
     }
 }
 

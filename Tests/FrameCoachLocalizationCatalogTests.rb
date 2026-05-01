@@ -87,6 +87,51 @@ class FrameCoachLocalizationCatalogTests < Minitest::Test
     assert_empty missing
   end
 
+  def test_turkish_user_facing_source_strings_are_in_localization_catalog
+    strings = JSON.parse(File.read(CATALOG)).fetch("strings")
+    missing = swift_source_string_literals_with_turkish_text.reject do |literal|
+      strings.key?(literal)
+    end
+
+    assert_empty missing
+  end
+
+  def test_english_catalog_covers_accessibility_menu_and_paywall_surfaces
+    strings = JSON.parse(File.read(CATALOG)).fetch("strings")
+    critical_keys = [
+      "Mod %@.",
+      "Yatay video kaydı",
+      "Kamera %@",
+      "mikrofon %@",
+      "sistem sesi açık",
+      "kadraj koçu kapalı",
+      "Kayıt",
+      "Mevcut Ayarları Duyur",
+      "Yardım ve Destek",
+      "Geliştiriciye E-posta Gönder",
+      "Yıllık plan veya Apple deneme süresiyle tüm Pro kayıt özellikleri açık.",
+      "Dock'ta göster"
+    ]
+
+    missing_or_turkish = critical_keys.each_with_object([]) do |key, issues|
+      english = strings.dig(key, "localizations", "en", "stringUnit", "value").to_s.strip
+      if english.empty?
+        issues << "#{key}: missing en"
+      elsif turkish_text?(english)
+        issues << "#{key}: English still looks Turkish: #{english}"
+      end
+    end
+
+    assert_empty missing_or_turkish
+  end
+
+  def test_screen_recorder_does_not_build_turkish_display_names_directly
+    screen_recorder = File.join(ROOT, "Sources", "VideoRecorderApp", "ScreenRecorder.swift")
+    source = File.read(screen_recorder)
+
+    refute_includes source, 'name: "Ekran \\(display.displayID)"'
+  end
+
   private
 
   def missing_locales_for(key, entry)
@@ -96,5 +141,25 @@ class FrameCoachLocalizationCatalogTests < Minitest::Test
       value = localizations.dig(locale, "stringUnit", "value").to_s.strip
       missing << "#{key}: missing #{locale}" if value.empty?
     end
+  end
+
+  def swift_source_string_literals_with_turkish_text
+    Dir.glob(File.join(ROOT, "Sources", "VideoRecorderApp", "**", "*.swift")).flat_map do |path|
+      File.readlines(path).grep(/(?:String\(localized:|Text|Button|Toggle|Picker|Section|Link|TextField|CommandMenu|DisclosureGroup)\("/).flat_map do |line|
+        line.scan(/"((?:[^"\\]|\\.)*)"/).flatten
+      end
+    end
+       .map { |literal| literal.gsub('\\"', '"') }
+       .select { |literal| literal.match?(/[ÇĞİÖŞÜçğıöşü]|Kayıt|Kadraj|Kamera|Mikrofon|Ekran|Ses|Hazır|Seç|Ayar|Durdur|Başlat|Devam|Tamam|İzin|Pencere|Dosya|Kısayol|Değiştir|Gizlilik|Yardım|Tanılama/) }
+       .reject { |literal| literal.include?("\\(") }
+       .reject { |literal| literal.start_with?(")).") }
+       .reject { |literal| literal.match?(/\A(?:tr|tr_TR|en|en-US)\z/) }
+       .uniq
+       .sort
+  end
+
+  def turkish_text?(text)
+    text.match?(/[ÇĞİÖŞÜçğıöşü]/) ||
+      text.match?(/\b(Yatay|Kamera|mikrofon|sistem sesi|kadraj koçu|Kayıt|Mevcut|Yardım|Geliştirici|Yıllık|Dock'ta)\b/)
   end
 end
