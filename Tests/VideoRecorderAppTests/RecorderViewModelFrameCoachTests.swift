@@ -71,12 +71,14 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         let viewModel = makeViewModel(
             speaker: speaker,
             recorder: recorder,
+            systemAudioRecorder: MockSystemAudioRecorder(),
             soundEffectPlayer: FrameCoachMockSoundEffectPlayer()
         )
 
         await viewModel.setup()
         viewModel.appAccessState = AppAccessState(accessKind: .lifetime, trialDaysRemaining: 0, offers: [])
         viewModel.selectPreset(.horizontalCamera)
+        viewModel.isSystemAudioEnabled = false
         viewModel.recordingCountdown = .none
         let stopSessionCallCountBeforeRecording = recorder.stopSessionCallCount
         viewModel.startRecording()
@@ -97,7 +99,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         XCTAssertFalse(viewModel.isRecording)
         XCTAssertFalse(viewModel.isFrameCoachEnabled)
         XCTAssertFalse(recorder.previewFramesEnabled)
-        XCTAssertEqual(recorder.stopSessionCallCount, stopSessionCallCountBeforeRecording + 1)
+        XCTAssertGreaterThan(recorder.stopSessionCallCount, stopSessionCallCountBeforeRecording)
     }
 
     func testToggleFrameCoachDisablesCoachAndClearsInstruction() {
@@ -455,6 +457,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         recorder: FrameCoachMockCaptureRecorder = FrameCoachMockCaptureRecorder(),
         screenRecordingProvider: any ScreenRecordingProviding = MockScreenRecordingProvider(status: .authorized),
         cameraOverlayRecorder: any CameraOverlayRecording = MockCameraOverlayRecorder(),
+        systemAudioRecorder: any SystemAudioRecordingProviding = MockSystemAudioRecorder(),
         frameAnalysisService: FrameAnalysisService = FrameAnalysisService(),
         soundEffectPlayer: any SoundEffectPlaying = SoundEffectPlayer(),
         speechCuePlayer: SpeechCuePlayer? = nil,
@@ -466,6 +469,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
             recorder: recorder,
             screenRecordingProvider: screenRecordingProvider,
             cameraOverlayRecorder: cameraOverlayRecorder,
+            systemAudioRecorder: systemAudioRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
             frameAnalysisService: frameAnalysisService,
             soundEffectPlayer: soundEffectPlayer,

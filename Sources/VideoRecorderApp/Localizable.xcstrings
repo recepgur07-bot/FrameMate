@@ -102,6 +102,23 @@
         }
       }
     },
+    "%@ hazır. %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is ready. %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ hazır. %@"
+          }
+        }
+      }
+    },
     "Hazır durumu: %@.": {
       "extractionState": "manual",
       "localizations": {
@@ -884,6 +901,23 @@
         }
       }
     },
+    "Durum %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum %@"
+          }
+        }
+      }
+    },
     "Durum: %1$@": {
       "extractionState": "manual",
       "localizations": {
@@ -897,6 +931,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Durum: %1$@"
+          }
+        }
+      }
+    },
+    "Durum: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: %@"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Durum: %@"
           }
         }
       }
@@ -4125,6 +4176,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Sistem sesini dahil et"
+          }
+        }
+      }
+    },
+    "Sistem sesini kaydet": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record system audio"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sistem sesini kaydet"
           }
         }
       }

@@ -335,6 +335,7 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.selectPreset(.horizontalCamera)
         viewModel.selectedCameraID = "cam-1"
         viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isSystemAudioEnabled = false
 
         viewModel.announceCurrentSettings()
 
@@ -342,6 +343,85 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(
             announcer.announcements,
             ["Mod Yatay video kaydı. Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu kapalı."]
+        )
+    }
+
+    func testAnnounceCurrentSettingsIsFullyEnglishWhenTestLanguageIsEnglish() async throws {
+        try XCTSkipUnless(
+            Locale.current.language.languageCode?.identifier == "en",
+            "English-only localization regression runs with -testLanguage en."
+        )
+
+        let speaker = MockInstructionSpeaker()
+        let announcer = MockInstructionAnnouncer()
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                cameras: [InputDevice(id: "cam-1", name: "FaceTime HD Camera")],
+                microphones: [InputDevice(id: "mic-1", name: "External Microphone")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized]),
+            speechCuePlayer: SpeechCuePlayer(speaker: speaker, announcer: announcer, isVoiceOverEnabled: { true })
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
+        viewModel.selectedCameraID = "cam-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isSystemAudioEnabled = true
+
+        viewModel.announceCurrentSettings()
+
+        XCTAssertTrue(speaker.spokenTexts.isEmpty)
+        let announcement = try XCTUnwrap(announcer.announcements.first)
+        XCTAssertEqual(
+            announcement,
+            "Mode Horizontal video recording. Camera FaceTime HD Camera, microphone External Microphone, system audio on, Frame Coach off."
+        )
+        XCTAssertFalse(announcement.contains("Yatay"))
+        XCTAssertFalse(announcement.contains("Kamera "))
+        XCTAssertFalse(announcement.contains("mikrofon "))
+        XCTAssertFalse(announcement.contains("kadraj"))
+    }
+
+    func testScreenRecordingReadinessIsFullyEnglishWhenTestLanguageIsEnglish() async throws {
+        try XCTSkipUnless(
+            Locale.current.language.languageCode?.identifier == "en",
+            "English-only localization regression runs with -testLanguage en."
+        )
+
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(
+                cameras: [InputDevice(id: "cam-1", name: "FaceTime HD Camera")],
+                microphones: [InputDevice(id: "mic-1", name: "External Microphone")]
+            ),
+            screenRecordingProvider: MockScreenRecordingProvider(
+                displays: [ScreenDisplayOption(id: "display-1", name: "Ekran 1")]
+            ),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: MockMediaPermissionProvider(statuses: [.video: .authorized, .audio: .authorized])
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.selectScreenCaptureSource(.screen)
+        viewModel.selectedDisplayID = "display-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.isSystemAudioEnabled = true
+        await viewModel.refreshScreenRecordingOptions()
+
+        XCTAssertEqual(ScreenCaptureSource.screen.label, "Full Screen")
+        XCTAssertEqual(viewModel.availableDisplays.first?.localizedName, "Screen 1")
+        XCTAssertEqual(
+            viewModel.accessibilitySetupSummary,
+            "source: full screen, screen 1, microphone External Microphone, system audio on, cursor highlight off."
+        )
+        XCTAssertEqual(
+            viewModel.statusText,
+            "Horizontal screen recording is ready. Microphone and system audio will be included."
         )
     }
 

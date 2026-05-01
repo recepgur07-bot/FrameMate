@@ -28,7 +28,9 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
-      onlyGenerateCoverageForSpecifiedTargets = "NO">
+      onlyGenerateCoverageForSpecifiedTargets = "NO"
+      language = "tr"
+      region = "TR">
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
@@ -64,6 +66,18 @@
       </Testables>
       <CommandLineArguments>
       </CommandLineArguments>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "AppleLanguages"
+            value = "(tr)"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "AppleLocale"
+            value = "tr_TR"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"

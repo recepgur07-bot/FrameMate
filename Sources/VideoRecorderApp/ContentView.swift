@@ -1127,13 +1127,13 @@ struct ContentView: View {
 
             // Status row — hata detayı toast'ta gösterildiği için burada kısa tutulur
             HStack {
-                Text(String(localized: "Durum: \(viewModel.errorText != nil ? String(localized: "Hata oluştu") : viewModel.statusText)"))
+                Text(String(format: String(localized: "Durum: %@"), viewModel.errorText != nil ? String(localized: "Hata oluştu") : viewModel.statusText))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .textSelection(.enabled)
-                    .accessibilityLabel(String(localized: "Durum \(viewModel.statusText)"))
+                    .accessibilityLabel(String(format: String(localized: "Durum %@"), viewModel.statusText))
 
                 Spacer()
 

@@ -20,9 +20,13 @@ final class RecordingFileNamerTests: XCTestCase {
         let screenURL = namer.recordingURL(source: .screen, for: date)
         let windowURL = namer.recordingURL(source: .window, for: date)
 
-        XCTAssertTrue(cameraURL.lastPathComponent.hasPrefix("Kamera Kaydı "))
-        XCTAssertTrue(screenURL.lastPathComponent.hasPrefix("Ekran Kaydı "))
-        XCTAssertTrue(windowURL.lastPathComponent.hasPrefix("Pencere Kaydı "))
+        let expectedCameraPrefix = Locale.current.language.languageCode?.identifier == "en" ? "Camera Recording " : "Kamera Kaydı "
+        let expectedScreenPrefix = Locale.current.language.languageCode?.identifier == "en" ? "Screen Recording " : "Ekran Kaydı "
+        let expectedWindowPrefix = Locale.current.language.languageCode?.identifier == "en" ? "Window Recording " : "Pencere Kaydı "
+
+        XCTAssertTrue(cameraURL.lastPathComponent.hasPrefix(expectedCameraPrefix), cameraURL.lastPathComponent)
+        XCTAssertTrue(screenURL.lastPathComponent.hasPrefix(expectedScreenPrefix), screenURL.lastPathComponent)
+        XCTAssertTrue(windowURL.lastPathComponent.hasPrefix(expectedWindowPrefix), windowURL.lastPathComponent)
         XCTAssertTrue(cameraURL.lastPathComponent.hasSuffix(".mp4"))
         XCTAssertEqual(cameraURL.deletingLastPathComponent().path, "/tmp/Movies/Video Recorder")
     }
@@ -43,7 +47,9 @@ final class RecordingFileNamerTests: XCTestCase {
 
         let url = namer.audioRecordingURL(for: date)
 
-        XCTAssertTrue(url.lastPathComponent.hasPrefix("Ses Kaydı "))
+        let expectedPrefix = Locale.current.language.languageCode?.identifier == "en" ? "Audio Recording " : "Ses Kaydı "
+
+        XCTAssertTrue(url.lastPathComponent.hasPrefix(expectedPrefix), url.lastPathComponent)
         XCTAssertTrue(url.lastPathComponent.hasSuffix(".m4a"))
     }
 

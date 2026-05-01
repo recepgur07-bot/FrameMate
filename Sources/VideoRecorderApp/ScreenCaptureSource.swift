@@ -9,9 +9,9 @@ enum ScreenCaptureSource: String, CaseIterable, Identifiable, Codable {
     var label: String {
         switch self {
         case .screen:
-            return "Tam Ekran"
+            return String(localized: "Tam Ekran")
         case .window:
-            return "Pencere"
+            return String(localized: "Pencere")
         }
     }
 

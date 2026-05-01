@@ -672,7 +672,7 @@ final class RecorderViewModel {
                     : String(localized: "Kaynak pencere")
             ]
             if selectedScreenCaptureSource == .screen {
-                parts.append(String(localized: "ekran \(selectedDisplayNameOrFallback)"))
+                parts.append(String(localized: "ekran \(selectedDisplaySummaryNameOrFallback)"))
             } else {
                 parts.append(String(localized: "pencere \(selectedWindowNameOrFallback)"))
             }
@@ -3490,6 +3490,11 @@ final class RecorderViewModel {
             ?? String(localized: "seçilmedi")
     }
 
+    private var selectedDisplaySummaryNameOrFallback: String {
+        availableDisplays.first(where: { $0.id == selectedDisplayID })?.localizedSummaryName
+            ?? String(localized: "seçilmedi")
+    }
+
     private var selectedWindowNameOrFallback: String {
         availableWindows.first(where: { $0.id == selectedWindowID })?.name
             ?? String(localized: "seçilmedi")
@@ -3521,10 +3526,10 @@ final class RecorderViewModel {
             guard screenRecordingPermissionStatus == .authorized else {
                 return String(localized: "Sistem sesi için macOS ekran kaydı izni gerekli.")
             }
-            return String(localized: "\(currentPresetReadinessLabel) hazır. Mikrofon ve sistem sesi kayda eklenecek.")
+            return readyStatusText(for: currentPresetReadinessLabel, detail: String(localized: "Mikrofon ve sistem sesi kayda eklenecek."))
         }
 
-        return String(localized: "\(currentPresetReadinessLabel) hazır.")
+        return readyStatusText(for: currentPresetReadinessLabel)
     }
 
     private func makeScreenRecordingStatusText() -> String {
@@ -3549,7 +3554,7 @@ final class RecorderViewModel {
             if selectedDisplayID.isEmpty {
                 return String(localized: "Kayıt için bir ekran seçin.")
             }
-            return String(localized: "\(currentPresetReadinessLabel) hazır. \(audioSummary)")
+            return readyStatusText(for: currentPresetReadinessLabel, detail: audioSummary)
         case .window:
             if availableWindows.isEmpty {
                 return String(localized: "Paylaşılabilir pencere bulunamadı.")
@@ -3557,7 +3562,7 @@ final class RecorderViewModel {
             if selectedWindowID.isEmpty {
                 return String(localized: "Kayıt için bir pencere seçin.")
             }
-            return String(localized: "\(currentPresetReadinessLabel) hazır. \(audioSummary)")
+            return readyStatusText(for: currentPresetReadinessLabel, detail: audioSummary)
         case .camera, .audio:
             return String(localized: "Hazır")
         }
@@ -3579,7 +3584,14 @@ final class RecorderViewModel {
             return String(localized: "Sistem sesi için macOS ekran kaydı izni gerekli.")
         }
 
-        return String(localized: "\(currentPresetReadinessLabel) hazır. \(screenAudioSummary)")
+        return readyStatusText(for: currentPresetReadinessLabel, detail: screenAudioSummary)
+    }
+
+    private func readyStatusText(for subject: String, detail: String? = nil) -> String {
+        if let detail {
+            return String(format: String(localized: "%@ hazır. %@"), subject, detail)
+        }
+        return String(format: String(localized: "%@ hazır."), subject)
     }
 
     private var screenAudioSummary: String {
