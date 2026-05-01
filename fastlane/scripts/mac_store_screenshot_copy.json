@@ -1,0 +1,86 @@
+{
+  "canvas": {
+    "width": 2880,
+    "height": 1800
+  },
+  "screens": [
+    {
+      "key": "01_Record_Everything",
+      "locales": {
+        "tr": {
+          "title": "Ekran, kamera ve ses tek yerde",
+          "subtitle": "Mac ekranınızı, kameranızı, mikrofonunuzu ve sistem sesini aynı akışta kaydedin."
+        },
+        "en-US": {
+          "title": "Record screen, camera, and audio in one place",
+          "subtitle": "Pick a mode, choose your sources, and start a clean Mac recording."
+        }
+      }
+    },
+    {
+      "key": "02_Presentations_Lessons",
+      "locales": {
+        "tr": {
+          "title": "Ses kaydı için sade akış",
+          "subtitle": "Mikrofon ve sistem sesini birlikte alıp anlatımlarınızı temiz kaydedin."
+        },
+        "en-US": {
+          "title": "Capture walkthroughs with your camera",
+          "subtitle": "Show your screen, add a camera bubble, and include microphone or system audio."
+        }
+      }
+    },
+    {
+      "key": "03_Flexible_Modes",
+      "locales": {
+        "tr": {
+          "title": "Kameralı kayıtları hazırlayın",
+          "subtitle": "Önizlemede kadrajınızı görün, kaynakları seçin ve kayda güvenle başlayın."
+        },
+        "en-US": {
+          "title": "Set up every recording clearly",
+          "subtitle": "Review the selected screen, camera, audio, and cursor options before you begin."
+        }
+      }
+    },
+    {
+      "key": "04_Frame_Coach",
+      "locales": {
+        "tr": {
+          "title": "Geri bildirimleri ayarlayın",
+          "subtitle": "Kadraj ve yönlendirme uyarılarını çalışma temponuza uygun hale getirin."
+        },
+        "en-US": {
+          "title": "Record polished camera video",
+          "subtitle": "Use horizontal video mode for lessons, updates, and simple talking-head clips."
+        }
+      }
+    },
+    {
+      "key": "05_Customize_Settings",
+      "locales": {
+        "tr": {
+          "title": "Kayıt davranışını düzenleyin",
+          "subtitle": "Geri sayım, süre sınırı ve kayıt seslerini ihtiyacınıza göre düzenleyin."
+        },
+        "en-US": {
+          "title": "Fine-tune guidance and recording settings",
+          "subtitle": "Adjust countdowns, limits, guidance frequency, and sounds for your workflow."
+        }
+      }
+    },
+    {
+      "key": "06_Preview_Save",
+      "locales": {
+        "tr": {
+          "title": "Kayıtlarınız düzenli kalsın",
+          "subtitle": "Varsayılan klasörü seçin, destek ve gizlilik bağlantılarına hızlıca ulaşın."
+        },
+        "en-US": {
+          "title": "Rename, open, or save when recording ends",
+          "subtitle": "Keep finished recordings easy to find with a clear post-recording flow."
+        }
+      }
+    }
+  ]
+}
