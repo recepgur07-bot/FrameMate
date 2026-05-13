@@ -1,1 +1,1 @@
-ekran kaydedici,ekran kaydı,pencere kaydı,kamera kaydı,ses kaydı,screencast,demo,sunum
+kamera,mikrofon,sistem sesi,pencere,sunum,demo,eğitim,voiceover,kadraj,imleç,anlatım

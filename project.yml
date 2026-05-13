@@ -58,14 +58,15 @@ targets:
       path: Resources/Info.plist
       properties:
         CFBundleDisplayName: "FrameMate"
-        NSCameraUsageDescription: "Kadraj yönlendirmesi ve video kaydı için kameraya erişim gerekiyor."
-        NSMicrophoneUsageDescription: "Videoları sesli kaydetmek için mikrofona erişim gerekiyor."
-        NSScreenCaptureUsageDescription: "Ekranı kaydetmek için ekran yakalama iznine ihtiyaç var."
+        NSCameraUsageDescription: "Kamera, ekran + kamera kaydı ve kadraj önizlemesi için kullanılır; örneğin bir ders, demo veya kısa güncelleme videosu kaydederken yüzünüzü ekrana eklemek için."
+        NSMicrophoneUsageDescription: "Mikrofon, ekran kayıtlarına anlatım sesi eklemek ve yalnızca ses kaydı oluşturmak için kullanılır; örneğin bir ders, demo, toplantı notu veya podcast taslağı kaydederken sesinizi almak için."
+        NSScreenCaptureUsageDescription: "Ekran ve pencereleri kaydetmek için ekran yakalama izni gereklidir; örneğin bir ürün anlatımı veya ders videosunda ekrandaki içerik kaydedilir."
         NSHumanReadableCopyright: "Copyright © 2026 Recep Gür. All rights reserved."
         LSMinimumSystemVersion: "14.0"
         LSApplicationCategoryType: "public.app-category.video"
         CFBundleIconFile: "AppIcon"
-        NSSpeechUsageDescription: "Kadraj koçluğu talimatlarını sesli olarak iletmek için ses sentezi kullanılır."
+        NSSpeechUsageDescription: "Kadraj koçluğu yönergelerini sesli olarak duyurmak için ses sentezi kullanılır; örneğin kayıt sırasında kadrajı ortalamak için anlık yönlendirme verilir."
+        FrameMateDisablePurchasesForInternalTesting: true
     scheme:
       testTargets:
         - FrameMateTests

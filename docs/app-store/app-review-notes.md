@@ -17,11 +17,16 @@ Purchases
 
 - The app offers a yearly subscription and a one-time lifetime purchase.
 - A 14-day free trial may be available on the yearly plan if the App Store account is eligible.
+- The lifetime purchase price is intentionally set to $49.99.
 - Restore Purchases is available inside the app.
+- TestFlight and App Store review builds require a valid App Store entitlement, trial, or purchase for recording access; there is no hidden tester unlock.
 
 Notes for review
 
 - The app does not upload recordings to external servers.
+- Recordings are saved to app-controlled storage by default, and user-selected output folders are remembered with a security-scoped bookmark.
+- The app's Terms of Use are available from the in-app Settings screen and the help/support page, and they use Apple's standard Mac App Store EULA.
+- No account or demo login is required.
 - Some features depend on macOS privacy permissions and may require the reviewer to enable them in System Settings > Privacy & Security.
 - If Screen Recording permission is newly granted, macOS may require reopening the app before capture becomes available.
 - Frame Coach provides spoken framing guidance and is one of the app's key accessibility features for blind and low-vision creators.

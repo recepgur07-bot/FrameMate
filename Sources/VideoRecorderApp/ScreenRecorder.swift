@@ -20,7 +20,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
     private var videoInput: AVAssetWriterInput?
     private var completion: ((Result<URL, Error>) -> Void)?
     private var hasStartedWriting = false
-    private var hasReceivedVideoFrame = false
+    private let sampleTracker = RecordingSampleTracker()
     private var outputURL: URL?
     private var isStopping = false
 
@@ -88,7 +88,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
         self.completion = completion
         self.outputURL = url
         hasStartedWriting = false
-        hasReceivedVideoFrame = false
+        sampleTracker.reset()
         isStopping = false
 
         if #available(macOS 15.0, *) {
@@ -158,7 +158,6 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
         let currentWriter = writer
         let currentVideoInput = videoInput
         let outputURL = outputURL
-        let hasVideo = hasReceivedVideoFrame
         let currentWriterBox = currentWriter.map(UnsafeSendableBox.init)
         let currentVideoInputBox = currentVideoInput.map(UnsafeSendableBox.init)
 
@@ -175,7 +174,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
                     return
                 }
 
-                guard hasVideo else {
+                guard self.sampleTracker.hasAppendedSample else {
                     currentWriter.cancelWriting()
                     try? FileManager.default.removeItem(at: outputURL)
                     self.complete(.failure(ScreenRecordingError.emptyRecording))
@@ -214,8 +213,9 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
             }
 
             guard videoInputBox.value.isReadyForMoreMediaData else { return }
-            self.hasReceivedVideoFrame = true
-            videoInputBox.value.append(sampleBufferBox.value)
+            if videoInputBox.value.append(sampleBufferBox.value) {
+                self.sampleTracker.markAppendedSample()
+            }
         }
     }
 
@@ -345,7 +345,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
         completion = nil
         outputURL = nil
         hasStartedWriting = false
-        hasReceivedVideoFrame = false
+        sampleTracker.reset()
         isStopping = false
     }
 }

@@ -47,6 +47,14 @@ Ilk kurulum: yeni appstore certificate/profile olustur
 
 Mac icin internal TestFlight build yukle
 
+### mac store_metadata
+
+```sh
+[bundle exec] fastlane mac store_metadata
+```
+
+Mac App Store metadata ve ekran goruntulerini yukle; review'a gondermez
+
 ----
 
 This README.md is auto-generated and will be re-generated every time [_fastlane_](https://fastlane.tools) is run.

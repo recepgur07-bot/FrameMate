@@ -41,6 +41,10 @@ final class XcodeProjectConfigurationTests: XCTestCase {
 
         XCTAssertEqual(entitlements["com.apple.security.device.microphone"] as? Bool, true)
         XCTAssertEqual(entitlements["com.apple.security.device.audio-input"] as? Bool, true)
+        XCTAssertEqual(entitlements["com.apple.security.assets.movies.read-write"] as? Bool, true)
+        XCTAssertEqual(entitlements["com.apple.security.files.user-selected.read-write"] as? Bool, true)
+        XCTAssertEqual(entitlements["com.apple.security.files.bookmarks.app-scope"] as? Bool, true)
+        XCTAssertNil(entitlements["com.apple.security.files.downloads.read-write"])
     }
 
     func testUnitTestsUseBuiltFrameMateAppAsTestHost() throws {
@@ -112,6 +116,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
 
         XCTAssertEqual(plist["LSApplicationCategoryType"] as? String, "public.app-category.video")
         XCTAssertEqual(plist["CFBundleIconFile"] as? String, "AppIcon")
+        XCTAssertEqual(plist["FrameMateDisablePurchasesForInternalTesting"] as? Bool, true)
     }
 
     func testProjectBundlesAppIconIcns() throws {

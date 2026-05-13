@@ -99,13 +99,27 @@ final class AppAccessManagerTests: XCTestCase {
         XCTAssertTrue(manager.state.canStartRecording)
     }
 
-    func testRefreshAllowsAccessForBetaBuildsWithoutPurchase() async {
+    func testRefreshLocksRecordingForBetaBuildsWithoutPurchase() async {
+        let manager = AppAccessManager(
+            storeKit: MockAppStorePurchasing(),
+            trialStore: MockTrialStartDateStore(),
+            allowsUnitTestAccessFallback: false,
+            allowsDebugAccessFallback: false
+        )
+
+        await manager.refresh()
+
+        XCTAssertEqual(manager.state.accessKind, .expired)
+        XCTAssertFalse(manager.state.canStartRecording)
+    }
+
+    func testRefreshAllowsInternalTestingBuildsWithoutPurchase() async {
         let manager = AppAccessManager(
             storeKit: MockAppStorePurchasing(),
             trialStore: MockTrialStartDateStore(),
             allowsUnitTestAccessFallback: false,
             allowsDebugAccessFallback: false,
-            isBetaBuild: { true }
+            allowsInternalTestingAccessFallback: true
         )
 
         await manager.refresh()

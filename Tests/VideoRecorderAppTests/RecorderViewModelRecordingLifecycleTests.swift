@@ -3,6 +3,7 @@ import XCTest
 
 private final class MockRecordingOutputDirectoryStore: RecordingOutputDirectoryStoring {
     var outputDirectoryPath: String?
+    var outputDirectoryBookmarkData: Data?
 }
 
 private final class MockSoundEffectPlayer: SoundEffectPlaying {

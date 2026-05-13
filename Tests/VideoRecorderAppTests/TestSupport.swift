@@ -196,6 +196,7 @@ final class MockCameraOverlayRecorder: CameraOverlayRecording {
 final class MockSystemAudioRecorder: SystemAudioRecordingProviding {
     private(set) var startCalled = false
     private(set) var stopCalled = false
+    private(set) var completionCalled = false
     private(set) var startedURL: URL?
     var startError: Error?
     var shouldCompleteOnStop = true
@@ -216,7 +217,11 @@ final class MockSystemAudioRecorder: SystemAudioRecordingProviding {
     func stopRecording() {
         stopCalled = true
         if shouldCompleteOnStop, let startedURL {
-            completion?(.success(startedURL))
+            completionCalled = true
+            let completion = completion
+            Task {
+                completion?(.success(startedURL))
+            }
         }
     }
 }
@@ -225,6 +230,7 @@ final class MockMicrophoneAudioRecorder: MicrophoneAudioRecordingProviding {
     private(set) var startCalled = false
     private(set) var startCallCount = 0
     private(set) var stopCalled = false
+    private(set) var completionCalled = false
     private(set) var startedURL: URL?
     private(set) var startedDeviceID: String?
     var startError: Error?
@@ -246,7 +252,11 @@ final class MockMicrophoneAudioRecorder: MicrophoneAudioRecordingProviding {
     func stopRecording() {
         stopCalled = true
         if shouldCompleteOnStop, let startedURL {
-            completion?(.success(startedURL))
+            completionCalled = true
+            let completion = completion
+            Task {
+                completion?(.success(startedURL))
+            }
         }
     }
 }

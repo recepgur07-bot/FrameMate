@@ -140,4 +140,26 @@ platform :mac do
 
     UI.success("TestFlight yuku tamamlandi: v#{version} (#{build_number})")
   end
+
+  desc "Mac App Store metadata ve ekran goruntulerini yukle; review'a gondermez"
+  lane :store_metadata do
+    normalize_project_release_environment!
+    doctor
+
+    deliver(
+      api_key: get_api_key,
+      app_identifier: required_env!("APP_IDENTIFIER"),
+      platform: "osx",
+      metadata_path: "fastlane/metadata",
+      screenshots_path: "fastlane/screenshots",
+      skip_binary_upload: true,
+      skip_metadata: false,
+      skip_screenshots: false,
+      submit_for_review: false,
+      force: true,
+      overwrite_screenshots: true
+    )
+
+    UI.success("Mac App Store metadata ve ekran goruntuleri yuklendi")
+  end
 end

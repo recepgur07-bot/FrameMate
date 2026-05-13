@@ -28,6 +28,12 @@ final class RecorderViewModelTests: XCTestCase {
         super.tearDown()
     }
 
+    private func waitForAudioCompletion(_ vm: RecorderViewModel) async {
+        for _ in 0..<200 where vm.completedRecording == nil {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+    }
+
     func testExpiredAccessPresentsPaywallBeforeStartingAudioRecording() async {
         let microphoneRecorder = MockMicrophoneAudioRecorder()
         let appAccessManager = MockAppAccessManager(
@@ -2458,7 +2464,7 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(screenProvider.isStartPending)
 
         viewModel.stopRecording()
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await waitForAudioCompletion(viewModel)
 
         XCTAssertTrue(screenProvider.stopCalled)
         XCTAssertFalse(screenProvider.isStartPending)
@@ -2505,12 +2511,17 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.isRecording)
 
         viewModel.stopRecording()
-        try? await Task.sleep(nanoseconds: 100_000_000)
+        await waitForAudioCompletion(viewModel)
 
+        XCTAssertTrue(microphoneRecorder.completionCalled)
+        XCTAssertTrue(systemAudioRecorder.completionCalled)
         XCTAssertTrue(microphoneRecorder.stopCalled)
         XCTAssertTrue(systemAudioRecorder.stopCalled)
         XCTAssertEqual(audioExporter.exportedMicrophoneURL?.path, microphoneRecorder.startedURL?.path)
         XCTAssertEqual(audioExporter.exportedSystemAudioURL?.path, systemAudioRecorder.startedURL?.path)
+        XCTAssertEqual(audioExporter.exportedDestinationURL?.pathExtension, "m4a")
+        XCTAssertTrue(viewModel.didEnterAudioRecordingFinalize)
+        XCTAssertTrue(viewModel.didCompleteAudioRecordingExport)
         XCTAssertEqual(viewModel.lastSavedURL?.pathExtension, "m4a")
         XCTAssertEqual(viewModel.completedRecording?.fileExtension, "m4a")
     }
@@ -2605,6 +2616,22 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(store.outputDirectoryPath, selectedURL.path)
     }
 
+    func testDefaultRecordingOutputDirectoryUsesVisibleMoviesFolder() {
+        let store = MockRecordingOutputDirectoryStore()
+        let expectedDirectory = RecordingFileNamer().outputDirectory
+
+        let viewModel = RecorderViewModel(
+            recorder: MockCaptureRecorder(),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            soundEffectPlayer: SoundEffectPlayer(),
+            recordingOutputDirectoryStore: store,
+            permissionProvider: MockMediaPermissionProvider(statuses: [:])
+        )
+
+        XCTAssertEqual(viewModel.recordingOutputDirectoryURL.path, expectedDirectory.path)
+        XCTAssertEqual(store.outputDirectoryPath, expectedDirectory.path)
+    }
+
     func testInternalSandboxFallbackOutputDirectoryIsNotRestored() {
         let store = MockRecordingOutputDirectoryStore()
         store.outputDirectoryPath = "/Users/example/Library/Containers/com.recepgur.VideoRecorder/Data/Downloads/FrameMate"
@@ -2620,7 +2647,44 @@ final class RecorderViewModelTests: XCTestCase {
         )
 
         XCTAssertEqual(viewModel.recordingOutputDirectoryURL.path, defaultURL.path)
-        XCTAssertNil(store.outputDirectoryPath)
+        XCTAssertEqual(store.outputDirectoryPath, defaultURL.path)
+    }
+
+    func testRecordingFallbackUsesVisibleMoviesFolderWhenConfiguredDirectoryCannotBeCreated() async {
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "camera-1", name: "Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "Microphone")]
+        )
+        let forbiddenDirectory = URL(
+            fileURLWithPath: "/System/Library/FrameMate-\(UUID().uuidString)",
+            isDirectory: true
+        )
+        let expectedFallbackDirectory = RecordingFileNamer().outputDirectory
+
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            fileNamer: RecordingFileNamer(outputDirectory: forbiddenDirectory),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: RecorderPermissionsStub(statuses: [.video: .authorized, .audio: .authorized]),
+            appAccessManager: MockAppAccessManager(
+                state: AppAccessState(accessKind: .trial, trialDaysRemaining: 14, offers: [])
+            )
+        )
+        await viewModel.setup()
+        viewModel.selectedCameraID = "camera-1"
+        viewModel.selectedMicrophoneID = "mic-1"
+
+        viewModel.startRecording()
+
+        for _ in 0..<20 where recorder.startedURL == nil {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertEqual(
+            recorder.startedURL?.deletingLastPathComponent().path,
+            expectedFallbackDirectory.path
+        )
     }
 
     func testRenameCompletedRecordingMovesFileAndUpdatesLastSavedURL() throws {
@@ -3184,8 +3248,9 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.statusText, "Ses dosyası hazırlanıyor")
         XCTAssertNil(viewModel.completedRecording)
 
-        try? await Task.sleep(nanoseconds: 160_000_000)
+        await waitForAudioCompletion(viewModel)
 
+        XCTAssertNotNil(exporter.exportedDestinationURL)
         XCTAssertNotNil(viewModel.completedRecording)
         XCTAssertTrue(viewModel.statusText.hasPrefix("Kaydedildi:"))
     }
@@ -3216,8 +3281,9 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.stopRecording()
         XCTAssertEqual(soundEffectPlayer.stopCallCount, 0)
 
-        try? await Task.sleep(nanoseconds: 150_000_000)
+        await waitForAudioCompletion(viewModel)
 
+        XCTAssertNotNil(exporter.exportedDestinationURL)
         XCTAssertNotNil(viewModel.completedRecording)
         XCTAssertEqual(soundEffectPlayer.stopCallCount, 1)
     }
@@ -3235,6 +3301,7 @@ final class RecorderViewModelTests: XCTestCase {
 
         let microphoneItem = try XCTUnwrap(viewModel.permissionHubItems.first(where: { $0.id == .microphone }))
         XCTAssertEqual(microphoneItem.primaryAction, .request)
+        XCTAssertEqual(microphoneItem.primaryAction.buttonTitle, "Devam")
         XCTAssertFalse(microphoneItem.isSatisfied)
         XCTAssertTrue(microphoneItem.isRequired)
     }
@@ -3463,6 +3530,7 @@ private final class MockFrameCoachSettingsStore: FrameCoachSettingsStoring {
 
 private final class MockRecordingOutputDirectoryStore: RecordingOutputDirectoryStoring {
     var outputDirectoryPath: String?
+    var outputDirectoryBookmarkData: Data?
 }
 
 private final class MockLastRecordingConfigurationStore: LastRecordingConfigurationStoring {
@@ -3751,6 +3819,12 @@ final class RecordingLifecycleTests: XCTestCase {
 
     private func waitForIdle(_ vm: RecorderViewModel) async {
         try? await Task.sleep(nanoseconds: 150_000_000)
+    }
+
+    fileprivate func waitForCompletedRecording(_ vm: RecorderViewModel) async {
+        for _ in 0..<40 where vm.completedRecording == nil {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
     }
 
     private func runScenario(_ scenario: RecordingScenario, file: StaticString = #filePath, line: UInt = #line) async {

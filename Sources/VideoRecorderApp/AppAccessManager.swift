@@ -1,6 +1,5 @@
 import Foundation
 import StoreKit
-import Security
 
 enum AppAccessProduct: String, CaseIterable {
     case yearly = "com.recepgur.videorecorder.pro.yearly"
@@ -199,7 +198,7 @@ final class AppAccessManager: AppAccessManaging {
     private let trialLengthInDays: Int
     private let allowsUnitTestAccessFallback: Bool
     private let allowsDebugAccessFallback: Bool
-    private let isBetaBuild: () -> Bool
+    private let allowsInternalTestingAccessFallback: Bool
 
     private(set) var state: AppAccessState = .default
 
@@ -211,7 +210,9 @@ final class AppAccessManager: AppAccessManaging {
         trialLengthInDays: Int = 14,
         allowsUnitTestAccessFallback: Bool = true,
         allowsDebugAccessFallback: Bool = true,
-        isBetaBuild: @escaping () -> Bool = AppAccessManager.defaultIsBetaBuild
+        allowsInternalTestingAccessFallback: Bool = Bundle.main.object(
+            forInfoDictionaryKey: "FrameMateDisablePurchasesForInternalTesting"
+        ) as? Bool ?? false
     ) {
         self.storeKit = storeKit
         self.trialStore = trialStore
@@ -220,7 +221,7 @@ final class AppAccessManager: AppAccessManaging {
         self.trialLengthInDays = trialLengthInDays
         self.allowsUnitTestAccessFallback = allowsUnitTestAccessFallback
         self.allowsDebugAccessFallback = allowsDebugAccessFallback
-        self.isBetaBuild = isBetaBuild
+        self.allowsInternalTestingAccessFallback = allowsInternalTestingAccessFallback
     }
 
     func refresh() async {
@@ -232,12 +233,11 @@ final class AppAccessManager: AppAccessManaging {
             accessKind = .lifetime
         } else if entitlements.contains(AppAccessProduct.yearly.rawValue) {
             accessKind = .yearly
+        } else if allowsInternalTestingAccessFallback {
+            accessKind = .yearly
         } else if allowsUnitTestAccessFallback && ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
             // Keep existing recording-flow unit tests focused on capture behavior.
             // Real app, TestFlight, and App Store builds do not run with this XCTest environment.
-            accessKind = .yearly
-        } else if isBetaBuild() {
-            // Let internal/TestFlight testers exercise recording flows without getting blocked on purchases.
             accessKind = .yearly
         } else if allowsDebugAccessFallback && isDebugBuild && !isRunningUnitTests {
             accessKind = .yearly
@@ -318,13 +318,4 @@ final class AppAccessManager: AppAccessManaging {
 #endif
     }
 
-    nonisolated private static func defaultIsBetaBuild() -> Bool {
-        guard let task = SecTaskCreateFromSelf(nil),
-              let value = SecTaskCopyValueForEntitlement(task, "beta-reports-active" as CFString, nil)
-        else {
-            return false
-        }
-
-        return CFGetTypeID(value) == CFBooleanGetTypeID() && CFBooleanGetValue((value as! CFBoolean))
-    }
 }

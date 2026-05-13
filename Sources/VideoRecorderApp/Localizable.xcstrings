@@ -35,6 +35,23 @@
         }
       }
     },
+    "Kullanım Koşulları": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terms of Use"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kullanım Koşulları"
+          }
+        }
+      }
+    },
     "Uygulama ayarlarını açar.": {
       "extractionState": "manual",
       "localizations": {
@@ -48,6 +65,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Uygulama ayarlarını açar."
+          }
+        }
+      }
+    },
+    "Apple'ın standart son kullanıcı lisans sözleşmesini açar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens Apple's standard end-user license agreement."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple'ın standart son kullanıcı lisans sözleşmesini açar."
           }
         }
       }
@@ -5200,7 +5234,7 @@
         }
       }
     },
-    "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. FrameMate listede varsa aç. Listede yoksa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç ve ekle. 5. FrameMate'i yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin.": {
+    "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. FrameMate listede varsa aç. Listede yoksa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç ve ekle. 5. FrameMate'i yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'Devam' düğmelerini kullanabilirsin.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -8209,19 +8243,19 @@
         }
       }
     },
-    "İzin Ver": {
+    "Devam": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow"
+            "value": "Continue"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "İzin Ver"
+            "value": "Devam"
           }
         }
       }
@@ -9127,19 +9161,19 @@
         }
       }
     },
-    "Kayıt klasörü otomatik olarak İndirilenler/FrameMate olarak güncellendi.": {
+    "Kayıt klasörü kullanıcıya görünür varsayılan klasöre güncellendi.": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording folder was automatically updated to Downloads/FrameMate."
+            "value": "Recording folder was updated to the user-visible default folder."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kayıt klasörü otomatik olarak İndirilenler/FrameMate olarak güncellendi."
+            "value": "Kayıt klasörü kullanıcıya görünür varsayılan klasöre güncellendi."
           }
         }
       }

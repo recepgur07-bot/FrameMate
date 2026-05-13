@@ -1333,6 +1333,12 @@ struct SettingsView: View {
                 .accessibilityHint(String(localized: "FrameMate gizlilik politikasını tarayıcıda açar."))
 
                 Link(
+                    String(localized: "Kullanım Koşulları"),
+                    destination: URL(string: "https://www.apple.com/legal/macapps/stdeula/")!
+                )
+                .accessibilityHint(String(localized: "Apple'ın standart son kullanıcı lisans sözleşmesini açar."))
+
+                Link(
                     "Geliştiriciye E-posta Gönder",
                     destination: URL(string: "mailto:seslerinizindeapps@outlook.com")!
                 )
@@ -1460,7 +1466,7 @@ struct QuickHelpContent: Equatable {
                 items: [
                     "FrameMate is designed to work well with VoiceOver, keyboard navigation, live status announcements, and spoken guidance.",
                     "Frame Coach is especially helpful for blind and low-vision creators who need spoken framing feedback.",
-                    "Allow FrameMate in System Settings > Privacy & Security > Accessibility when you want reliable Cmd+I setting announcements."
+                    "Enable FrameMate in System Settings > Privacy & Security > Accessibility when you want reliable Cmd+I setting announcements."
                 ]
             ),
             .troubleshooting: QuickHelpSection(

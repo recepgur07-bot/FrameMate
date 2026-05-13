@@ -1,11 +1,11 @@
-Mac'inizde eğitim videoları, ürün demoları, sunumlar ve anlatımlar kaydetmek için karmaşık araçlara ihtiyacınız yok.
+Mac'inizde eğitim videoları, ürün demoları, dersler, sunumlar ve anlatımlar kaydetmek için karmaşık araçlara ihtiyacınız yok.
 
 FrameMate; içerik üreticileri, eğitmenler ve ekipler için tasarlanmış erişilebilirlik öncelikli, yerel bir Mac kayıt uygulamasıdır. Temiz kayıt kalitesi, VoiceOver desteği ve sade kontrol akışıyla öne çıkar.
 
 NELER KAYDEDEBİLİRSİNİZ
 
-• EKRAN KAYDI
-Tam ekranı veya tek bir pencereyi kaydedin. Eğitim, onboarding ve sunumlar için idealdir.
+• EKRAN VE PENCERE KAYDI
+Tam ekranı veya tek bir pencereyi MP4 olarak kaydedin. Eğitim, onboarding, ürün tanıtımı ve sunumlar için idealdir.
 
 • EKRAN + KAMERA
 Kameranızı ekleyerek anlatımınızı daha kişisel ve güçlü hale getirin.
@@ -13,7 +13,7 @@ Kameranızı ekleyerek anlatımınızı daha kişisel ve güçlü hale getirin.
 • SADECE KAMERA VEYA SES
 Kısa anlatımlar için bağımsız kamera kaydı, toplantı özetleri ve podcast taslakları için mikrofon kaydı alın.
 
-ANLATIM ODAKLI ARAÇLAR
+NET ANLATIM ARAÇLARI
 • Ekran kaydına sistem sesini dahil etme
 • Tıklamaları belirginleştiren imleç vurgusu
 • Kolay kayıt duraklatma ve devam ettirme
@@ -30,4 +30,7 @@ FrameMate, başından beri VoiceOver uyumu düşünülerek tasarlanmıştır.
 GİZLİLİK
 Tüm kayıtlarınız Mac'inizde yerel olarak işlenir ve saklanır. FrameMate bulut hesabı istemez ve takip kodu içermez.
 
-FrameMate'i 14 gün ücretsiz deneyin. Sonrasında yıllık abonelik veya ömür boyu satın alma seçenekleriyle kullanmaya devam edin.
+App Store hesabınız uygunsa yıllık planın 14 günlük ücretsiz denemesiyle başlayın veya tek seferlik ömür boyu erişimi seçin.
+
+KULLANIM KOŞULLARI
+Apple'ın standart Mac App Store EULA'sı geçerlidir: https://www.apple.com/legal/macapps/stdeula/

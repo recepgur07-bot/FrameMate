@@ -1,1 +1,1 @@
-screen recorder,screen record,window capture,webcam recorder,audio recorder,screencast,demo,tutorial
+webcam,window capture,screencast,tutorial,demo,mic recorder,system audio,voiceover,cursor,framing

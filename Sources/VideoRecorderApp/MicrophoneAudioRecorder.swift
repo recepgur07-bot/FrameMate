@@ -30,17 +30,19 @@ enum MicrophoneAudioRecorderError: LocalizedError, Equatable {
     }
 }
 
-final class MicrophoneAudioRecorderSampleTracker {
-    private(set) var hasReceivedAudioSample = false
+final class RecordingSampleTracker {
+    private(set) var hasAppendedSample = false
 
-    func markReceivedAudioSample() {
-        hasReceivedAudioSample = true
+    func markAppendedSample() {
+        hasAppendedSample = true
     }
 
     func reset() {
-        hasReceivedAudioSample = false
+        hasAppendedSample = false
     }
 }
+
+typealias MicrophoneAudioRecorderSampleTracker = RecordingSampleTracker
 
 final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBufferDelegate, MicrophoneAudioRecordingProviding, @unchecked Sendable {
     private static let finalizeDelay: DispatchTimeInterval = .milliseconds(250)
@@ -56,7 +58,7 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
     private var completion: ((Result<URL, Error>) -> Void)?
     private var outputURL: URL?
     private var hasStartedWriting = false
-    private let sampleTracker = MicrophoneAudioRecorderSampleTracker()
+    private let sampleTracker = RecordingSampleTracker()
     private var isStopping = false
 
     func startRecording(deviceID: String, to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {
@@ -140,19 +142,19 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
             }
 
             self.writerQueue.asyncAfter(deadline: .now() + Self.finalizeDelay) {
-                currentWriterInputBox?.value.markAsFinished()
-
                 guard let currentWriter = currentWriterBox?.value, let outputURL else {
                     self.complete(.failure(MicrophoneAudioRecorderError.cannotCreateWriter))
                     return
                 }
 
-                guard self.sampleTracker.hasReceivedAudioSample else {
+                guard self.sampleTracker.hasAppendedSample, currentWriter.status == .writing else {
                     currentWriter.cancelWriting()
                     try? FileManager.default.removeItem(at: outputURL)
                     self.complete(.failure(MicrophoneAudioRecorderError.emptyRecording))
                     return
                 }
+
+                currentWriterInputBox?.value.markAsFinished()
 
                 let finishedWriterBox = UnsafeSendableBox(value: currentWriter)
                 finishedWriterBox.value.finishWriting { [finishedWriterBox] in
@@ -185,8 +187,9 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
             }
 
             guard writerInputBox.value.isReadyForMoreMediaData else { return }
-            self.sampleTracker.markReceivedAudioSample()
-            writerInputBox.value.append(sampleBufferBox.value)
+            if writerInputBox.value.append(sampleBufferBox.value) {
+                self.sampleTracker.markAppendedSample()
+            }
         }
     }
 

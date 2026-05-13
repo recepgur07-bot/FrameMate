@@ -22,7 +22,7 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
     private var completion: ((Result<URL, Error>) -> Void)?
     private var outputURL: URL?
     private var hasStartedWriting = false
-    private var hasReceivedAudioSample = false
+    private let sampleTracker = RecordingSampleTracker()
     private var isStopping = false
 
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {
@@ -59,7 +59,7 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
         self.completion = completion
         self.outputURL = url
         hasStartedWriting = false
-        hasReceivedAudioSample = false
+        sampleTracker.reset()
         isStopping = false
 
         do {
@@ -78,7 +78,6 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
         let currentWriter = writer
         let currentAudioInput = audioInput
         let outputURL = outputURL
-        let hasAudio = hasReceivedAudioSample
         let currentWriterBox = currentWriter.map(UnsafeSendableBox.init)
         let currentAudioInputBox = currentAudioInput.map(UnsafeSendableBox.init)
 
@@ -93,7 +92,7 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
                     return
                 }
 
-                guard hasAudio, self.hasStartedWriting, currentWriter.status == .writing else {
+                guard self.sampleTracker.hasAppendedSample, self.hasStartedWriting, currentWriter.status == .writing else {
                     currentWriter.cancelWriting()
                     try? FileManager.default.removeItem(at: outputURL)
                     self.complete(.failure(ScreenRecordingError.emptyRecording))
@@ -134,8 +133,9 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
             }
 
             guard audioInputBox.value.isReadyForMoreMediaData else { return }
-            self.hasReceivedAudioSample = true
-            audioInputBox.value.append(sampleBufferBox.value)
+            if audioInputBox.value.append(sampleBufferBox.value) {
+                self.sampleTracker.markAppendedSample()
+            }
         }
     }
 
@@ -163,7 +163,7 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
         completion = nil
         outputURL = nil
         hasStartedWriting = false
-        hasReceivedAudioSample = false
+        sampleTracker.reset()
         isStopping = false
     }
 }

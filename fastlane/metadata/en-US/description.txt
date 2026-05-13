@@ -1,11 +1,11 @@
-Record polished tutorials, demos, and presentations on your Mac without a complicated setup.
+Record polished tutorials, demos, lessons, and presentations on your Mac without a complicated setup.
 
 FrameMate is a native Mac recorder designed for creators, teachers, and teams who need clean recordings with clear narration and accessibility support.
 
 WHAT YOU CAN RECORD
 
-• SCREEN RECORDING
-Capture your full screen or a single window as an MP4. Great for product demos and tutorials.
+• SCREEN AND WINDOW RECORDING
+Capture your full screen or a single window as an MP4. Great for product walkthroughs, lessons, onboarding, and tutorials.
 
 • SCREEN + CAMERA
 Add your camera as an overlay to make your presentation more engaging.
@@ -13,7 +13,7 @@ Add your camera as an overlay to make your presentation more engaging.
 • CAMERA OR AUDIO ONLY
 Record standalone camera videos for quick updates, or capture microphone audio for voice notes and podcast drafts.
 
-BUILT FOR CLEAR EXPLANATIONS
+TOOLS FOR CLEAR EXPLANATIONS
 • Optional system audio for screen recordings
 • Cursor highlight overlays to make clicks visible
 • Simple pause and resume controls
@@ -30,4 +30,7 @@ FrameMate is built from the ground up with VoiceOver support:
 PRIVACY
 Your recordings are processed and saved locally on your Mac. FrameMate does not require an account, does not upload videos, and includes no tracking SDKs.
 
-Try FrameMate free for 14 days, then continue with a yearly subscription or a lifetime purchase.
+Start with the yearly plan's 14-day free trial if your App Store account is eligible, or choose lifetime access with a one-time purchase.
+
+TERMS OF USE
+Apple's standard Mac App Store EULA applies: https://www.apple.com/legal/macapps/stdeula/

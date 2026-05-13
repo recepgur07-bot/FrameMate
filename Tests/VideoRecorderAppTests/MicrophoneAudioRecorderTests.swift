@@ -2,17 +2,27 @@ import XCTest
 @testable import FrameMate
 
 final class MicrophoneAudioRecorderTests: XCTestCase {
+    func testSampleTrackerOnlyCountsAppendedSamplesAsRecorded() {
+        let tracker = RecordingSampleTracker()
+
+        XCTAssertFalse(tracker.hasAppendedSample)
+
+        tracker.markAppendedSample()
+
+        XCTAssertTrue(tracker.hasAppendedSample)
+    }
+
     func testSampleTrackerSeesAudioQueuedBeforeStopDecision() {
         let queue = DispatchQueue(label: "MicrophoneAudioRecorderTests.writer")
-        let tracker = MicrophoneAudioRecorderSampleTracker()
+        let tracker = RecordingSampleTracker()
         let expectation = expectation(description: "stop decision evaluated")
 
         queue.async {
-            tracker.markReceivedAudioSample()
+            tracker.markAppendedSample()
         }
 
         queue.async {
-            XCTAssertTrue(tracker.hasReceivedAudioSample)
+            XCTAssertTrue(tracker.hasAppendedSample)
             expectation.fulfill()
         }
 

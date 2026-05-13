@@ -43,13 +43,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera access is required for Frame Coach guidance and recording."
+            "value": "Camera access is used for screen + camera recording and frame preview; for example, to place your face on screen while recording a lesson, demo, or short update video."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kadraj Koçu yönlendirmeleri ve kamera kaydı için izin gereklidir."
+            "value": "Kamera, ekran + kamera kaydı ve kadraj önizlemesi için kullanılır; örneğin bir ders, demo veya kısa güncelleme videosu kaydederken yüzünüzü ekrana eklemek için."
           }
         }
       }
@@ -78,13 +78,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Microphone access is required to record audio."
+            "value": "Microphone access is used to capture narration for screen recordings and to create voice-only recordings, for example when you record a lesson, demo, meeting notes, or a podcast draft."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kayıtlara ses eklemek için mikrofon izni gereklidir."
+            "value": "Mikrofon, ekran kayıtlarına anlatım sesi eklemek ve yalnızca ses kaydı oluşturmak için kullanılır; örneğin bir ders, demo, toplantı notu veya podcast taslağı kaydederken sesinizi almak için."
           }
         }
       }
@@ -95,13 +95,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Screen Recording permission is required to capture your screen."
+            "value": "Screen Recording permission is required to capture your screen and windows; for example, when recording a product walkthrough or lesson video."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ekranı ve pencereleri kaydetmek için Ekran Kaydı izni gereklidir."
+            "value": "Ekran ve pencereleri kaydetmek için ekran yakalama izni gereklidir; örneğin bir ürün anlatımı veya ders videosunda ekrandaki içerik kaydedilir."
           }
         }
       }
@@ -112,13 +112,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Speech synthesis is required to hear Frame Coach instructions."
+            "value": "Speech synthesis is used to speak Frame Coach guidance aloud; for example, to give live framing cues while recording."
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kadraj Koçu yönlendirmelerini sesli duymak için gereklidir."
+            "value": "Kadraj koçluğu yönergelerini sesli olarak duyurmak için ses sentezi kullanılır; örneğin kayıt sırasında kadrajı ortalamak için anlık yönlendirme verilir."
           }
         }
       }

@@ -32,6 +32,10 @@ private func defaultChooseOutputDirectory(currentURL: URL) -> URL? {
     }
 }
 
+private func defaultRecordingDirectory() -> URL {
+    RecordingFileNamer(homeDirectory: FileManager.default.homeDirectoryForCurrentUser).outputDirectory
+}
+
 private func defaultChooseSaveDestination(suggestedURL: URL) -> URL? {
     MainActor.assumeIsolated {
         presentSaveDestinationPanel(suggestedURL: suggestedURL)
@@ -309,7 +313,7 @@ enum PermissionAction: Equatable {
 
     var buttonTitle: String? {
         switch self {
-        case .request: return String(localized: "İzin Ver")
+        case .request: return String(localized: "Devam")
         case .openSettings: return String(localized: "Ayarları Aç")
         case .restartApp: return String(localized: "Yeniden Aç")
         case .none: return nil
@@ -349,6 +353,7 @@ protocol FrameCoachSettingsStoring: AnyObject {
 
 protocol RecordingOutputDirectoryStoring: AnyObject {
     var outputDirectoryPath: String? { get set }
+    var outputDirectoryBookmarkData: Data? { get set }
 }
 
 struct LastRecordingConfiguration: Codable, Equatable {
@@ -373,6 +378,7 @@ protocol LastRecordingConfigurationStoring: AnyObject {
 final class UserDefaultsRecordingOutputDirectoryStore: RecordingOutputDirectoryStoring {
     private let defaults: UserDefaults
     private let key = "recording.outputDirectoryPath"
+    private let bookmarkKey = "recording.outputDirectoryBookmarkData"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -381,6 +387,11 @@ final class UserDefaultsRecordingOutputDirectoryStore: RecordingOutputDirectoryS
     var outputDirectoryPath: String? {
         get { defaults.string(forKey: key) }
         set { defaults.set(newValue, forKey: key) }
+    }
+
+    var outputDirectoryBookmarkData: Data? {
+        get { defaults.data(forKey: bookmarkKey) }
+        set { defaults.set(newValue, forKey: bookmarkKey) }
     }
 }
 
@@ -423,6 +434,12 @@ struct CompletedRecordingSummary: Identifiable, Equatable {
         }
         return "\(editableName).\(fileExtension)"
     }
+}
+
+private struct RestoredOutputDirectoryState {
+    let url: URL
+    let bookmarkData: Data?
+    let accessedSecurityScopedOutputDirectoryURL: URL?
 }
 
 final class UserDefaultsFrameCoachSettingsStore: FrameCoachSettingsStoring {
@@ -592,6 +609,8 @@ final class RecorderViewModel {
     var lastAutoReframeStrategy = String(localized: "hazır")
     var lastSavedURL: URL?
     var completedRecording: CompletedRecordingSummary?
+    private(set) var didCompleteAudioRecordingExport = false
+    private(set) var didEnterAudioRecordingFinalize = false
     var appAccessState: AppAccessState = .default
     var isPaywallPresented = false
     var purchasingPlan: AppAccessPlan?
@@ -601,11 +620,8 @@ final class RecorderViewModel {
     var screenPermissionNeedsRestart = false
     var permissionInteractionStates: [PermissionKind: PermissionInteractionState] = [:]
     private var screenPermissionConfirmedBySourceFetch = false
-    var recordingOutputDirectoryURL: URL {
-        didSet {
-            recordingOutputDirectoryStore.outputDirectoryPath = recordingOutputDirectoryURL.path
-        }
-    }
+    private var accessedSecurityScopedOutputDirectoryURL: URL?
+    var recordingOutputDirectoryURL: URL
 
     var recordingOutputDirectoryPath: String {
         recordingOutputDirectoryURL.path
@@ -1014,7 +1030,7 @@ final class RecorderViewModel {
         audioRecordingExporter: any AudioRecordingExporting = AudioRecordingExporter(),
         cursorHighlightRecorder: any CursorHighlightRecordingProviding = CursorHighlightRecorder(),
         keyboardShortcutRecorder: any KeyboardShortcutRecordingProviding = KeyboardShortcutRecorder(),
-        fileNamer: RecordingFileNamer = RecordingFileNamer(),
+        fileNamer: RecordingFileNamer = RecordingFileNamer(outputDirectory: defaultRecordingDirectory()),
         frameAnalysisService: FrameAnalysisService = FrameAnalysisService(),
         frameCoachingEngine: FrameCoachingEngine = FrameCoachingEngine(),
         autoReframeEngine: AutoReframeEngine = AutoReframeEngine(),
@@ -1077,16 +1093,18 @@ final class RecorderViewModel {
             rawValue: UserDefaults.standard.string(forKey: "frameCoach.spatialAudioMode") ?? ""
         ) ?? .off
         self.playsFrameCoachCenterConfirmation = UserDefaults.standard.object(forKey: "frameCoach.playsCenterConfirmation") as? Bool ?? true
-        if let storedOutputPath = recordingOutputDirectoryStore.outputDirectoryPath {
-            let storedOutputURL = URL(fileURLWithPath: storedOutputPath, isDirectory: true)
-            if Self.isInternalSandboxFallbackOutputDirectory(storedOutputURL) {
-                recordingOutputDirectoryStore.outputDirectoryPath = nil
-                self.recordingOutputDirectoryURL = fileNamer.outputDirectory
-            } else {
-                self.recordingOutputDirectoryURL = storedOutputURL
-            }
+        if let restoredOutputDirectoryState = Self.restoreStoredOutputDirectory(
+            from: recordingOutputDirectoryStore,
+            defaultRecordingDirectory: fileNamer.outputDirectory
+        ) {
+            self.recordingOutputDirectoryURL = restoredOutputDirectoryState.url
+            self.accessedSecurityScopedOutputDirectoryURL = restoredOutputDirectoryState.accessedSecurityScopedOutputDirectoryURL
+            recordingOutputDirectoryStore.outputDirectoryPath = restoredOutputDirectoryState.url.path
+            recordingOutputDirectoryStore.outputDirectoryBookmarkData = restoredOutputDirectoryState.bookmarkData
         } else {
             self.recordingOutputDirectoryURL = fileNamer.outputDirectory
+            recordingOutputDirectoryStore.outputDirectoryPath = fileNamer.outputDirectory.path
+            recordingOutputDirectoryStore.outputDirectoryBookmarkData = nil
         }
         if let configuration = lastRecordingConfigurationStore.configuration {
             restoreLastRecordingConfiguration(configuration)
@@ -1102,7 +1120,7 @@ final class RecorderViewModel {
         audioRecordingExporter: any AudioRecordingExporting = AudioRecordingExporter(),
         cursorHighlightRecorder: any CursorHighlightRecordingProviding = CursorHighlightRecorder(),
         keyboardShortcutRecorder: any KeyboardShortcutRecordingProviding = KeyboardShortcutRecorder(),
-        fileNamer: RecordingFileNamer = RecordingFileNamer(),
+        fileNamer: RecordingFileNamer = RecordingFileNamer(outputDirectory: defaultRecordingDirectory()),
         frameAnalysisService: FrameAnalysisService = FrameAnalysisService(),
         frameCoachingEngine: FrameCoachingEngine = FrameCoachingEngine(),
         autoReframeEngine: AutoReframeEngine = AutoReframeEngine(),
@@ -2348,17 +2366,23 @@ final class RecorderViewModel {
         let componentResult = RecordingComponentResult.microphone(from: result)
         pendingAudioMicrophoneCaptureResult = componentResult.value
         pendingAudioMicrophoneWarning = componentResult.warning
-        maybeFinalizeAudioRecordingExport()
+        Task { [weak self] in
+            await self?.maybeFinalizeAudioRecordingExport()
+        }
     }
 
     private func handleAudioSystemAudioCaptureCompletion(_ result: Result<URL, Error>) {
         let componentResult = RecordingComponentResult.systemAudio(from: result)
         pendingAudioSystemAudioCaptureResult = componentResult.value
         pendingAudioSystemAudioWarning = componentResult.warning
-        maybeFinalizeAudioRecordingExport()
+        Task { [weak self] in
+            await self?.maybeFinalizeAudioRecordingExport()
+        }
     }
 
-    private func maybeFinalizeAudioRecordingExport() {
+    @MainActor
+    private func maybeFinalizeAudioRecordingExport() async {
+        didEnterAudioRecordingFinalize = true
         guard let finalURL = pendingAudioRecordingFinalURL,
               let microphoneResult = pendingAudioMicrophoneCaptureResult,
               let systemAudioResult = pendingAudioSystemAudioCaptureResult else {
@@ -2376,50 +2400,45 @@ final class RecorderViewModel {
             report(error)
         case (.success(let microphoneURL), .success(let systemAudioURL)):
             setRecordingFinishingStatus(String(localized: "Ses dosyası hazırlanıyor"), key: "audio-file-preparing")
-            Task {
-                do {
-                    let exportURL = try await audioRecordingExporter.export(
-                        microphoneURL: microphoneURL,
-                        systemAudioURL: systemAudioURL,
-                        to: finalURL,
-                        microphoneVolume: microphoneVolume,
-                        systemAudioVolume: systemAudioVolume,
-                        pauseTimeline: pauseTimeline
-                    )
-                    if let microphoneURL {
-                        try? FileManager.default.removeItem(at: microphoneURL)
-                    }
-                    if let systemAudioURL {
-                        try? FileManager.default.removeItem(at: systemAudioURL)
-                    }
-                    await MainActor.run {
-                        let warnings = [microphoneWarning, systemAudioWarning].compactMap { $0 }
-                        lastSavedURL = exportURL
-                        completedRecording = makeCompletedRecordingSummary(for: exportURL, warnings: warnings)
-                        if warnings.isEmpty {
-                            statusText = String(localized: "Kaydedildi: \(exportURL.path)")
-                        } else {
-                            statusText = String(localized: "Kaydedildi: \(exportURL.path) (\(warnings.joined(separator: ", ")))")
-                        }
-                        markRecordingFileReady()
-                    }
-                } catch {
-                    await MainActor.run { [weak self] in
-                        guard let self else { return }
-                        // Announce the error via VoiceOver regardless of recording state
-                        NSAccessibility.post(
-                            element: NSApp as AnyObject,
-                            notification: .announcementRequested,
-                            userInfo: [
-                                NSAccessibility.NotificationUserInfoKey.announcement: String(localized: "Ses kaydı dışa aktarılamadı: \(error.localizedDescription)"),
-                                NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
-                            ]
-                        )
-                        // Don't clobber state if a new recording has already started
-                        guard !self.isRecording, self.pendingAudioRecordingFinalURL == nil else { return }
-                        self.report(error)
-                    }
+            do {
+                let exportURL = try await audioRecordingExporter.export(
+                    microphoneURL: microphoneURL,
+                    systemAudioURL: systemAudioURL,
+                    to: finalURL,
+                    microphoneVolume: microphoneVolume,
+                    systemAudioVolume: systemAudioVolume,
+                    pauseTimeline: pauseTimeline
+                )
+                if let microphoneURL {
+                    try? FileManager.default.removeItem(at: microphoneURL)
                 }
+                if let systemAudioURL {
+                    try? FileManager.default.removeItem(at: systemAudioURL)
+                }
+                didCompleteAudioRecordingExport = true
+                let warnings = [microphoneWarning, systemAudioWarning].compactMap { $0 }
+                lastSavedURL = exportURL
+                completedRecording = makeCompletedRecordingSummary(for: exportURL, warnings: warnings)
+                if warnings.isEmpty {
+                    statusText = String(localized: "Kaydedildi: \(exportURL.path)")
+                } else {
+                    statusText = String(localized: "Kaydedildi: \(exportURL.path) (\(warnings.joined(separator: ", ")))")
+                }
+                speechCuePlayer.reset()
+                markRecordingFileReady()
+            } catch {
+                // Announce the error via VoiceOver regardless of recording state
+                NSAccessibility.post(
+                    element: NSApp as AnyObject,
+                    notification: .announcementRequested,
+                    userInfo: [
+                        NSAccessibility.NotificationUserInfoKey.announcement: String(localized: "Ses kaydı dışa aktarılamadı: \(error.localizedDescription)"),
+                        NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                    ]
+                )
+                // Don't clobber state if a new recording has already started
+                guard !isRecording, pendingAudioRecordingFinalURL == nil else { return }
+                report(error)
             }
         }
     }
@@ -2820,6 +2839,7 @@ final class RecorderViewModel {
     func chooseRecordingOutputDirectory() {
         guard let selectedURL = chooseOutputDirectory(recordingOutputDirectoryURL) else { return }
         recordingOutputDirectoryURL = selectedURL
+        persistOutputDirectoryState(for: selectedURL)
         statusText = String(localized: "Varsayılan kayıt klasörü: \(selectedURL.path)")
     }
 
@@ -2995,14 +3015,14 @@ final class RecorderViewModel {
             try configuredFileNamer.ensureOutputDirectoryExists()
             return configuredFileNamer
         } catch {
-            let downloadsDirectory = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0]
-            let fallbackDirectory = downloadsDirectory.appendingPathComponent("FrameMate", isDirectory: true)
+            let fallbackDirectory = defaultRecordingDirectory()
             let fallbackFileNamer = RecordingFileNamer(outputDirectory: fallbackDirectory)
             try fallbackFileNamer.ensureOutputDirectoryExists()
 
             if recordingOutputDirectoryURL != fallbackDirectory {
                 recordingOutputDirectoryURL = fallbackDirectory
-                statusText = String(localized: "Kayıt klasörü otomatik olarak İndirilenler/FrameMate olarak güncellendi.")
+                persistOutputDirectoryState(for: fallbackDirectory)
+                statusText = String(localized: "Kayıt klasörü kullanıcıya görünür varsayılan klasöre güncellendi.")
             }
 
             return fallbackFileNamer
@@ -3019,6 +3039,96 @@ final class RecorderViewModel {
 
         let suffix = Array(components.suffix(3))
         return suffix == ["Data", "Downloads", "FrameMate"]
+    }
+
+    private static func restoreStoredOutputDirectory(
+        from store: RecordingOutputDirectoryStoring,
+        defaultRecordingDirectory: URL
+    ) -> RestoredOutputDirectoryState? {
+        if let bookmarkData = store.outputDirectoryBookmarkData {
+            var isStale = false
+            do {
+                let url = try URL(
+                    resolvingBookmarkData: bookmarkData,
+                    options: [.withSecurityScope],
+                    relativeTo: nil,
+                    bookmarkDataIsStale: &isStale
+                )
+                let accessedSecurityScopedOutputDirectoryURL = url.startAccessingSecurityScopedResource() ? url : nil
+                var resolvedBookmarkData = bookmarkData
+                if isStale,
+                   let refreshedBookmarkData = try? url.bookmarkData(
+                    options: [.withSecurityScope],
+                    includingResourceValuesForKeys: nil,
+                    relativeTo: nil
+                   ) {
+                    resolvedBookmarkData = refreshedBookmarkData
+                }
+                return RestoredOutputDirectoryState(
+                    url: url,
+                    bookmarkData: resolvedBookmarkData,
+                    accessedSecurityScopedOutputDirectoryURL: accessedSecurityScopedOutputDirectoryURL
+                )
+            } catch {
+                return nil
+            }
+        }
+
+        guard let storedOutputPath = store.outputDirectoryPath else {
+            return nil
+        }
+
+        let storedOutputURL = URL(fileURLWithPath: storedOutputPath, isDirectory: true)
+        if Self.isInternalSandboxFallbackOutputDirectory(storedOutputURL) {
+            return nil
+        }
+
+        if storedOutputURL.standardizedFileURL != defaultRecordingDirectory.standardizedFileURL {
+            return nil
+        }
+
+        return RestoredOutputDirectoryState(
+            url: storedOutputURL,
+            bookmarkData: nil,
+            accessedSecurityScopedOutputDirectoryURL: nil
+        )
+    }
+
+    private func persistOutputDirectoryBookmarkIfNeeded(for url: URL) {
+        if url.standardizedFileURL == defaultRecordingDirectory().standardizedFileURL {
+            recordingOutputDirectoryStore.outputDirectoryBookmarkData = nil
+            return
+        }
+
+        guard let bookmarkData = try? url.bookmarkData(
+            options: [.withSecurityScope],
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        ) else {
+            recordingOutputDirectoryStore.outputDirectoryBookmarkData = nil
+            return
+        }
+
+        recordingOutputDirectoryStore.outputDirectoryBookmarkData = bookmarkData
+    }
+
+    private func persistOutputDirectoryState(for url: URL) {
+        recordingOutputDirectoryStore.outputDirectoryPath = url.path
+        updateSecurityScopedOutputDirectoryAccess(to: url)
+        persistOutputDirectoryBookmarkIfNeeded(for: url)
+    }
+
+    private func updateSecurityScopedOutputDirectoryAccess(to url: URL) {
+        stopAccessingSecurityScopedOutputDirectory()
+
+        if url.startAccessingSecurityScopedResource() {
+            accessedSecurityScopedOutputDirectoryURL = url
+        }
+    }
+
+    private func stopAccessingSecurityScopedOutputDirectory() {
+        accessedSecurityScopedOutputDirectoryURL?.stopAccessingSecurityScopedResource()
+        accessedSecurityScopedOutputDirectoryURL = nil
     }
 
     private func cleanupOrphanedTempFiles() {
@@ -3349,7 +3459,7 @@ final class RecorderViewModel {
                 title: PermissionKind.screenRecording.title,
                 detail: detail,
                 statusLabel: String(localized: "Gerekli"),
-                helperText: String(localized: "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. FrameMate listede varsa aç. Listede yoksa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç ve ekle. 5. FrameMate'i yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'İzin İste' düğmelerini kullanabilirsin."),
+                helperText: String(localized: "İzin vermek için: 1. Sistem Ayarları'nı aç. 2. Gizlilik ve Güvenlik bölümüne git. 3. Ekran Kaydı'nı seç. 4. FrameMate listede varsa aç. Listede yoksa artı düğmesine bas, Uygulamalar'dan FrameMate'i seç ve ekle. 5. FrameMate'i yeniden başlat. Aşağıdaki 'Ayarları Aç' veya 'Devam' düğmelerini kullanabilirsin."),
                 isRequired: isRequired,
                 isSatisfied: !isRequired,
                 isRequestInFlight: false,
