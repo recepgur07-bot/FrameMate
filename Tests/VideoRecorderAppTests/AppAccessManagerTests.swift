@@ -28,7 +28,8 @@ final class AppAccessManagerTests: XCTestCase {
             clock: FixedDateProvider(now: now),
             calendar: Calendar(identifier: .gregorian),
             allowsUnitTestAccessFallback: false,
-            allowsDebugAccessFallback: false
+            allowsDebugAccessFallback: false,
+            allowsInternalTestingAccessFallback: false
         )
 
         await manager.refresh()
@@ -50,7 +51,8 @@ final class AppAccessManagerTests: XCTestCase {
             clock: FixedDateProvider(now: now),
             calendar: calendar,
             allowsUnitTestAccessFallback: false,
-            allowsDebugAccessFallback: false
+            allowsDebugAccessFallback: false,
+            allowsInternalTestingAccessFallback: false
         )
 
         await manager.refresh()
@@ -68,7 +70,8 @@ final class AppAccessManagerTests: XCTestCase {
             storeKit: store,
             trialStore: MockTrialStartDateStore(),
             allowsUnitTestAccessFallback: false,
-            allowsDebugAccessFallback: false
+            allowsDebugAccessFallback: false,
+            allowsInternalTestingAccessFallback: false
         )
 
         await manager.refresh()
@@ -90,7 +93,8 @@ final class AppAccessManagerTests: XCTestCase {
             clock: FixedDateProvider(now: now),
             calendar: calendar,
             allowsUnitTestAccessFallback: false,
-            allowsDebugAccessFallback: false
+            allowsDebugAccessFallback: false,
+            allowsInternalTestingAccessFallback: false
         )
 
         await manager.refresh()
@@ -104,7 +108,8 @@ final class AppAccessManagerTests: XCTestCase {
             storeKit: MockAppStorePurchasing(),
             trialStore: MockTrialStartDateStore(),
             allowsUnitTestAccessFallback: false,
-            allowsDebugAccessFallback: false
+            allowsDebugAccessFallback: false,
+            allowsInternalTestingAccessFallback: false
         )
 
         await manager.refresh()
