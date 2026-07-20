@@ -592,7 +592,6 @@
 				};
 			};
 			buildConfigurationList = C2C0997C517EC6154855AFD2 /* Build configuration list for PBXProject "VideoRecorder" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -603,6 +602,7 @@
 			mainGroup = 6582E3421D5003005005B645;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			productRefGroup = 0B4EEED0977D1AF1F76AF056 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
