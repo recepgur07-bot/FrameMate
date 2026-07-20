@@ -66,11 +66,16 @@ targets:
         LSApplicationCategoryType: "public.app-category.video"
         CFBundleIconFile: "AppIcon"
         NSSpeechUsageDescription: "Kadraj koçluğu yönergelerini sesli olarak duyurmak için ses sentezi kullanılır; örneğin kayıt sırasında kadrajı ortalamak için anlık yönlendirme verilir."
-        FrameMateDisablePurchasesForInternalTesting: true
+        FrameMateDisablePurchasesForInternalTesting: false
+        ITSAppUsesNonExemptEncryption: false
     scheme:
       testTargets:
         - FrameMateTests
         - FrameMateProjectTests
+      # Testler Türkçe UI metinlerini doğruladığı için test dili sabitlenir;
+      # aksi halde sistem dil listesine göre en/tr çözümü makineden makineye değişiyor.
+      language: tr
+      region: tr_TR
   FrameMateTests:
     type: bundle.unit-test
     platform: macOS

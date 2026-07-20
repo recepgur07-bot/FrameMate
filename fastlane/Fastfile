@@ -8,6 +8,7 @@ default_platform(:mac)
 
 platform :mac do
   CANONICAL_APP_IDENTIFIER = "com.recepgur.VideoRecorder"
+  CANONICAL_APP_STORE_APP_ID = "6762084840"
   CANONICAL_MATCH_GIT_URL = "git@github.com:recepgur07-bot/voicemate-certificates.git"
   CANONICAL_PROFILE_NAME = "match AppStore #{CANONICAL_APP_IDENTIFIER} macos"
 
@@ -130,11 +131,13 @@ platform :mac do
 
     upload_to_testflight(
       api_key: api_key,
+      apple_id: CANONICAL_APP_STORE_APP_ID,
       app_identifier: required_env!("APP_IDENTIFIER"),
       pkg: Actions.lane_context[SharedValues::PKG_OUTPUT_PATH],
       skip_waiting_for_build_processing: options[:skip_waiting] != false,
       distribute_external: false,
       notify_external_testers: false,
+      uses_non_exempt_encryption: false,
       changelog: options[:changelog] || "Internal macOS beta build"
     )
 

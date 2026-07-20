@@ -27,7 +27,7 @@
 	<key>LSMinimumSystemVersion</key>
 	<string>14.0</string>
 	<key>FrameMateDisablePurchasesForInternalTesting</key>
-	<true/>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Kamera, ekran + kamera kaydı ve kadraj önizlemesi için kullanılır; örneğin bir ders, demo veya kısa güncelleme videosu kaydederken yüzünüzü ekrana eklemek için.</string>
 	<key>NSHumanReadableCopyright</key>
