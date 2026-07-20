@@ -956,6 +956,7 @@ final class RecorderViewModel {
     @ObservationIgnored private var countdownTask: Task<Void, Never>?
     @ObservationIgnored private var recordingDurationTask: Task<Void, Never>?
     @ObservationIgnored private var pauseResumeTask: Task<Void, Never>?
+    @ObservationIgnored private var frameCoachPreviewTask: Task<Void, Never>?
     @ObservationIgnored private var screenOverlayPreviewTask: Task<Void, Never>?
     @ObservationIgnored private var sleepPreventer = SleepPreventer()
     private var autoReframeSmoother = AutoReframeSmoother()
@@ -1418,11 +1419,6 @@ final class RecorderViewModel {
             await refreshScreenRecordingSources()
         }
         updatePreviewAnalysisState()
-        if isCameraPreviewAnalysisActive {
-            Task {
-                await prepareAnalysisPreviewIfPossible()
-            }
-        }
         updateScreenOverlayPreviewState()
     }
 
@@ -1629,9 +1625,6 @@ final class RecorderViewModel {
             // "Kadraj koçu açık" duyurulduktan sonra frekans kapısını sıfırla ki
             // ilk analiz talimatı gecikme yaşamadan hemen söylensin.
             speechCuePlayer.resetFrequencyGate()
-            Task {
-                await prepareAnalysisPreviewIfPossible()
-            }
         } else {
             currentFrameCoachInstruction = nil
             speechCuePlayer.reset()
@@ -1648,9 +1641,6 @@ final class RecorderViewModel {
 
         if isAutoReframeEnabled {
             updatePreviewAnalysisState()
-            Task {
-                await prepareAnalysisPreviewIfPossible()
-            }
         } else {
             autoReframeSmoother.reset()
             currentAutoReframeCrop = .fullFrame
@@ -1841,6 +1831,7 @@ final class RecorderViewModel {
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
         guard beginRecordingPreparation() else { return }
+        cancelFrameCoachPreviewPreparation()
 
         do {
             let fileNamer = try resolvedActiveFileNamer()
@@ -3797,15 +3788,35 @@ final class RecorderViewModel {
         updatePreviewAnalysisState()
     }
 
+    private func scheduleFrameCoachPreviewPreparation() {
+        guard frameCoachPreviewTask == nil else { return }
+        guard isCameraPreviewAnalysisActive else { return }
+
+        frameCoachPreviewTask = Task { [weak self] in
+            await self?.prepareAnalysisPreviewIfPossible()
+            await MainActor.run { [weak self] in
+                self?.frameCoachPreviewTask = nil
+            }
+        }
+    }
+
+    private func cancelFrameCoachPreviewPreparation() {
+        frameCoachPreviewTask?.cancel()
+        frameCoachPreviewTask = nil
+    }
+
     private func prepareAnalysisPreviewIfPossible() async {
         if selectedRecordingSource == .camera {
             guard isFrameCoachEnabled else { return }
             guard !isRecording, !isPreparingRecording else { return }
             guard hasRequiredPermissions else { return }
             guard !selectedCameraID.isEmpty, !selectedMicrophoneID.isEmpty else { return }
+            guard !Task.isCancelled else { return }
 
             do {
                 try await configureRecorder()
+                guard !Task.isCancelled else { return }
+                guard isCameraPreviewAnalysisActive, !isRecording, !isPreparingRecording else { return }
                 recorder.startSessionInBackground()
             } catch {
                 report(error)
@@ -3933,7 +3944,10 @@ final class RecorderViewModel {
         cameraOverlayRecorder.setPreviewFramesEnabled(isScreenOverlayFrameCoachActive)
 
         if !isCameraPreviewAnalysisActive, !isRecording {
+            cancelFrameCoachPreviewPreparation()
             recorder.stopSession()
+        } else if !isRecording, !isPreparingRecording {
+            scheduleFrameCoachPreviewPreparation()
         }
 
         if !isAnyPreviewAnalysisActive {

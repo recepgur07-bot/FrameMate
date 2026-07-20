@@ -2,7 +2,7 @@ import XCTest
 @testable import FrameMate
 
 final class SpeechCuePlayerTests: XCTestCase {
-    func testAutomaticModeStaysSilentWhenVoiceOverIsNotRunning() {
+    func testAutomaticModeFallsBackToAppVoiceWhenVoiceOverIsNotRunning() {
         let speaker = SpeechInstructionSpeakerStub()
         let announcer = AccessibilityAnnouncerSpy()
         let now = Date(timeIntervalSince1970: 1_000)
@@ -16,7 +16,7 @@ final class SpeechCuePlayerTests: XCTestCase {
 
         player.speakIfNeeded("Biraz sola", isEnabled: true)
 
-        XCTAssertTrue(speaker.spokenTexts.isEmpty)
+        XCTAssertEqual(speaker.spokenTexts, ["Biraz sola"])
         XCTAssertTrue(announcer.announcements.isEmpty)
     }
 

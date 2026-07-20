@@ -1658,9 +1658,7 @@ private struct QuickHelpSheet: View {
     }
 
     private var isVoiceOverRunning: Bool {
-        NSWorkspace.shared.runningApplications.contains { app in
-            app.bundleIdentifier == "com.apple.VoiceOver" && !app.isTerminated
-        }
+        NSWorkspace.shared.isVoiceOverEnabled
     }
 
     private func announceForVoiceOver(_ text: String) {
@@ -1828,6 +1826,21 @@ private struct AppPaywallSheet: View {
                 paywallButton(for: .yearly)
                 paywallButton(for: .lifetime)
             }
+
+            HStack(spacing: 16) {
+                Link(
+                    String(localized: "Gizlilik Politikası"),
+                    destination: URL(string: "https://recepgur07-bot.github.io/oneday-support/framemate-privacy")!
+                )
+                .accessibilityHint(String(localized: "FrameMate gizlilik politikasını tarayıcıda açar."))
+
+                Link(
+                    String(localized: "Kullanım Koşulları"),
+                    destination: URL(string: "https://www.apple.com/legal/macapps/stdeula/")!
+                )
+                .accessibilityHint(String(localized: "Apple'ın standart son kullanıcı lisans sözleşmesini açar."))
+            }
+            .font(.footnote)
 
             HStack {
                 Button(String(localized: "Satın Alımları Geri Yükle")) {

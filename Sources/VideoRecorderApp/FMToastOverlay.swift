@@ -128,8 +128,7 @@ private struct FMToastBanner: View {
         .task {
             guard toast.style.autoDismiss else { return }
             // Give VoiceOver users extra time to hear the announcement before it disappears.
-            let delay: Double = NSWorkspace.shared.runningApplications
-                .contains(where: { $0.bundleIdentifier == "com.apple.VoiceOver" }) ? 6 : 3
+            let delay: Double = NSWorkspace.shared.isVoiceOverEnabled ? 6 : 3
             try? await Task.sleep(for: .seconds(delay))
             onDismiss()
         }

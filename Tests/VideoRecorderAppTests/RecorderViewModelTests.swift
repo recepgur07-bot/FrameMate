@@ -297,7 +297,7 @@ final class RecorderViewModelTests: XCTestCase {
         )
     }
 
-    func testAnnounceCurrentSettingsStaysSilentWhenVoiceOverIsNotRunning() async {
+    func testAnnounceCurrentSettingsFallsBackToAppVoiceWhenVoiceOverIsNotRunning() async {
         let speaker = MockInstructionSpeaker()
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(
@@ -316,10 +316,14 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.selectedCameraID = "cam-1"
         viewModel.selectedMicrophoneID = "mic-1"
         viewModel.isSystemAudioEnabled = false
+        viewModel.isFrameCoachEnabled = false
 
         viewModel.announceCurrentSettings()
 
-        XCTAssertTrue(speaker.spokenTexts.isEmpty)
+        XCTAssertEqual(
+            speaker.spokenTexts,
+            ["Mod Yatay video kaydı. Kamera FaceTime HD, mikrofon MacBook Mikrofonu, sistem sesi kapalı, kadraj koçu kapalı."]
+        )
     }
 
     func testAnnounceCurrentSettingsUsesVoiceOverWhenRunning() async {

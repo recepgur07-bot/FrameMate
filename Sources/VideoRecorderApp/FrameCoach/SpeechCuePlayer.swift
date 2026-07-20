@@ -156,7 +156,7 @@ final class SpeechCuePlayer {
             if isVoiceOverEnabled(), announcer != nil {
                 return .voiceOver
             }
-            return .silent
+            return .appVoice
         case .voiceOver:
             return announcer == nil ? .silent : .voiceOver
         case .appVoice:
@@ -175,8 +175,6 @@ private enum SpeechOutputRoute {
 
 private extension SystemAccessibilityAnnouncer {
     static func isVoiceOverRunning() -> Bool {
-        NSWorkspace.shared.runningApplications.contains { app in
-            app.bundleIdentifier == "com.apple.VoiceOver" && !app.isTerminated
-        }
+        NSWorkspace.shared.isVoiceOverEnabled
     }
 }

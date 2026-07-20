@@ -62,6 +62,50 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 0)
     }
 
+    func testStartingAudioRecordingCancelsPendingFrameCoachPreviewPreparation() async {
+        let speaker = MockInstructionSpeaker()
+        let microphoneRecorder = MockMicrophoneAudioRecorder()
+        let recorder = FrameCoachMockCaptureRecorder(
+            cameras: [InputDevice(id: "cam-1", name: "Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "Mic")]
+        )
+        recorder.configureDelayNanoseconds = 200_000_000
+        var didStartConfiguring = false
+        var didKickOffAudioTransition = false
+        var viewModel: RecorderViewModel!
+        recorder.onConfigureStarted = {
+            didStartConfiguring = true
+            guard !didKickOffAudioTransition else { return }
+            didKickOffAudioTransition = true
+            viewModel.selectPreset(.audioOnly)
+            viewModel.toggleAudioRecording()
+        }
+        viewModel = makeViewModel(
+            speaker: speaker,
+            recorder: recorder,
+            microphoneAudioRecorder: microphoneRecorder,
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            soundEffectPlayer: FrameCoachMockSoundEffectPlayer()
+        )
+
+        await viewModel.setup()
+        viewModel.selectedMicrophoneID = "mic-1"
+        viewModel.selectPreset(.horizontalCamera)
+        viewModel.toggleFrameCoach()
+
+        for _ in 0..<40 where !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+        XCTAssertTrue(didStartConfiguring)
+        XCTAssertTrue(didKickOffAudioTransition)
+
+        try? await Task.sleep(nanoseconds: 250_000_000)
+
+        XCTAssertTrue(viewModel.isRecording, viewModel.errorText ?? viewModel.statusText)
+        XCTAssertTrue(microphoneRecorder.startCalled)
+        XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 0)
+    }
+
     func testCameraRecordingStopAfterFrameCoachToggleStopsPreviewSession() async {
         let speaker = MockInstructionSpeaker()
         let recorder = FrameCoachMockCaptureRecorder(
@@ -457,6 +501,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         recorder: FrameCoachMockCaptureRecorder = FrameCoachMockCaptureRecorder(),
         screenRecordingProvider: any ScreenRecordingProviding = MockScreenRecordingProvider(status: .authorized),
         cameraOverlayRecorder: any CameraOverlayRecording = MockCameraOverlayRecorder(),
+        microphoneAudioRecorder: any MicrophoneAudioRecordingProviding = MockMicrophoneAudioRecorder(),
         systemAudioRecorder: any SystemAudioRecordingProviding = MockSystemAudioRecorder(),
         frameAnalysisService: FrameAnalysisService = FrameAnalysisService(),
         soundEffectPlayer: any SoundEffectPlaying = SoundEffectPlayer(),
@@ -470,6 +515,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
             screenRecordingProvider: screenRecordingProvider,
             cameraOverlayRecorder: cameraOverlayRecorder,
             systemAudioRecorder: systemAudioRecorder,
+            microphoneAudioRecorder: microphoneAudioRecorder,
             fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
             frameAnalysisService: frameAnalysisService,
             soundEffectPlayer: soundEffectPlayer,
@@ -567,6 +613,8 @@ private final class FrameCoachMockCaptureRecorder: CaptureRecording {
     private(set) var configureCallCount = 0
     private(set) var startSessionInBackgroundCallCount = 0
     private(set) var stopSessionCallCount = 0
+    var configureDelayNanoseconds: UInt64 = 0
+    var onConfigureStarted: (() -> Void)?
     private var recordingCompletion: ((Result<URL, Error>) -> Void)?
     private var recordingURL: URL?
 
@@ -579,6 +627,10 @@ private final class FrameCoachMockCaptureRecorder: CaptureRecording {
     func microphoneDevices() -> [InputDevice] { microphones }
     func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode) async throws {
         configureCallCount += 1
+        onConfigureStarted?()
+        if configureDelayNanoseconds > 0 {
+            try? await Task.sleep(nanoseconds: configureDelayNanoseconds)
+        }
     }
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {
         recordingURL = url
