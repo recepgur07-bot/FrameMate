@@ -1,0 +1,18 @@
+default_platform(:mac)
+
+platform :mac do
+  desc "Generate the Xcode project from project.yml"
+  lane :generate do
+    sh("xcodegen generate")
+  end
+
+  desc "Build the canonical macOS target"
+  lane :build do
+    sh("xcodebuild build -project __MODULE_NAME__.xcodeproj -scheme __MODULE_NAME__ -destination 'platform=macOS'")
+  end
+
+  desc "Run the canonical test suite"
+  lane :test do
+    sh("xcodebuild test -project __MODULE_NAME__.xcodeproj -scheme __MODULE_NAME__ -destination 'platform=macOS'")
+  end
+end

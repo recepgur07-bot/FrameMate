@@ -1,0 +1,2 @@
+project_root_markers = [".git", "__MODULE_NAME__.xcodeproj", "project.yml"]
+project_doc_max_bytes = 65536

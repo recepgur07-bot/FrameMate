@@ -16,3 +16,5 @@ tmp/
 *.xcuserstate
 xcuserdata/
 *.xcworkspace/xcuserdata/
+.build/
+.playwright-mcp/

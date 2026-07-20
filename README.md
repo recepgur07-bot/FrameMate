@@ -5,34 +5,22 @@ Native macOS SwiftUI video recorder with selectable camera and microphone inputs
 ## Build
 
 ```bash
-swift build
+xcodebuild build -project VideoRecorder.xcodeproj -scheme FrameMate -destination 'platform=macOS'
 ```
 
 ## Test
 
 ```bash
-swift test
+xcodebuild test -project VideoRecorder.xcodeproj -scheme FrameMate -destination 'platform=macOS'
 ```
 
-## Create The App Bundle
+## Open In Xcode
 
 ```bash
-bash scripts/package-app.sh
+open VideoRecorder.xcodeproj
 ```
 
-The packaged app is created at:
-
-```text
-build/FrameMate.app
-```
-
-Open it from Finder or with:
-
-```bash
-open build/FrameMate.app
-```
-
-macOS should ask for camera and microphone permission on first use.
+Use the shared `FrameMate` scheme for local runs, debugging, and archiving. Xcode manages the built app bundle in DerivedData during local development.
 
 ## Use
 

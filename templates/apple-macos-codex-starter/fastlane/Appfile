@@ -1,0 +1,2 @@
+app_identifier("__BUNDLE_IDENTIFIER__")
+team_id(ENV["APPLE_TEAM_ID"] || "__TEAM_ID__") unless (ENV["APPLE_TEAM_ID"] || "__TEAM_ID__").to_s.empty?
