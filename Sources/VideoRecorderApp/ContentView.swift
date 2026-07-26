@@ -1228,7 +1228,7 @@ struct SettingsView: View {
                         Text(mode.label).tag(mode)
                     }
                 }
-                .accessibilityHint(String(localized: "Yönlendirme sesinin hangi kulaklıktan geleceğini belirler. Uzamsal modda ses, yüzünün bulunduğu tarafa göre sağ veya sol kulaktan gelir. Mono modda ses her zaman ortadan gelir."))
+                .accessibilityHint(String(localized: "Yönlendirme sesinin hangi kulaklıktan geleceğini belirler. Uzamsal modda ses, kamerayı hangi yöne çevirmen gerektiğini gösterir: sesi sağ kulağında duyarsan sağa, sol kulağında duyarsan sola doğru hareket et. Mono modda ses her zaman ortadan gelir."))
 
                 Toggle("Merkez onayı çal", isOn: $viewModel.playsFrameCoachCenterConfirmation)
                     .disabled(viewModel.frameCoachSpatialAudioMode == .off)

@@ -31,12 +31,15 @@ final class SystemInstructionSpeaker: NSObject, InstructionSpeaking {
 final class SystemAccessibilityAnnouncer: InstructionAnnouncing {
     func announce(_ text: String) {
         guard let app = NSApp else { return }
+        // .medium (not .high): routine framing guidance repeats frequently and
+        // shouldn't unconditionally cut off other VoiceOver/system speech —
+        // matches the priority RecordingElapsedTimeAnnouncer already uses.
         NSAccessibility.post(
             element: app,
             notification: .announcementRequested,
             userInfo: [
                 NSAccessibility.NotificationUserInfoKey.announcement: text,
-                NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.medium.rawValue
             ]
         )
     }

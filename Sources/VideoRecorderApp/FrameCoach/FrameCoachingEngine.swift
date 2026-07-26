@@ -1,75 +1,90 @@
 import Foundation
 
+/// Categorizes a produced guidance string so callers can key behavior (locking
+/// to a good frame, VoiceOver announcement priority) off a typed signal
+/// instead of comparing against localized text.
+enum FrameCoachInstructionKind: Equatable {
+    /// Framing is acceptable; nothing needs correcting.
+    case balanced
+    /// A correction that must interrupt "locked to good" suppression
+    /// (clipped subject, overlap, scale imbalance, severe distance, no face).
+    case hardCorrection
+    /// A minor nudge that can be suppressed briefly after a recently-good frame.
+    case softAdjustment
+    /// Lighting, not framing, is the problem.
+    case lowLight
+}
+
+struct FrameCoachGuidance: Equatable {
+    let text: String
+    let kind: FrameCoachInstructionKind
+}
+
 final class FrameCoachingEngine {
-    private enum DistanceSeverity {
-        case severe
-        case advisory
-    }
+    static let noFaceInstruction = String(localized: "Yüz algılanamıyor, kameraya bak")
 
     func instruction(
         for analysis: FrameAnalysis,
         mode: RecordingMode,
         profile: FrameCoachingProfile = .singleDeskSpeaker
     ) -> String {
+        instructionDetail(for: analysis, mode: mode, profile: profile).text
+    }
+
+    func instructionDetail(
+        for analysis: FrameAnalysis,
+        mode: RecordingMode,
+        profile: FrameCoachingProfile = .singleDeskSpeaker
+    ) -> FrameCoachGuidance {
         guard analysis.confidence > 0.3, analysis.faceCount > 0 else {
-            return String(localized: "Yüz algılanamıyor, kameraya bak")
+            return FrameCoachGuidance(text: Self.noFaceInstruction, kind: .hardCorrection)
         }
 
         if let clippedMessage = clippedSubjectInstruction(in: analysis) {
-            return clippedMessage
+            return FrameCoachGuidance(text: clippedMessage, kind: .hardCorrection)
         }
 
         if let overlapMessage = overlapInstruction(in: analysis) {
-            return overlapMessage
+            return FrameCoachGuidance(text: overlapMessage, kind: .hardCorrection)
         }
 
         if let scaleImbalanceMessage = scaleImbalanceInstruction(in: analysis) {
-            return scaleImbalanceMessage
+            return FrameCoachGuidance(text: scaleImbalanceMessage, kind: .hardCorrection)
         }
 
-        if let distanceMessage = distanceInstruction(
-            in: analysis,
-            mode: mode,
-            profile: profile,
-            severity: .severe
-        ) {
-            return distanceMessage
+        if let distanceMessage = distanceInstruction(in: analysis, mode: mode, profile: profile) {
+            return FrameCoachGuidance(text: distanceMessage, kind: .hardCorrection)
         }
 
         if let spacingMessage = spacingInstruction(in: analysis, profile: profile) {
-            return spacingMessage
+            return FrameCoachGuidance(text: spacingMessage, kind: .softAdjustment)
         }
 
         if let verticalSubjectMessage = individualVerticalInstruction(in: analysis) {
-            return verticalSubjectMessage
+            return FrameCoachGuidance(text: verticalSubjectMessage, kind: .softAdjustment)
         }
 
         if let topBottomMessage = topBottomSpacingInstruction(in: analysis, mode: mode, profile: profile) {
-            return topBottomMessage
+            return FrameCoachGuidance(text: topBottomMessage, kind: .softAdjustment)
         }
 
         if let groupVerticalMessage = groupVerticalInstruction(in: analysis) {
-            return groupVerticalMessage
+            return FrameCoachGuidance(text: groupVerticalMessage, kind: .softAdjustment)
         }
 
         if let horizontalMessage = groupHorizontalInstruction(in: analysis) {
-            return horizontalMessage
+            return FrameCoachGuidance(text: horizontalMessage, kind: .softAdjustment)
         }
 
-        if let distanceMessage = distanceInstruction(
-            in: analysis,
-            mode: mode,
-            profile: profile,
-            severity: .advisory
-        ) {
-            return distanceMessage
-        }
-
-        return balancedInstruction(for: analysis.subjectCount)
+        return FrameCoachGuidance(text: balancedInstruction(for: analysis.subjectCount), kind: .balanced)
     }
 
-    func subjectCountAnnouncement(for count: FrameSubjectCount) -> String {
-        switch count {
+    func subjectCountAnnouncement(for analysis: FrameAnalysis) -> String {
+        if analysis.isOverflowing {
+            return String(localized: "Üçten fazla kişi görünüyor, en öne çıkan üç kişiye göre yönlendiriliyor")
+        }
+
+        switch analysis.subjectCount {
         case .one:
             return String(localized: "Bir kişi görünüyor")
         case .two:
@@ -109,7 +124,7 @@ final class FrameCoachingEngine {
     }
 
     private func overlapInstruction(in analysis: FrameAnalysis) -> String? {
-        guard analysis.subjectCount == .two,
+        guard analysis.subjectCount != .one,
               analysis.overlapRatio >= 0.45,
               let smallestSubject = analysis.subjects.min(by: { $0.faceBox.width < $1.faceBox.width }) else {
             return nil
@@ -119,7 +134,7 @@ final class FrameCoachingEngine {
     }
 
     private func scaleImbalanceInstruction(in analysis: FrameAnalysis) -> String? {
-        guard analysis.subjectCount == .two,
+        guard analysis.subjectCount != .one,
               let widthRatio = analysis.faceWidthRatio,
               widthRatio >= 1.90,
               let largestSubject = analysis.subjects.max(by: { $0.faceBox.width < $1.faceBox.width }) else {
@@ -132,8 +147,7 @@ final class FrameCoachingEngine {
     private func distanceInstruction(
         in analysis: FrameAnalysis,
         mode: RecordingMode,
-        profile: FrameCoachingProfile,
-        severity: DistanceSeverity
+        profile: FrameCoachingProfile
     ) -> String? {
         guard let averageFaceWidth = analysis.averageFaceWidth,
               let averageFaceHeight = analysis.averageFaceHeight else { return nil }
@@ -142,50 +156,32 @@ final class FrameCoachingEngine {
         case .one:
             let severeWidthThreshold: Double
             let severeHeightThreshold: Double
-            let advisoryWidthThreshold: Double?
-            let advisoryHeightThreshold: Double?
             let farThreshold: Double
 
             switch profile {
             case .singleDeskSpeaker:
                 severeWidthThreshold = mode == .vertical1080p ? 0.225 : 0.29
                 severeHeightThreshold = mode == .vertical1080p ? 0.275 : 0.38
-                advisoryWidthThreshold = nil
-                advisoryHeightThreshold = nil
                 farThreshold = 0.095
             case .verticalSocialVideo:
                 severeWidthThreshold = mode == .vertical1080p ? 0.265 : 0.29
                 severeHeightThreshold = mode == .vertical1080p ? 0.305 : 0.38
-                advisoryWidthThreshold = nil
-                advisoryHeightThreshold = nil
                 farThreshold = 0.075
             case .twoPersonPodcast, .verticalConversation:
                 severeWidthThreshold = mode == .vertical1080p ? 0.245 : 0.29
                 severeHeightThreshold = mode == .vertical1080p ? 0.30 : 0.38
-                advisoryWidthThreshold = nil
-                advisoryHeightThreshold = nil
                 farThreshold = 0.075
             case .screenGuide:
                 severeWidthThreshold = mode == .vertical1080p ? 0.29 : 0.31
                 severeHeightThreshold = mode == .vertical1080p ? 0.355 : 0.40
-                advisoryWidthThreshold = nil
-                advisoryHeightThreshold = nil
                 farThreshold = 0.065
             }
 
-            if severity == .severe,
-               (averageFaceWidth > severeWidthThreshold || averageFaceHeight > severeHeightThreshold) {
+            if averageFaceWidth > severeWidthThreshold || averageFaceHeight > severeHeightThreshold {
                 return String(localized: "çok yakınsın, biraz uzaklaş — omuzların ve göğsün de görünsün")
             }
 
-            if severity == .advisory,
-               let advisoryWidthThreshold,
-               let advisoryHeightThreshold,
-               (averageFaceWidth > advisoryWidthThreshold || averageFaceHeight > advisoryHeightThreshold) {
-                return String(localized: "çok yakınsın, biraz uzaklaş — omuzların ve göğsün de görünsün")
-            }
-
-            if severity == .severe, averageFaceWidth < farThreshold {
+            if averageFaceWidth < farThreshold {
                 return String(localized: "kadraj çok uzak, biraz yaklaş")
             }
         case .two:
@@ -200,11 +196,11 @@ final class FrameCoachingEngine {
                 farThreshold = 0.065
             }
 
-            if severity == .severe, averageFaceWidth < farThreshold {
+            if averageFaceWidth < farThreshold {
                 return String(localized: "Çok uzaktasınız, ikiniz de biraz yaklaşın")
             }
         case .three:
-            if severity == .severe, averageFaceWidth < 0.055 {
+            if averageFaceWidth < 0.055 {
                 return String(localized: "Çok uzaktasınız, hepiniz biraz yaklaşın")
             }
         }

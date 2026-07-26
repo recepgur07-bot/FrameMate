@@ -4849,13 +4849,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Face not detected"
+            "value": "Face not detected, look at the camera"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Yüz algılanamıyor"
+            "value": "Yüz algılanamıyor, kameraya bak"
           }
         }
       }
@@ -9174,6 +9174,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "Kayıt klasörü kullanıcıya görünür varsayılan klasöre güncellendi."
+          }
+        }
+      }
+    },
+    "Yönlendirme sesinin hangi kulaklıktan geleceğini belirler. Uzamsal modda ses, kamerayı hangi yöne çevirmen gerektiğini gösterir: sesi sağ kulağında duyarsan sağa, sol kulağında duyarsan sola doğru hareket et. Mono modda ses her zaman ortadan gelir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Determines which earpiece the guidance sound plays from. In spatial mode, the sound tells you which way to move the camera: if you hear it in your right ear, move right; in your left ear, move left. Mono mode always plays from the center."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yönlendirme sesinin hangi kulaklıktan geleceğini belirler. Uzamsal modda ses, kamerayı hangi yöne çevirmen gerektiğini gösterir: sesi sağ kulağında duyarsan sağa, sol kulağında duyarsan sola doğru hareket et. Mono modda ses her zaman ortadan gelir."
+          }
+        }
+      }
+    },
+    "Üçten fazla kişi görünüyor, en öne çıkan üç kişiye göre yönlendiriliyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More than three people are visible, guidance is based on the three most prominent people"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Üçten fazla kişi görünüyor, en öne çıkan üç kişiye göre yönlendiriliyor"
           }
         }
       }

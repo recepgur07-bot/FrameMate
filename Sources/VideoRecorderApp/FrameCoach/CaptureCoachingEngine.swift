@@ -23,14 +23,23 @@ final class CaptureCoachingEngine {
         mode: RecordingMode,
         profile: FrameCoachingProfile
     ) -> String {
+        instructionDetail(frameAnalysis: frameAnalysis, lightingAnalysis: lightingAnalysis, mode: mode, profile: profile).text
+    }
+
+    func instructionDetail(
+        frameAnalysis: FrameAnalysis?,
+        lightingAnalysis: FrameLightingAnalysis?,
+        mode: RecordingMode,
+        profile: FrameCoachingProfile
+    ) -> FrameCoachGuidance {
         if lightingAnalysis?.isLowLight == true {
-            return Self.lowLightInstruction
+            return FrameCoachGuidance(text: Self.lowLightInstruction, kind: .lowLight)
         }
 
         guard let frameAnalysis else {
-            return String(localized: "Yüz algılanamıyor, kameraya bak")
+            return FrameCoachGuidance(text: FrameCoachingEngine.noFaceInstruction, kind: .hardCorrection)
         }
 
-        return frameCoachingEngine.instruction(for: frameAnalysis, mode: mode, profile: profile)
+        return frameCoachingEngine.instructionDetail(for: frameAnalysis, mode: mode, profile: profile)
     }
 }

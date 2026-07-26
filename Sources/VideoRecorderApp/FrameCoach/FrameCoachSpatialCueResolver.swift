@@ -13,6 +13,27 @@ struct FrameCoachSpatialCueResolver {
         guidance: String,
         mode: RecordingMode
     ) -> FrameCoachSpatialCue? {
+        let isBalanced = guidance == String(localized: "kadraj uygun") || guidance == String(localized: "kadraj dengeli")
+        return cue(for: analysis, guidance: guidance, isBalanced: isBalanced, mode: mode)
+    }
+
+    /// Preferred entry point for callers that already have a typed
+    /// `FrameCoachGuidance` (avoids re-deriving "is this the balanced state"
+    /// from localized text).
+    func cue(
+        for analysis: FrameAnalysis?,
+        guidance: FrameCoachGuidance,
+        mode: RecordingMode
+    ) -> FrameCoachSpatialCue? {
+        cue(for: analysis, guidance: guidance.text, isBalanced: guidance.kind == .balanced, mode: mode)
+    }
+
+    private func cue(
+        for analysis: FrameAnalysis?,
+        guidance: String,
+        isBalanced: Bool,
+        mode: RecordingMode
+    ) -> FrameCoachSpatialCue? {
         let normalized = guidance.lowercased(with: Locale(identifier: "tr_TR"))
         if normalized.contains("algılanamıyor") ||
             normalized.contains("ışık düşük") ||
@@ -20,8 +41,7 @@ struct FrameCoachSpatialCueResolver {
             return nil
         }
 
-        if normalized == String(localized: "kadraj uygun").lowercased(with: Locale(identifier: "tr_TR")) ||
-            normalized == String(localized: "kadraj dengeli").lowercased(with: Locale(identifier: "tr_TR")) {
+        if isBalanced {
             return FrameCoachSpatialCue(direction: .center, severity: .mild, confirmsCentered: true)
         }
 

@@ -224,6 +224,25 @@ final class FrameCoachingEngineTests: XCTestCase {
         )
     }
 
+    func testLowConfidenceDetectionIsTreatedAsNoFace() {
+        let analysis = FrameAnalysis(
+            faceBoxes: [
+                NormalizedFaceBox(rect: CGRect(x: 0.42, y: 0.30, width: 0.16, height: 0.20), confidence: 0.2)
+            ],
+            subjectCount: .one,
+            headroomRatio: 0.18,
+            bottomCoverageRatio: 0.22,
+            horizontalGroupCenter: 0.50,
+            spacingMetric: 0.0,
+            confidence: 0.2
+        )
+
+        let detail = FrameCoachingEngine().instructionDetail(for: analysis, mode: .horizontal1080p, profile: .singleDeskSpeaker)
+
+        XCTAssertEqual(detail.text, FrameCoachingEngine.noFaceInstruction)
+        XCTAssertEqual(detail.kind, .hardCorrection)
+    }
+
     func testOnePersonSlightlyOffCenterStillCountsAsAcceptable() {
         let analysis = FrameAnalysis(
             faceBoxes: [
@@ -541,6 +560,70 @@ final class FrameCoachingEngineTests: XCTestCase {
         )
     }
 
+    func testThreePeopleWhenTwoAreOverlappingNamesTheHiddenPerson() {
+        let analysis = FrameAnalysis(
+            faceBoxes: [
+                NormalizedFaceBox(rect: CGRect(x: 0.36, y: 0.25, width: 0.18, height: 0.24)),
+                NormalizedFaceBox(rect: CGRect(x: 0.44, y: 0.27, width: 0.12, height: 0.18)),
+                NormalizedFaceBox(rect: CGRect(x: 0.75, y: 0.27, width: 0.14, height: 0.18))
+            ],
+            subjectCount: .three,
+            headroomRatio: 0.24,
+            bottomCoverageRatio: 0.28,
+            horizontalGroupCenter: 0.50,
+            spacingMetric: 0.30,
+            confidence: 0.95
+        )
+
+        XCTAssertEqual(
+            FrameCoachingEngine().instruction(for: analysis, mode: .horizontal1080p, profile: .twoPersonPodcast),
+            "ortadaki kişi arkada kalmış, biraz yana açılsın"
+        )
+    }
+
+    func testThreePeopleWithScaleImbalanceAskCloserPersonToMoveBack() {
+        let analysis = FrameAnalysis(
+            faceBoxes: [
+                NormalizedFaceBox(rect: CGRect(x: 0.20, y: 0.25, width: 0.23, height: 0.30)),
+                NormalizedFaceBox(rect: CGRect(x: 0.60, y: 0.29, width: 0.12, height: 0.18)),
+                NormalizedFaceBox(rect: CGRect(x: 0.80, y: 0.29, width: 0.12, height: 0.18))
+            ],
+            subjectCount: .three,
+            headroomRatio: 0.22,
+            bottomCoverageRatio: 0.34,
+            horizontalGroupCenter: 0.50,
+            spacingMetric: 0.29,
+            confidence: 0.95
+        )
+
+        XCTAssertEqual(
+            FrameCoachingEngine().instruction(for: analysis, mode: .horizontal1080p, profile: .twoPersonPodcast),
+            "soldaki kişi kameraya daha yakın, biraz geri gelsin"
+        )
+    }
+
+    func testSubjectCountAnnouncementReportsOverflowInsteadOfClaimingExactlyThree() {
+        let overflowingAnalysis = FrameAnalysis(
+            faceBoxes: [
+                NormalizedFaceBox(rect: CGRect(x: 0.10, y: 0.28, width: 0.12, height: 0.16)),
+                NormalizedFaceBox(rect: CGRect(x: 0.40, y: 0.27, width: 0.12, height: 0.16)),
+                NormalizedFaceBox(rect: CGRect(x: 0.70, y: 0.29, width: 0.12, height: 0.16))
+            ],
+            subjectCount: .three,
+            headroomRatio: 0.17,
+            bottomCoverageRatio: 0.20,
+            horizontalGroupCenter: 0.50,
+            spacingMetric: 0.30,
+            confidence: 0.9,
+            isOverflowing: true
+        )
+
+        XCTAssertEqual(
+            FrameCoachingEngine().subjectCountAnnouncement(for: overflowingAnalysis),
+            "Üçten fazla kişi görünüyor, en öne çıkan üç kişiye göre yönlendiriliyor"
+        )
+    }
+
     func testVerticalProfilesAllowModeratelyTightSinglePersonFraming() {
         let analysis = makeAnalysis(
             faceBoxes: [CGRect(x: 0.40, y: 0.30, width: 0.21, height: 0.27)],
@@ -796,7 +879,7 @@ private func makeAnalysis(
     confidence: Double = 0.95
 ) -> FrameAnalysis {
     FrameAnalysis(
-        faceBoxes: faceBoxes.map(NormalizedFaceBox.init(rect:)),
+        faceBoxes: faceBoxes.map { NormalizedFaceBox(rect: $0) },
         subjectCount: subjectCount,
         headroomRatio: headroomRatio,
         bottomCoverageRatio: bottomCoverageRatio,

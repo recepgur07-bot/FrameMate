@@ -41,6 +41,64 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 1)
     }
 
+    func testTogglingFrameCoachWithoutAMicrophoneReportsErrorInsteadOfSilentlyDoingNothing() async {
+        let speaker = MockInstructionSpeaker()
+        // No microphone device available: Frame Coach only needs the camera,
+        // but configureRecorder() still requires an audio device today. Turning
+        // the coach on should surface this as an announced error rather than
+        // saying "Kadraj koçu açık" and then never producing any guidance.
+        let recorder = FrameCoachMockCaptureRecorder(
+            cameras: [InputDevice(id: "cam-1", name: "Camera")],
+            microphones: []
+        )
+        let viewModel = makeViewModel(
+            speaker: speaker,
+            recorder: recorder,
+            soundEffectPlayer: FrameCoachMockSoundEffectPlayer()
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
+
+        viewModel.toggleFrameCoach()
+        for _ in 0..<20 where viewModel.errorText == nil {
+            await Task.yield()
+        }
+
+        XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 0)
+        XCTAssertEqual(viewModel.errorText, "Mikrofon bulunamadı.")
+    }
+
+    func testTogglingFrameCoachStartsEvenWithoutScreenRecordingPermissionWhenSystemAudioIsEnabled() async {
+        let speaker = MockInstructionSpeaker()
+        // Camera + microphone are authorized, screen recording is NOT. Frame
+        // Coach only analyzes camera frames — it never captures system audio —
+        // so a missing screen-recording permission must not block it, even if
+        // the user separately has "system audio" enabled for real recordings.
+        let recorder = FrameCoachMockCaptureRecorder(
+            cameras: [InputDevice(id: "cam-1", name: "Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "Mic")]
+        )
+        let viewModel = makeViewModel(
+            speaker: speaker,
+            recorder: recorder,
+            screenRecordingProvider: MockScreenRecordingProvider(status: .denied),
+            soundEffectPlayer: FrameCoachMockSoundEffectPlayer()
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
+        viewModel.isSystemAudioEnabled = true
+
+        viewModel.toggleFrameCoach()
+        for _ in 0..<20 where recorder.startSessionInBackgroundCallCount == 0 {
+            await Task.yield()
+        }
+
+        XCTAssertNil(viewModel.errorText)
+        XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 1)
+    }
+
     func testToggleFrameCoachDuringRecordingDoesNotReconfigureCameraSession() async {
         let speaker = MockInstructionSpeaker()
         let recorder = FrameCoachMockCaptureRecorder(
@@ -198,6 +256,10 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         viewModel.toggleFrameCoach()
         viewModel.processFrameCoachAnalysis(makeSinglePersonAnalysis(x: 0.42, y: 0.30))
         viewModel.processFrameCoachAnalysis(makeSinglePersonAnalysis(x: 0.14, y: 0.28))
+        // Subject count changes require two consecutive matching analyses before
+        // being announced (hysteresis against noisy single-frame detection blips),
+        // except for the very first announcement right after the coach turns on.
+        viewModel.processFrameCoachAnalysis(makeTwoPersonAnalysis())
         viewModel.processFrameCoachAnalysis(makeTwoPersonAnalysis())
 
         XCTAssertEqual(
@@ -208,6 +270,28 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
                 "İki kişi görünüyor. Kadraj dengeli"
             ]
         )
+    }
+
+    func testFrameCoachRequiresTwoConsecutiveAnalysesBeforeAnnouncingSubjectCountChange() {
+        let speaker = MockInstructionSpeaker()
+        let viewModel = makeViewModel(
+            speaker: speaker,
+            speechCuePlayer: SpeechCuePlayer(
+                speaker: speaker,
+                now: Date.init,
+                cooldown: 0,
+                isVoiceOverEnabled: { false }
+            )
+        )
+
+        viewModel.toggleFrameCoach()
+        viewModel.processFrameCoachAnalysis(makeSinglePersonAnalysis(x: 0.42, y: 0.30))
+        // A single noisy frame reporting two people should not immediately
+        // flip the announced count back and forth.
+        viewModel.processFrameCoachAnalysis(makeTwoPersonAnalysis())
+        viewModel.processFrameCoachAnalysis(makeSinglePersonAnalysis(x: 0.42, y: 0.30))
+
+        XCTAssertFalse(speaker.spokenTexts.contains { $0.hasPrefix("İki kişi görünüyor") })
     }
 
     func testFrameCoachIgnoresBriefFaceLossBeforeSpeakingNoFace() {
@@ -238,13 +322,13 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
 
         viewModel.processFrameCoachAnalysis(nil)
 
-        XCTAssertEqual(viewModel.currentFrameCoachInstruction, "Yüz algılanamıyor")
+        XCTAssertEqual(viewModel.currentFrameCoachInstruction, "Yüz algılanamıyor, kameraya bak")
         XCTAssertEqual(
             speaker.spokenTexts,
             [
                 "Kadraj koçu açık",
                 "Bir kişi görünüyor. Biraz sağa geç",
-                "Yüz algılanamıyor"
+                "Yüz algılanamıyor, kameraya bak"
             ]
         )
     }

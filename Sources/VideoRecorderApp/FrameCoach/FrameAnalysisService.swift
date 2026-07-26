@@ -22,7 +22,7 @@ struct VisionFaceDetector: FaceDetecting {
                 width: boundingBox.size.width,
                 height: boundingBox.size.height
             )
-            return NormalizedFaceBox(rect: converted)
+            return NormalizedFaceBox(rect: converted, confidence: Double(observation.confidence))
         }
     }
 }
@@ -47,6 +47,10 @@ final class FrameAnalysisService {
         guard let subjectCount = FrameSubjectCount(rawValue: supportedFaces.count) else {
             return nil
         }
+        let isOverflowing = faceBoxes.count > supportedFaces.count
+        // En düşük tekil yüz güvenini kullan: bir tespit belirsizse tüm analiz
+        // de belirsiz sayılmalı, en yüksek güvenli yüz diğerlerini maskelemesin.
+        let confidence = supportedFaces.map(\.confidence).min() ?? 0
 
         let minTop = supportedFaces.map { Double($0.rect.minY) }.min() ?? 0
         let maxBottom = supportedFaces.map { Double($0.rect.maxY) }.max() ?? 1
@@ -69,7 +73,8 @@ final class FrameAnalysisService {
             bottomCoverageRatio: max(0, 1 - maxBottom),
             horizontalGroupCenter: (minX + maxX) / 2,
             spacingMetric: spacingMetric,
-            confidence: 0.9
+            confidence: confidence,
+            isOverflowing: isOverflowing
         )
     }
 }

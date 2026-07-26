@@ -950,6 +950,10 @@ final class RecorderViewModel {
     private var hasSetUp = false
     private var isRecorderConfigured = false
     private var lastAnnouncedSubjectCount: FrameSubjectCount?
+    private var lastAnnouncedSubjectCountWasOverflow = false
+    private var pendingSubjectCount: FrameSubjectCount?
+    private var pendingSubjectCountIsOverflowing = false
+    private var pendingSubjectCountStreak = 0
     private var consecutiveMissingFaceAnalyses = 0
     private var lastGoodFrameAt: Date?
     private var lastGoodInstruction: String?
@@ -1434,7 +1438,10 @@ final class RecorderViewModel {
 
         Task {
             do {
-                try await configureRecorder()
+                // Bu yalnızca kamera önizleme oturumunu hazırlar, gerçek kaydı
+                // başlatmaz; sistem sesi izni burada zorunlu değil (bkz.
+                // prepareAnalysisPreviewIfPossible ile aynı gerekçe).
+                try await configureRecorder(requireSystemAudioReadiness: false)
                 if isFrameCoachEnabled {
                     recorder.startSessionInBackground()
                 }
@@ -1446,8 +1453,8 @@ final class RecorderViewModel {
         }
     }
 
-    func configureRecorder() async throws {
-        try validateRecordingReadiness()
+    func configureRecorder(requireSystemAudioReadiness: Bool = true) async throws {
+        try validateRecordingReadiness(requireSystemAudioReadiness: requireSystemAudioReadiness)
 
         guard !selectedCameraID.isEmpty else {
             throw CaptureRecorderError.cameraNotFound
@@ -1617,7 +1624,7 @@ final class RecorderViewModel {
         if isFrameCoachEnabled {
             currentFrameCoachInstruction = String(localized: "Kadraj koçu açık")
             speechCuePlayer.reset()
-            lastAnnouncedSubjectCount = nil
+            resetSubjectCountTracking()
             consecutiveMissingFaceAnalyses = 0
             lastGoodFrameAt = nil
             lastGoodInstruction = nil
@@ -1634,6 +1641,14 @@ final class RecorderViewModel {
             lastGoodInstruction = nil
             speechCuePlayer.speakIfNeeded(String(localized: "Kadraj koçu kapalı"), isEnabled: true, settings: frameCoachPreferences)
         }
+    }
+
+    private func resetSubjectCountTracking() {
+        lastAnnouncedSubjectCount = nil
+        lastAnnouncedSubjectCountWasOverflow = false
+        pendingSubjectCount = nil
+        pendingSubjectCountIsOverflowing = false
+        pendingSubjectCountStreak = 0
     }
 
     func toggleAutoReframe() {
@@ -1679,32 +1694,33 @@ final class RecorderViewModel {
 
             consecutiveMissingFaceAnalyses += 1
             guard consecutiveMissingFaceAnalyses >= 3 else { return }
-            currentFrameCoachInstruction = String(localized: "Yüz algılanamıyor")
+            currentFrameCoachInstruction = FrameCoachingEngine.noFaceInstruction
             // Yüz kaybolunca kısa aralıkla tekrar et (2s) — kör kullanıcı hızlıca uyarılmalı.
             var urgentPreferences = frameCoachPreferences
             urgentPreferences.repeatInterval = .short
-            speechCuePlayer.speakIfNeeded(String(localized: "Yüz algılanamıyor"), isEnabled: true, settings: urgentPreferences)
+            speechCuePlayer.speakIfNeeded(FrameCoachingEngine.noFaceInstruction, isEnabled: true, settings: urgentPreferences)
             return
         }
 
         consecutiveMissingFaceAnalyses = 0
-        let guidance = captureCoachingEngine.instruction(
+        let guidanceDetail = captureCoachingEngine.instructionDetail(
             frameAnalysis: analysis,
             lightingAnalysis: lightingAnalysis,
             mode: selectedMode,
             profile: automaticFrameCoachingProfile(for: analysis)
         )
-        if let cue = spatialCueResolver.cue(for: analysis, guidance: guidance, mode: selectedMode) {
+        let guidance = guidanceDetail.text
+        if let cue = spatialCueResolver.cue(for: analysis, guidance: guidanceDetail, mode: selectedMode) {
             spatialCuePlayer.play(cue, preferences: frameCoachPreferences)
         }
 
-        if guidance == CaptureCoachingEngine.lowLightInstruction {
+        if guidanceDetail.kind == .lowLight {
             currentFrameCoachInstruction = guidance
             speechCuePlayer.speakIfNeeded(guidance.sentenceCased, isEnabled: true, settings: frameCoachPreferences)
             return
         }
 
-        let isGood = guidance == String(localized: "kadraj uygun") || guidance == String(localized: "kadraj dengeli")
+        let isGood = guidanceDetail.kind == .balanced
         if isGood {
             lastGoodFrameAt = Date()
             lastGoodInstruction = guidance
@@ -1714,7 +1730,7 @@ final class RecorderViewModel {
         // 3 saniye: kör kullanıcı pozisyon değişikliğini hızlıca öğrenmeli.
         let isLockedGood: Bool
         if let lastGood = lastGoodFrameAt, !isGood, Date().timeIntervalSince(lastGood) < 3 {
-            isLockedGood = !isHardFrameCoachInstruction(guidance)
+            isLockedGood = guidanceDetail.kind == .softAdjustment
         } else {
             isLockedGood = false
         }
@@ -1723,12 +1739,40 @@ final class RecorderViewModel {
 
         guard !isLockedGood else { return }
 
-        if lastAnnouncedSubjectCount != analysis.subjectCount {
-            let countAnnouncement = frameCoachingEngine.subjectCountAnnouncement(for: analysis.subjectCount)
+        let countChanged = lastAnnouncedSubjectCount != analysis.subjectCount
+            || lastAnnouncedSubjectCountWasOverflow != analysis.isOverflowing
+        if countChanged {
+            let isFirstEverAnnouncement = lastAnnouncedSubjectCount == nil
+            let matchesPendingCandidate = pendingSubjectCount == analysis.subjectCount
+                && pendingSubjectCountIsOverflowing == analysis.isOverflowing
+            if matchesPendingCandidate {
+                pendingSubjectCountStreak += 1
+            } else {
+                pendingSubjectCount = analysis.subjectCount
+                pendingSubjectCountIsOverflowing = analysis.isOverflowing
+                pendingSubjectCountStreak = 1
+            }
+
+            // Kararlılık eşiği: gürültülü tespitte 1↔2 gibi anlık çırpınmayı önlemek için
+            // yeni sayı en az 2 ardışık analizde aynı olmalı. Koç yeni açıldığındaki ilk
+            // anons bu eşikten muaftır, kör kullanıcı ilk durumu gecikmeden duymalı.
+            guard isFirstEverAnnouncement || pendingSubjectCountStreak >= 2 else {
+                // Eşik henüz dolmadı: sayı değişikliği doğrulanana kadar sessiz kal
+                // (ekrandaki metin zaten güncellendi, yalnız henüz seslendirilmiyor).
+                return
+            }
+
+            let countAnnouncement = frameCoachingEngine.subjectCountAnnouncement(for: analysis)
             let composite = "\(countAnnouncement). \(guidance.sentenceCased)"
             lastAnnouncedSubjectCount = analysis.subjectCount
+            lastAnnouncedSubjectCountWasOverflow = analysis.isOverflowing
+            pendingSubjectCount = nil
+            pendingSubjectCountStreak = 0
             speechCuePlayer.speakIfNeeded(composite, isEnabled: true, key: guidance.sentenceCased, settings: frameCoachPreferences)
             return
+        } else {
+            pendingSubjectCount = nil
+            pendingSubjectCountStreak = 0
         }
 
         // İyi konumdayken periyodik sesli onay: kör kullanıcı hâlâ doğru yerde olduğunu bilmeli.
@@ -1740,27 +1784,6 @@ final class RecorderViewModel {
         } else {
             speechCuePlayer.speakIfNeeded(guidance.sentenceCased, isEnabled: true, key: guidance.sentenceCased, settings: frameCoachPreferences)
         }
-    }
-
-    /// Matches against coaching phrases produced by the frame coach engine.
-    /// These are internal pattern strings, so keep both supported app languages here.
-    private func isHardFrameCoachInstruction(_ instruction: String) -> Bool {
-        let normalized = instruction.lowercased()
-        let hardKeywords = [
-            "algılanam",
-            "tam girmiyor",
-            "arkada kalmış",
-            "daha yakın",
-            "çok yakınsın",
-            "çok uzaktasın",
-            "çok uzaktasınız",
-            "not fully in frame",
-            "further back",
-            "closer to the camera",
-            "too close",
-            "too far"
-        ]
-        return hardKeywords.contains { normalized.contains($0) }
     }
 
     func startRecording(afterCommandSoundDelay commandSoundDelay: TimeInterval = 0) {
@@ -3751,14 +3774,19 @@ final class RecorderViewModel {
         return (true, nil)
     }
 
-    private func validateRecordingReadiness() throws {
+    private func validateRecordingReadiness(requireSystemAudioReadiness: Bool = true) throws {
         if cameraPermissionStatus != .authorized {
             throw CaptureRecorderError.cameraPermissionDenied
         }
         if microphonePermissionStatus != .authorized {
             throw CaptureRecorderError.microphonePermissionDenied
         }
-        if isSystemAudioEnabled && screenRecordingPermissionStatus != .authorized {
+        // Kadraj koçu önizlemesi yalnızca kamera karesi analiz eder; sistem sesi
+        // yakalamıyor. Bu yüzden bu kontrolü yalnızca gerçek kayıt başlatılırken
+        // zorunlu tutuyoruz — aksi halde ekran kaydı izni verilmemiş bir
+        // kullanıcı, sistem sesi ayarı açıkken kadraj koçunu denediğinde
+        // "Ekran kaydı başlatılamadı" gibi kendisiyle ilgisiz bir hata duyar.
+        if requireSystemAudioReadiness, isSystemAudioEnabled, screenRecordingPermissionStatus != .authorized {
             throw ScreenRecordingError.cannotStartStream
         }
     }
@@ -3809,12 +3837,20 @@ final class RecorderViewModel {
         if selectedRecordingSource == .camera {
             guard isFrameCoachEnabled else { return }
             guard !isRecording, !isPreparingRecording else { return }
-            guard hasRequiredPermissions else { return }
-            guard !selectedCameraID.isEmpty, !selectedMicrophoneID.isEmpty else { return }
             guard !Task.isCancelled else { return }
 
+            // Kamera/mikrofon izni eksikse veya bir aygıt seçili değilse burada
+            // sessizce çıkmıyoruz: configureRecorder() aynı durumları zaten
+            // CaptureRecorderError olarak fırlatıyor ve aşağıdaki catch bunu
+            // VoiceOver'a duyuruyor. Kadraj koçu "açık" dendikten sonra hiçbir
+            // yönlendirme gelmemesi, kör kullanıcı için nedeni belirsiz bir
+            // sessiz başarısızlıktı — burada erken çıkmak yerine gerçek nedeni
+            // söylemek daha doğru.
             do {
-                try await configureRecorder()
+                // Kadraj koçu yalnızca kamera karesi analiz eder, sistem sesi
+                // yakalamaz; ekran kaydı izni burada zorunlu değil (bkz.
+                // validateRecordingReadiness'teki requireSystemAudioReadiness).
+                try await configureRecorder(requireSystemAudioReadiness: false)
                 guard !Task.isCancelled else { return }
                 guard isCameraPreviewAnalysisActive, !isRecording, !isPreparingRecording else { return }
                 recorder.startSessionInBackground()
@@ -3843,7 +3879,7 @@ final class RecorderViewModel {
 
     private func resetFrameCoachAnalysisState() {
         consecutiveMissingFaceAnalyses = 0
-        lastAnnouncedSubjectCount = nil
+        resetSubjectCountTracking()
         lastGoodFrameAt = nil
         lastGoodInstruction = nil
         if !isFrameCoachEnabled {

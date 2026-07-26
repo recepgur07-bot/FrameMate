@@ -3,6 +3,12 @@ import CoreGraphics
 
 struct NormalizedFaceBox: Equatable {
     let rect: CGRect
+    let confidence: Double
+
+    init(rect: CGRect, confidence: Double = 1.0) {
+        self.rect = rect
+        self.confidence = confidence
+    }
 
     var centerX: Double {
         Double(rect.midX)
@@ -76,6 +82,29 @@ struct FrameAnalysis: Equatable {
     let horizontalGroupCenter: Double
     let spacingMetric: Double
     let confidence: Double
+    /// True when more faces were detected than `subjectCount` can represent
+    /// (coaching is capped at 3 named subjects; extra faces are dropped).
+    let isOverflowing: Bool
+
+    init(
+        faceBoxes: [NormalizedFaceBox],
+        subjectCount: FrameSubjectCount,
+        headroomRatio: Double,
+        bottomCoverageRatio: Double,
+        horizontalGroupCenter: Double,
+        spacingMetric: Double,
+        confidence: Double,
+        isOverflowing: Bool = false
+    ) {
+        self.faceBoxes = faceBoxes
+        self.subjectCount = subjectCount
+        self.headroomRatio = headroomRatio
+        self.bottomCoverageRatio = bottomCoverageRatio
+        self.horizontalGroupCenter = horizontalGroupCenter
+        self.spacingMetric = spacingMetric
+        self.confidence = confidence
+        self.isOverflowing = isOverflowing
+    }
 
     var faceCount: Int {
         faceBoxes.count
