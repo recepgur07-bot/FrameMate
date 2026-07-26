@@ -62,6 +62,7 @@ final class CameraOverlayRecorder: NSObject, AVCaptureFileOutputRecordingDelegat
                         }
                         session.addOutput(movieOutput)
                     }
+                    MovieOutputVideoEncoding.applyHEVCSettings(to: movieOutput)
 
                     if !session.outputs.contains(previewOutput) {
                         previewOutput.alwaysDiscardsLateVideoFrames = true

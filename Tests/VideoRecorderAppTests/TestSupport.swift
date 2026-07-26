@@ -35,7 +35,7 @@ final class MockCaptureRecorder: CaptureRecording {
     func cameraDevices() -> [InputDevice] { cameras }
     func microphoneDevices() -> [InputDevice] { microphones }
 
-    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode) async throws {}
+    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode, audioChannelMode: AudioChannelMode) async throws {}
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {}
     func stopRecording() { onStop() }
     func startSessionInBackground() {}
@@ -237,7 +237,7 @@ final class MockMicrophoneAudioRecorder: MicrophoneAudioRecordingProviding {
     var shouldCompleteOnStop = true
     private var completion: ((Result<URL, Error>) -> Void)?
 
-    func startRecording(deviceID: String, to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {
+    func startRecording(deviceID: String, to url: URL, audioChannelMode: AudioChannelMode, completion: @escaping (Result<URL, Error>) -> Void) async throws {
         if let startError {
             throw startError
         }

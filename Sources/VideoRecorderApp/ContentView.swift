@@ -57,6 +57,15 @@ struct ContentView: View {
                     if shouldShowPermissionHub {
                         permissionHubCard
                     }
+                    if !viewModel.recoveredTemporaryRecordingURLs.isEmpty {
+                        FMCard(icon: "lifepreserver.fill", title: String(localized: "Kurtarılabilir kayıtlar")) {
+                            Text(String(localized: "Önceki oturumdan kalan \(viewModel.recoveredTemporaryRecordingURLs.count) geçici kayıt dosyası silinmedi."))
+                                .font(.callout)
+                            Button(String(localized: "Finder’da Göster")) {
+                                viewModel.revealRecoveredTemporaryRecordings()
+                            }
+                        }
+                    }
                 }
                 .padding(16)
             }
@@ -1271,6 +1280,13 @@ struct SettingsView: View {
                     }
                 }
                 .accessibilityHint(String(localized: "Bu süre dolunca kayıt otomatik olarak durur."))
+
+                Picker("Mikrofon kanalı", selection: $viewModel.audioChannelMode) {
+                    ForEach(AudioChannelMode.allCases) { mode in
+                        Text(mode.label).tag(mode)
+                    }
+                }
+                .accessibilityHint(String(localized: "Mikrofon sesinin mono mu stereo mu kaydedileceğini belirler. Otomatik modda mikrofonun kendi kanal sayısı kullanılır. Bazı içeriklerde mono ses daha net gelebilir."))
 
                 Toggle("Komut alındı sesini çal", isOn: $viewModel.isRecordingCommandSoundEnabled)
                     .accessibilityHint(String(localized: "Kayıt başlatma komutu alındığında kısa bir onay sesi çalar."))

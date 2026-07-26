@@ -108,7 +108,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
             let videoInput = AVAssetWriterInput(
                 mediaType: .video,
                 outputSettings: [
-                    AVVideoCodecKey: AVVideoCodecType.h264,
+                    AVVideoCodecKey: AVVideoCodecType.hevc,
                     AVVideoWidthKey: size.width,
                     AVVideoHeightKey: size.height
                 ]
@@ -278,7 +278,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
     ) -> SCRecordingOutput {
         let configuration = SCRecordingOutputConfiguration()
         configuration.outputURL = url
-        configuration.videoCodecType = .h264
+        configuration.videoCodecType = .hevc
         configuration.outputFileType = .mov
         return SCRecordingOutput(configuration: configuration, delegate: delegate)
     }

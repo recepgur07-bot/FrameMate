@@ -6,7 +6,7 @@ private struct UnsafeSendableBox<Value>: @unchecked Sendable {
 }
 
 protocol MicrophoneAudioRecordingProviding: AnyObject {
-    func startRecording(deviceID: String, to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws
+    func startRecording(deviceID: String, to url: URL, audioChannelMode: AudioChannelMode, completion: @escaping (Result<URL, Error>) -> Void) async throws
     func stopRecording()
 }
 
@@ -61,12 +61,23 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
     private let sampleTracker = RecordingSampleTracker()
     private var isStopping = false
 
-    func startRecording(deviceID: String, to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {
+    func startRecording(deviceID: String, to url: URL, audioChannelMode: AudioChannelMode, completion: @escaping (Result<URL, Error>) -> Void) async throws {
         guard let device = AVCaptureDevice(uniqueID: deviceID) else {
             throw MicrophoneAudioRecorderError.microphoneNotFound
         }
 
         let input = try AVCaptureDeviceInput(device: device)
+        let nativeChannelCount = input.ports.first?.formatDescription
+            .flatMap { CMAudioFormatDescriptionGetStreamBasicDescription($0)?.pointee.mChannelsPerFrame }
+            .map(Int.init) ?? 1
+        let channelCount: Int
+        switch audioChannelMode {
+        case .automatic, .stereo:
+            channelCount = min(max(nativeChannelCount, 1), 2)
+        case .mono:
+            channelCount = 1
+        }
+
         let writer = try AVAssetWriter(outputURL: url, fileType: .m4a)
         let writerInput = AVAssetWriterInput(
             mediaType: .audio,
@@ -74,7 +85,7 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                 AVFormatIDKey: kAudioFormatMPEG4AAC,
                 AVSampleRateKey: 48_000,
                 AVEncoderBitRateKey: 128_000,
-                AVNumberOfChannelsKey: 1
+                AVNumberOfChannelsKey: channelCount
             ]
         )
         writerInput.expectsMediaDataInRealTime = true

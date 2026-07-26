@@ -709,7 +709,7 @@ private final class FrameCoachMockCaptureRecorder: CaptureRecording {
 
     func cameraDevices() -> [InputDevice] { cameras }
     func microphoneDevices() -> [InputDevice] { microphones }
-    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode) async throws {
+    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode, audioChannelMode: AudioChannelMode) async throws {
         configureCallCount += 1
         onConfigureStarted?()
         if configureDelayNanoseconds > 0 {

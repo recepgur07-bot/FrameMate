@@ -245,6 +245,22 @@ enum RecordingCountdown: Int, CaseIterable, Identifiable {
     }
 }
 
+enum AudioChannelMode: String, CaseIterable, Identifiable {
+    case automatic
+    case mono
+    case stereo
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .automatic: return String(localized: "Otomatik (mikrofona göre)")
+        case .mono: return String(localized: "Mono")
+        case .stereo: return String(localized: "Stereo")
+        }
+    }
+}
+
 enum MaxRecordingDuration: Int, CaseIterable, Identifiable {
     case unlimited = 0
     case ninetySeconds = 91  // sentinel — saniye cinsinden, rawValue * 60 değil
@@ -496,6 +512,28 @@ final class UserDefaultsFrameCoachSettingsStore: FrameCoachSettingsStoring {
     }
 }
 
+enum RecordingSafetyError: LocalizedError {
+    case insufficientDiskSpace
+
+    var errorDescription: String? {
+        String(localized: "Kayıt için yeterli boş disk alanı yok.")
+    }
+}
+
+enum RecordingDiskSpace {
+    static let minimumStartBytes: Int64 = 500 * 1_024 * 1_024
+    static let warningBytes: Int64 = 1_024 * 1_024 * 1_024
+    static let criticalBytes: Int64 = 250 * 1_024 * 1_024
+
+    static func availableBytes(at directory: URL) -> Int64? {
+        guard let values = try? directory.resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey]),
+              let capacity = values.volumeAvailableCapacityForImportantUsage else {
+            return nil
+        }
+        return capacity
+    }
+}
+
 @MainActor
 @Observable
 final class RecorderViewModel {
@@ -562,6 +600,9 @@ final class RecorderViewModel {
     var maxRecordingDuration: MaxRecordingDuration = .unlimited {
         didSet { UserDefaults.standard.set(maxRecordingDuration.rawValue, forKey: "recording.maxDuration") }
     }
+    var audioChannelMode: AudioChannelMode = .automatic {
+        didSet { UserDefaults.standard.set(audioChannelMode.rawValue, forKey: "recording.audioChannelMode") }
+    }
     var isRecordingCommandSoundEnabled = true {
         didSet { UserDefaults.standard.set(isRecordingCommandSoundEnabled, forKey: "recording.sound.commandReceived") }
     }
@@ -609,6 +650,8 @@ final class RecorderViewModel {
     var lastAutoReframeStrategy = String(localized: "hazır")
     var lastSavedURL: URL?
     var completedRecording: CompletedRecordingSummary?
+    /// Temporary captures found after an unexpected quit are retained for recovery.
+    var recoveredTemporaryRecordingURLs: [URL] = []
     private(set) var didCompleteAudioRecordingExport = false
     private(set) var didEnterAudioRecordingFinalize = false
     var appAccessState: AppAccessState = .default
@@ -962,7 +1005,9 @@ final class RecorderViewModel {
     @ObservationIgnored private var pauseResumeTask: Task<Void, Never>?
     @ObservationIgnored private var frameCoachPreviewTask: Task<Void, Never>?
     @ObservationIgnored private var screenOverlayPreviewTask: Task<Void, Never>?
+    @ObservationIgnored private var recordingSafetyTask: Task<Void, Never>?
     @ObservationIgnored private var sleepPreventer = SleepPreventer()
+    @ObservationIgnored private var workspaceObserverTokens: [NSObjectProtocol] = []
     private var autoReframeSmoother = AutoReframeSmoother()
     private var autoReframeTimeline = AutoReframeTimeline()
     private let fileNamer: RecordingFileNamer
@@ -1355,17 +1400,22 @@ final class RecorderViewModel {
         guard !hasSetUp else { return }
         hasSetUp = true
 
-        cleanupOrphanedTempFiles()
+        findRecoverableTempFiles()
+        installRecordingSafetyObservers()
         await refreshAppAccess()
         applyPresetSelection(refresh: false)
         recordingCountdown = RecordingCountdown(rawValue: UserDefaults.standard.integer(forKey: "recording.countdown")) ?? .none
         maxRecordingDuration = MaxRecordingDuration(rawValue: UserDefaults.standard.integer(forKey: "recording.maxDuration")) ?? .unlimited
+        audioChannelMode = UserDefaults.standard.string(forKey: "recording.audioChannelMode").flatMap(AudioChannelMode.init(rawValue:)) ?? .automatic
         isRecordingCommandSoundEnabled = userDefaultBool(forKey: "recording.sound.commandReceived", defaultValue: true)
         isRecordingStartSoundEnabled = userDefaultBool(forKey: "recording.sound.start", defaultValue: true)
         isRecordingStopSoundEnabled = userDefaultBool(forKey: "recording.sound.stop", defaultValue: true)
         isRecordingPauseResumeSoundEnabled = userDefaultBool(forKey: "recording.sound.pauseResume", defaultValue: true)
         configureFrameCoachFeed()
         refreshDeviceState()
+        if !recoveredTemporaryRecordingURLs.isEmpty {
+            statusText = String(localized: "Önceki oturumdan kurtarılabilir kayıt dosyaları bulundu.")
+        }
     }
 
     func refreshAppAccess() async {
@@ -1466,7 +1516,8 @@ final class RecorderViewModel {
         try await recorder.configure(
             videoDeviceID: selectedCameraID,
             audioDeviceID: selectedMicrophoneID,
-            mode: selectedMode
+            mode: selectedMode,
+            audioChannelMode: audioChannelMode
         )
         isRecorderConfigured = true
     }
@@ -1853,6 +1904,7 @@ final class RecorderViewModel {
     private func startRecordingAsync() async {
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
+        guard hasEnoughDiskSpaceToStartRecording() else { return }
         guard beginRecordingPreparation() else { return }
         cancelFrameCoachPreviewPreparation()
 
@@ -1989,6 +2041,43 @@ final class RecorderViewModel {
         }
     }
 
+    private func startRecordingSafetyMonitor() {
+        recordingSafetyTask?.cancel()
+        recordingSafetyTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(30))
+                guard !Task.isCancelled else { return }
+                await MainActor.run { self?.checkRemainingDiskSpaceWhileRecording() }
+            }
+        }
+    }
+
+    private func hasEnoughDiskSpaceToStartRecording() -> Bool {
+        guard let bytes = RecordingDiskSpace.availableBytes(at: recordingOutputDirectoryURL) else { return true }
+        guard bytes >= RecordingDiskSpace.minimumStartBytes else {
+            report(RecordingSafetyError.insufficientDiskSpace)
+            return false
+        }
+        return true
+    }
+
+    private func checkRemainingDiskSpaceWhileRecording() {
+        guard isRecording, let bytes = RecordingDiskSpace.availableBytes(at: recordingOutputDirectoryURL) else { return }
+        if bytes < RecordingDiskSpace.criticalBytes {
+            let message = String(localized: "Disk alanı kritik düzeyde. Kayıt güvenle durduruluyor.")
+            statusText = message
+            speechCuePlayer.reset()
+            speechCuePlayer.speakIfNeeded(message, isEnabled: true, key: "critical-disk-space")
+            stopRecording()
+        } else if bytes < RecordingDiskSpace.warningBytes {
+            speechCuePlayer.speakIfNeeded(
+                String(localized: "Disk alanı azalıyor."),
+                isEnabled: true,
+                key: "low-disk-space"
+            )
+        }
+    }
+
     private func playStartSoundBeforeCapture() async {
         guard isRecordingStartSoundEnabled else { return }
         await waitForCommandSoundToFinishIfNeeded()
@@ -2062,6 +2151,7 @@ final class RecorderViewModel {
         self.statusText = statusText
         sleepPreventer.prevent(reason: sleepReason)
         startMaxDurationTimer()
+        startRecordingSafetyMonitor()
         startElapsedAnnouncer()
     }
 
@@ -2077,6 +2167,9 @@ final class RecorderViewModel {
         isRecording = false
         isPaused = false
         isPreparingRecording = false
+        recordingSafetyTask?.cancel()
+        recordingSafetyTask = nil
+        sleepPreventer.allow()
         updatePreviewAnalysisState()
     }
 
@@ -2102,7 +2195,7 @@ final class RecorderViewModel {
 
         do {
             if !selectedMicrophoneID.isEmpty {
-                try await microphoneAudioRecorder.startRecording(deviceID: selectedMicrophoneID, to: microphoneCaptureURL) { [weak self] result in
+                try await microphoneAudioRecorder.startRecording(deviceID: selectedMicrophoneID, to: microphoneCaptureURL, audioChannelMode: audioChannelMode) { [weak self] result in
                     Task { @MainActor in
                         self?.handleAudioMicrophoneCaptureCompletion(result)
                     }
@@ -2197,7 +2290,7 @@ final class RecorderViewModel {
             }
 
             if !selectedMicrophoneID.isEmpty {
-                try await microphoneAudioRecorder.startRecording(deviceID: selectedMicrophoneID, to: microphoneCaptureURL) { [weak self] result in
+                try await microphoneAudioRecorder.startRecording(deviceID: selectedMicrophoneID, to: microphoneCaptureURL, audioChannelMode: audioChannelMode) { [weak self] result in
                     Task { @MainActor in
                         self?.handleScreenMicrophoneCaptureCompletion(result)
                     }
@@ -2490,14 +2583,21 @@ final class RecorderViewModel {
         switch (screenResult, overlayResult, microphoneResult, systemAudioResult) {
         case (.failure(let error), _, _, _):
             report(error)
-        case (_, .failure(let error), _, _):
-            report(error)
-        case (_, _, .failure(let error), _):
-            report(error)
-        case (_, _, _, .failure(let error)):
-            report(error)
-        case (.success(let captureURL), .success(let overlayURL), .success(let microphoneURL), .success(let systemAudioURL)):
-            setRecordingFinishingStatus(String(localized: "Ekran kaydı dosyası hazırlanıyor"), key: "screen-video-file-preparing")
+        case (.success(let captureURL), let overlayResult, let microphoneResult, let systemAudioResult):
+            let overlayURL = (try? overlayResult.get()) ?? nil
+            let microphoneURL = (try? microphoneResult.get()) ?? nil
+            let systemAudioURL = (try? systemAudioResult.get()) ?? nil
+            var warnings = [microphoneWarning, systemAudioWarning].compactMap { $0 }
+            if case .failure(let error) = overlayResult { warnings.append(String(localized: "Kamera katmanı kaydedilemedi: \(error.localizedDescription)")) }
+            if case .failure(let error) = microphoneResult { warnings.append(String(localized: "Mikrofon kaydedilemedi: \(error.localizedDescription)")) }
+            if case .failure(let error) = systemAudioResult { warnings.append(String(localized: "Sistem sesi kaydedilemedi: \(error.localizedDescription)")) }
+            let isPartialRecovery = !warnings.isEmpty
+            setRecordingFinishingStatus(
+                isPartialRecovery
+                    ? String(localized: "Kısmi ekran kaydı dosyası hazırlanıyor")
+                    : String(localized: "Ekran kaydı dosyası hazırlanıyor"),
+                key: isPartialRecovery ? "screen-partial-video-file-preparing" : "screen-video-file-preparing"
+            )
             Task {
                 do {
                     let exportResult = try await exportMP4(
@@ -2515,34 +2615,19 @@ final class RecorderViewModel {
                         pauseTimeline: pauseTimeline
                     )
                     try? FileManager.default.removeItem(at: captureURL)
-                    if let overlayURL {
-                        try? FileManager.default.removeItem(at: overlayURL)
-                    }
-                    if let microphoneURL {
-                        try? FileManager.default.removeItem(at: microphoneURL)
-                    }
-                    if let systemAudioURL {
-                        try? FileManager.default.removeItem(at: systemAudioURL)
-                    }
+                    if let overlayURL { try? FileManager.default.removeItem(at: overlayURL) }
+                    if let microphoneURL { try? FileManager.default.removeItem(at: microphoneURL) }
+                    if let systemAudioURL { try? FileManager.default.removeItem(at: systemAudioURL) }
                     await MainActor.run {
-                        let warnings = [microphoneWarning, systemAudioWarning].compactMap { $0 }
                         lastSavedURL = exportResult.url
                         completedRecording = makeCompletedRecordingSummary(for: exportResult.url, warnings: warnings)
-                        lastAutoReframeKeyframeCount = exportResult.keyframeCount
-                        lastAutoReframeUsedVideoComposition = exportResult.usedVideoComposition
-                        lastAutoReframeUsedFallbackExport = exportResult.usedFallbackExport
-                        lastAutoReframeStrategy = exportResult.strategy
-                        if warnings.isEmpty {
-                            statusText = String(localized: "Kaydedildi: \(exportResult.url.path)")
-                        } else {
-                            statusText = String(localized: "Kaydedildi: \(exportResult.url.path) (\(warnings.joined(separator: ", ")))")
-                        }
+                        statusText = isPartialRecovery
+                            ? String(localized: "Kısmi kayıt kaydedildi: \(exportResult.url.path)")
+                            : String(localized: "Kaydedildi: \(exportResult.url.path)")
                         markRecordingFileReady()
                     }
                 } catch {
-                    await MainActor.run {
-                        report(error)
-                    }
+                    await MainActor.run { report(error) }
                 }
             }
         }
@@ -2585,7 +2670,8 @@ final class RecorderViewModel {
                 pauseTimeline: pauseTimeline
             )
 
-            guard let exportSession = AVAssetExportSession(asset: overlayComposition.composition, presetName: AVAssetExportPresetHighestQuality) else {
+            let overlayPresetName = await Self.bestAvailableExportPreset(for: overlayComposition.composition)
+            guard let exportSession = AVAssetExportSession(asset: overlayComposition.composition, presetName: overlayPresetName) else {
                 throw CaptureRecorderError.cannotExportMP4
             }
 
@@ -2624,7 +2710,8 @@ final class RecorderViewModel {
             pauseTimeline: pauseTimeline
         )
 
-        guard let exportSession = AVAssetExportSession(asset: exportPackage.asset, presetName: AVAssetExportPresetHighestQuality) else {
+        let cameraPresetName = await Self.bestAvailableExportPreset(for: exportPackage.asset)
+        guard let exportSession = AVAssetExportSession(asset: exportPackage.asset, presetName: cameraPresetName) else {
             throw CaptureRecorderError.cannotExportMP4
         }
 
@@ -2661,6 +2748,13 @@ final class RecorderViewModel {
             composition == nil,
             timeline.keyframes.isEmpty ? "full-frame" : "zaman-cizelgesi"
         )
+    }
+
+    private static func bestAvailableExportPreset(for asset: AVAsset) async -> String {
+        let compatiblePresets = await AVAssetExportSession.exportPresets(compatibleWith: asset)
+        return compatiblePresets.contains(AVAssetExportPresetHEVCHighestQuality)
+            ? AVAssetExportPresetHEVCHighestQuality
+            : AVAssetExportPresetHighestQuality
     }
 
     private func makeCameraExportAsset(
@@ -3145,16 +3239,13 @@ final class RecorderViewModel {
         accessedSecurityScopedOutputDirectoryURL = nil
     }
 
-    private func cleanupOrphanedTempFiles() {
+    private func findRecoverableTempFiles() {
         let directory = activeFileNamer.outputDirectory
         let fm = FileManager.default
         guard let items = try? fm.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) else { return }
-        let tempPrefixes = ["tmp-", "camera-overlay-", "screen-microphone-", "screen-system-audio-", "system-audio-"]
-        for item in items {
-            let name = item.lastPathComponent
-            if tempPrefixes.contains(where: { name.hasPrefix($0) }) {
-                try? fm.removeItem(at: item)
-            }
+        let tempPrefixes = ["tmp-", "camera-overlay-", "audio-microphone-", "audio-system-", "screen-microphone-", "screen-system-audio-", "system-audio-"]
+        recoveredTemporaryRecordingURLs = items.filter { item in
+            tempPrefixes.contains { item.lastPathComponent.hasPrefix($0) }
         }
     }
 
@@ -3167,6 +3258,22 @@ final class RecorderViewModel {
         if error is CaptureRecorderError {
             isRecorderConfigured = false
         }
+        // An NSAccessibility announcement is silent when VoiceOver is off.
+        // Route errors through the adaptive speech channel as well.
+        speechCuePlayer.reset()
+        speechCuePlayer.speakIfNeeded(
+            String(localized: "Hata: \(error.localizedDescription)"),
+            isEnabled: true,
+            key: "recording-error",
+            settings: FrameCoachPreferences(
+                speechMode: .automatic,
+                feedbackFrequency: .frequent,
+                repeatInterval: .short,
+                showsOnScreenText: true,
+                spatialAudioMode: .off,
+                playsCenterConfirmation: false
+            )
+        )
         NSAccessibility.post(
             element: NSApp as AnyObject,
             notification: .announcementRequested,
@@ -3175,6 +3282,62 @@ final class RecorderViewModel {
                 NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
             ]
         )
+    }
+
+    func revealRecoveredTemporaryRecordings() {
+        guard let first = recoveredTemporaryRecordingURLs.first else { return }
+        revealInFinder(first)
+    }
+
+    private func installRecordingSafetyObservers() {
+        guard workspaceObserverTokens.isEmpty else { return }
+        let workspaceCenter = NSWorkspace.shared.notificationCenter
+        let sleepToken = workspaceCenter.addObserver(
+            forName: NSWorkspace.willSleepNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.handleSystemInterruption(String(localized: "Mac uykuya geçiyor. Kayıt güvenle durduruluyor."))
+            }
+        }
+        let disconnectToken = NotificationCenter.default.addObserver(
+            forName: AVCaptureDevice.wasDisconnectedNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let device = notification.object as? AVCaptureDevice else { return }
+            Task { @MainActor in self?.handleCaptureDeviceDisconnect(device) }
+        }
+        workspaceObserverTokens = [sleepToken, disconnectToken]
+    }
+
+    private func handleSystemInterruption(_ message: String) {
+        guard isRecording || isPreparingRecording else { return }
+        statusText = message
+        speechCuePlayer.reset()
+        speechCuePlayer.speakIfNeeded(message, isEnabled: true, key: "system-sleep-interruption")
+        if isRecording { stopRecording() } else { finishRecordingLifecycle() }
+    }
+
+    private func handleCaptureDeviceDisconnect(_ device: AVCaptureDevice) {
+        guard isRecording,
+              device.uniqueID == selectedCameraID || device.uniqueID == selectedMicrophoneID else { return }
+        let message = device.hasMediaType(.audio)
+            ? String(localized: "Mikrofon bağlantısı kesildi. Kayıt güvenle durduruluyor.")
+            : String(localized: "Kamera bağlantısı kesildi. Kayıt güvenle durduruluyor.")
+        errorText = message
+        statusText = message
+        speechCuePlayer.reset()
+        speechCuePlayer.speakIfNeeded(message, isEnabled: true, key: "capture-device-disconnected")
+        stopRecording()
+    }
+
+    deinit {
+        for token in workspaceObserverTokens {
+            NSWorkspace.shared.notificationCenter.removeObserver(token)
+            NotificationCenter.default.removeObserver(token)
+        }
     }
 
     func openPrivacySettings(for mediaType: AVMediaType) {

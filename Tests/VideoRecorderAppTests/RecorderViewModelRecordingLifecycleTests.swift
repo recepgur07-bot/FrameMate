@@ -65,8 +65,8 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
         XCTAssertFalse(vm.isPaused)
     }
 
-    // setup() must delete orphaned temp files from a previous crash.
-    func testSetupDeletesOrphanedTempFiles() async throws {
+    // setup() preserves temporary captures from a previous crash for recovery.
+    func testSetupPreservesRecoverableTempFiles() async throws {
         let orphans: [String] = [
             "tmp-20260424-120000.mov",
             "camera-overlay-20260424-120001.mov",
@@ -87,11 +87,12 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
         await vm.setup()
 
         for name in orphans {
-            XCTAssertFalse(
+            XCTAssertTrue(
                 FileManager.default.fileExists(atPath: tempDir.appendingPathComponent(name).path),
-                "Orphan '\(name)' must be removed on startup"
+                "Recoverable temporary capture '\(name)' must be retained on startup"
             )
         }
+        XCTAssertEqual(vm.recoveredTemporaryRecordingURLs.map(\.lastPathComponent).sorted(), orphans.sorted())
         XCTAssertTrue(
             FileManager.default.fileExists(atPath: realFile.path),
             "Real recording must NOT be removed"

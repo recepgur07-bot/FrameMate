@@ -16,6 +16,8 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
 
     /// Uygulama kapanmadan önce çağrılır: aktif kaydı durdur, hotkey handler'larını temizle.
     var onWillTerminate: (() -> Void)?
+    var hasActiveRecordingForTermination: (() -> Bool)?
+    var stopRecordingBeforeTermination: (() -> Void)?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
@@ -53,7 +55,17 @@ final class VideoRecorderAppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        AppTerminationCoordinator.prepareForTermination(windows: sender.windows)
+        if hasActiveRecordingForTermination?() == true {
+            let alert = NSAlert()
+            alert.messageText = String(localized: "Kayıt devam ediyor")
+            alert.informativeText = String(localized: "Kayıt güvenle durduruldu ve dosya hazırlanırken uygulama açık kalacak. Dosya hazır olduğunda tekrar çıkabilirsiniz.")
+            alert.addButton(withTitle: String(localized: "Kaydı Durdur"))
+            alert.addButton(withTitle: String(localized: "Çıkışı İptal Et"))
+            guard alert.runModal() == .alertFirstButtonReturn else { return .terminateCancel }
+            stopRecordingBeforeTermination?()
+            return .terminateCancel
+        }
+        return AppTerminationCoordinator.prepareForTermination(windows: sender.windows)
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -180,6 +192,12 @@ struct VideoRecorderApp: App {
                             viewModel.stopRecording()
                         }
                         hotkeyMonitor.stop()
+                    }
+                    appDelegate.hasActiveRecordingForTermination = {
+                        viewModel.isRecording || viewModel.isPreparingRecording
+                    }
+                    appDelegate.stopRecordingBeforeTermination = {
+                        viewModel.stopRecording()
                     }
                 }
                 .onChange(of: viewModel.isRecording) { wasRecording, isRecording in

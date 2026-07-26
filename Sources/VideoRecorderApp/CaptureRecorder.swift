@@ -8,7 +8,7 @@ protocol CaptureRecording: AnyObject {
 
     func cameraDevices() -> [InputDevice]
     func microphoneDevices() -> [InputDevice]
-    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode) async throws
+    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode, audioChannelMode: AudioChannelMode) async throws
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws
     func stopRecording()
     func startSessionInBackground()
@@ -131,7 +131,7 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
         return discovery.devices.map { InputDevice(id: $0.uniqueID, name: $0.localizedName) }
     }
 
-    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode) async throws {
+    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode, audioChannelMode: AudioChannelMode) async throws {
         guard let videoDevice = AVCaptureDevice(uniqueID: videoDeviceID) else {
             throw CaptureRecorderError.cameraNotFound
         }
@@ -174,6 +174,8 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
                         }
                         session.addOutput(movieOutput)
                     }
+                    MovieOutputVideoEncoding.applyHEVCSettings(to: movieOutput)
+                    MovieOutputAudioEncoding.applyChannelMode(audioChannelMode, to: movieOutput)
 
                     if !session.outputs.contains(previewOutput) {
                         previewOutput.alwaysDiscardsLateVideoFrames = true
@@ -333,5 +335,46 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
             .compactMap { $0 as? AVCaptureDeviceInput }
             .first(where: { $0.device.hasMediaType(.video) })?
             .device
+    }
+}
+
+enum MovieOutputVideoEncoding {
+    static func applyHEVCSettings(to movieOutput: AVCaptureMovieFileOutput) {
+        guard let connection = movieOutput.connection(with: .video) else {
+            return
+        }
+
+        movieOutput.setOutputSettings([
+            AVVideoCodecKey: AVVideoCodecType.hevc,
+            AVVideoCompressionPropertiesKey: [
+                AVVideoAverageBitRateKey: 8_000_000,
+                AVVideoMaxKeyFrameIntervalKey: 60
+            ]
+        ], for: connection)
+    }
+}
+
+enum MovieOutputAudioEncoding {
+    static func applyChannelMode(_ mode: AudioChannelMode, to movieOutput: AVCaptureMovieFileOutput) {
+        guard let connection = movieOutput.connection(with: .audio) else {
+            return
+        }
+
+        let nativeChannelCount = connection.audioChannels.count
+        guard nativeChannelCount > 0 else { return }
+
+        let targetChannelCount: Int
+        switch mode {
+        case .automatic:
+            targetChannelCount = min(nativeChannelCount, 2)
+        case .mono:
+            targetChannelCount = 1
+        case .stereo:
+            targetChannelCount = min(nativeChannelCount, 2)
+        }
+
+        var settings = movieOutput.outputSettings(for: connection) ?? [:]
+        settings[AVNumberOfChannelsKey] = targetChannelCount
+        movieOutput.setOutputSettings(settings, for: connection)
     }
 }

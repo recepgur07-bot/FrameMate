@@ -3566,7 +3566,7 @@ private final class RecorderCaptureStub: CaptureRecording {
     func cameraDevices() -> [InputDevice] { cameras }
     func microphoneDevices() -> [InputDevice] { microphones }
 
-    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode) async throws {
+    func configure(videoDeviceID: String, audioDeviceID: String, mode: RecordingMode, audioChannelMode: AudioChannelMode) async throws {
         configuredVideoDeviceID = videoDeviceID
         configuredAudioDeviceID = audioDeviceID
         configuredMode = mode
