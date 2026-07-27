@@ -178,7 +178,8 @@ platform :mac do
       skip_screenshots: false,
       submit_for_review: false,
       force: true,
-      overwrite_screenshots: true
+      overwrite_screenshots: true,
+      precheck_include_in_app_purchases: false
     )
 
     UI.success("Mac App Store metadata ve ekran goruntuleri yuklendi")
