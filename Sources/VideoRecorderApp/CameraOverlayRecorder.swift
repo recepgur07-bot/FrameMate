@@ -11,6 +11,15 @@ protocol CameraOverlayRecording: AnyObject {
     func stopSession()
     func setPreviewFrameHandler(_ handler: PreviewFrameHandler?)
     func setPreviewFramesEnabled(_ isEnabled: Bool)
+    /// Host-clock presentation time of the first video sample captured since the most
+    /// recent `startRecording(to:completion:)`, if one has arrived yet. The screen+camera
+    /// overlay is never the session's primary component, but its own start offset
+    /// relative to the primary is still needed to align its track in the export (Phase 3).
+    var firstSamplePresentationTime: CMTime? { get }
+}
+
+extension CameraOverlayRecording {
+    var firstSamplePresentationTime: CMTime? { nil }
 }
 
 final class CameraOverlayRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, CameraOverlayRecording, @unchecked Sendable {
@@ -23,6 +32,10 @@ final class CameraOverlayRecorder: NSObject, AVCaptureFileOutputRecordingDelegat
     private var completion: ((Result<URL, Error>) -> Void)?
     private var previewFrameHandler: PreviewFrameHandler?
     private var previewFramesEnabled = false
+    private var capturedFirstSampleTime: CMTime?
+    private var isAwaitingFirstSample = false
+
+    var firstSamplePresentationTime: CMTime? { capturedFirstSampleTime }
 
     func configure(cameraDeviceID: String, mode: RecordingMode) async throws {
         guard let videoDevice = AVCaptureDevice(uniqueID: cameraDeviceID) else {
@@ -107,6 +120,8 @@ final class CameraOverlayRecorder: NSObject, AVCaptureFileOutputRecordingDelegat
                     }
 
                     self.completion = completion
+                    self.capturedFirstSampleTime = nil
+                    self.isAwaitingFirstSample = true
                     movieOutput.startRecording(to: url, recordingDelegate: self)
                     continuation.resume()
                 } catch {
@@ -187,8 +202,14 @@ final class CameraOverlayRecorder: NSObject, AVCaptureFileOutputRecordingDelegat
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
-        guard output === previewOutput, previewFramesEnabled else { return }
-        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        guard output === previewOutput else { return }
+        if isAwaitingFirstSample {
+            isAwaitingFirstSample = false
+            capturedFirstSampleTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+        }
+
+        guard previewFramesEnabled,
+              let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
         previewFrameHandler?(pixelBuffer, presentationTime)
     }

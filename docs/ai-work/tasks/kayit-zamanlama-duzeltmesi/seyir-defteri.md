@@ -215,6 +215,71 @@ bu, kullanıcının orijinal "yanlış yerden kesiliyor" şikayetinin gerçek k�
   (önceden `.idle`/durum-belirsiz örnekler de yazılıyordu) — kullanıcının gerçek cihazında
   hem macOS 14 hem 15+ ile doğrulanmalı.
 
-## Faz 3-6 — bu oturumda durum
+## Bu oturum (2026-07-27, devam) — Faz 3: üç modda aynı offset mantığı
 
-Devam ediyor; bu bölüm her faz bittikçe güncellenecek.
+**Doğrulanan gerçek durum (Faz 3 başında):** handoff.md'nin "`RecordingTrackOffsets`
+(`ScreenCameraOverlayCompositionBuilder.swift:27-58`) ve `shiftedEarlier`/`outputPosition`
+zaten var, doğru, yalnız ekran yolunda kullanılıyor" iddiası **tamamen yanlıştı** —
+`grep -rn "RecordingTrackOffsets|shiftedEarlier|outputPosition"` kod tabanının hiçbir
+yerinde eşleşme bulamadı. Gerçekte ekran yolu DAHİL üç modun hiçbiri ikincil bileşen
+(overlay, mikrofon, sistem sesi) için offset uygulamıyordu — hepsi `pauseTimeline.segments(for:
+duration)`'ı sıfır ofsetle çağırıp her bileşenin birincil ile aynı anda başladığını
+varsayıyordu. Yani Faz 3 aslında üç modun ikisinde değil üçünde de sıfırdan yapılması
+gereken bir iş.
+
+**Yapılan değişiklikler:**
+- `RecordingPauseTimeline.swift`: `segments(for:offsetSeconds:)` eklendi — bir ikincil
+  bileşenin `pauseTimeline`'ı (oturum zamanında) kendi yerel zamanına kaydırıp
+  (`shiftedEarlier(by:)`, private) kestikten sonra, sonucu birincilin kullandığı PAYLAŞILAN
+  çıktı zaman çizelgesine (`offsetSeconds` eklenerek) yerleştiriyor. `offsetSeconds`'tan
+  önce gelen (oturum sıfırından önceki) içerik, çıktıda geçerli bir yeri olmadığı için
+  kırpılıyor (negatif `destinationStart` yerine). `RecordingSessionClock.signedSessionSeconds(at:)`
+  eklendi — `sessionSeconds(at:)`'in aksine 0'a kırpmıyor, ikincil bileşen birincilden
+  önce başlamışsa negatif olabiliyor.
+- `ScreenCameraOverlayCompositionBuilder.makeComposition`: `overlayOffsetSeconds`,
+  `microphoneOffsetSeconds`, `systemAudioOffsetSeconds` parametreleri eklendi (varsayılan 0,
+  geriye dönük uyumlu); üç ikincil track artık `pauseTimeline.segments(for:offsetSeconds:)`
+  kullanıyor (3.1'in ekran yarısı + 3.3'ün "tek ortak uygulama" gereksinimi).
+- `RecorderViewModel.makeCameraExportAsset`: `systemAudioOffsetSeconds` parametresi eklendi,
+  yalnız sistem sesi track'ine uygulanıyor (kameranın kendi video+gömülü-mikrofon track'i
+  zaten birincil, ofset 0) — 3.2.
+- `AudioRecordingExporting.export`/`AudioRecordingExporter.addAudioTracks`:
+  `microphoneOffsetSeconds`/`systemAudioOffsetSeconds` parametreleri eklendi — 3.1'in ses-only
+  yarısı.
+- `RecorderViewModel`: `secondaryOffsetSeconds(for:)` eklendi (oturum saati veya ilk örnek
+  zamanı çözülmemişse 0'a düşer — eski "hepsi aynı anda başladı" davranışına). Üç finalize
+  yolunun (`maybeFinalizeScreenRecordingExport`, `completeCameraRecordingIfReady`,
+  `maybeFinalizeAudioRecordingExport`) her biri artık kendi ikincil bileşenlerinin gerçek
+  ofsetini hesaplayıp export zincirine geçiriyor.
+- `CameraOverlayRecorder`: `CaptureRecorder`'daki ile aynı teknikle (`previewOutput`'un
+  `captureOutput` geri çağrısı, önizleme kapalıyken de) `firstSamplePresentationTime`
+  eklendi — ekran+kamera overlay'inin kendi offset'i için gerekli.
+- Faz 6'nın bir kısmı bu commit'te de var: `logSessionTimingSummary(pauseTimeline:)` eklendi
+  (oturum sıfırı ve her duraklama aralığını oturum saniyesi cinsinden loglar), üç finalize
+  yolunun hepsinden çağrılıyor.
+- Test: `ScreenCameraOverlayCompositionBuilderTests.swift`'e
+  `testSecondaryTrackAlignmentCutsInLocalTimeAndPlacesOnSharedOutputTimeline` (handoff'un
+  Codex fixture'ına dayanıyor: birincil ilk PTS 100s, ikincil 110s, oturum duraklaması
+  [20,25]) ve `testSecondaryTrackAlignmentTrimsContentThatPredatesSessionZero` eklendi.
+  **Önemli düzeltme**: handoff'un fixture'ı "ikincilin çıktı yerleşimi 10s olmalı" diyordu;
+  bunu doğrudan doğrulamaya çalışırken matematiksel olarak tutarsız olduğunu buldum — tüm
+  track'lerin TEK bir paylaşılan çıktı zaman çizelgesinde olması gerektiğinden (Faz 3'ün
+  asıl amacı), duraklamadan hemen sonraki içerik hem birincil hem ikincil için AYNI çıktı
+  konumunda (20s, birincilin kendi `segments(for:)`'ından değişmeden gelen değer) olmalı,
+  10s değil. Testi 20s bekleyecek şekilde yazdım ve nedenini yorum olarak belgeledim; bu,
+  handoff'un o tek sayısal detayının yanlış olduğu, mekanizmanın kendisinin (yerel zamanda
+  kes, ortak çıktıya yerleştir) doğru olduğu bir durum.
+- Kanıt: `xcodebuild -scheme FrameMate -configuration Debug build` → **BUILD SUCCEEDED**;
+  `xcodebuild ... build-for-testing` → **TEST BUILD SUCCEEDED**; `xcodebuild ...
+  test-without-building -only-testing:FrameMateTests` →
+  `Executed 367 tests, with 2 tests skipped and 0 failures (0 unexpected) in 22.410
+  (22.537) seconds`.
+- **Doğrulanmamış kalan risk**: offset hesaplaması ve kırpma mantığı yalnız birim testlerle
+  (sentetik `RecordingPauseTimeline` + sabit `CMTime` değerleri) doğrulandı; gerçek bir
+  ekran+kamera-overlay veya kamera+sistem-sesi kaydında A/V senkronizasyonunun gerçekten
+  doğru olduğu bu ortamda (gerçek cihaz/izin yok) doğrulanamadı.
+
+## Faz 4-6 — bu oturumda durum
+
+Devam ediyor; bu bölüm her faz bittikçe güncellenecek. Faz 6'nın bir kısmı (oturum sıfırı
+ve duraklama aralıklarının loglanması) yukarıdaki Faz 3 commit'inde zaten var.

@@ -3537,7 +3537,9 @@ private final class MockAudioRecordingExporter: AudioRecordingExporting {
         to destinationURL: URL,
         microphoneVolume: Float,
         systemAudioVolume: Float,
-        pauseTimeline: RecordingPauseTimeline
+        pauseTimeline: RecordingPauseTimeline,
+        microphoneOffsetSeconds: TimeInterval,
+        systemAudioOffsetSeconds: TimeInterval
     ) async throws -> URL {
         if delayNanoseconds > 0 {
             try await Task.sleep(nanoseconds: delayNanoseconds)

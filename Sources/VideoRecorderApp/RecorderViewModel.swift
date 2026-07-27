@@ -49,7 +49,9 @@ protocol AudioRecordingExporting: AnyObject {
         to destinationURL: URL,
         microphoneVolume: Float,
         systemAudioVolume: Float,
-        pauseTimeline: RecordingPauseTimeline
+        pauseTimeline: RecordingPauseTimeline,
+        microphoneOffsetSeconds: TimeInterval,
+        systemAudioOffsetSeconds: TimeInterval
     ) async throws -> URL
 }
 
@@ -62,7 +64,9 @@ final class AudioRecordingExporter: AudioRecordingExporting {
         to destinationURL: URL,
         microphoneVolume: Float,
         systemAudioVolume: Float,
-        pauseTimeline: RecordingPauseTimeline
+        pauseTimeline: RecordingPauseTimeline,
+        microphoneOffsetSeconds: TimeInterval = 0,
+        systemAudioOffsetSeconds: TimeInterval = 0
     ) async throws -> URL {
         guard microphoneURL != nil || systemAudioURL != nil else {
             throw MicrophoneAudioRecorderError.emptyRecording
@@ -76,14 +80,16 @@ final class AudioRecordingExporter: AudioRecordingExporting {
             microphoneTrackIDs = try await addAudioTracks(
                 from: AVURLAsset(url: microphoneURL),
                 to: composition,
-                pauseTimeline: pauseTimeline
+                pauseTimeline: pauseTimeline,
+                offsetSeconds: microphoneOffsetSeconds
             )
         }
         if let systemAudioURL {
             systemTrackIDs = try await addAudioTracks(
                 from: AVURLAsset(url: systemAudioURL),
                 to: composition,
-                pauseTimeline: pauseTimeline
+                pauseTimeline: pauseTimeline,
+                offsetSeconds: systemAudioOffsetSeconds
             )
         }
 
@@ -119,11 +125,12 @@ final class AudioRecordingExporter: AudioRecordingExporting {
     private func addAudioTracks(
         from asset: AVAsset,
         to composition: AVMutableComposition,
-        pauseTimeline: RecordingPauseTimeline
+        pauseTimeline: RecordingPauseTimeline,
+        offsetSeconds: TimeInterval = 0
     ) async throws -> [CMPersistentTrackID] {
         let duration = try await asset.load(.duration)
         guard duration > .zero else { return [] }
-        let segments = pauseTimeline.segments(for: duration)
+        let segments = pauseTimeline.segments(for: duration, offsetSeconds: offsetSeconds)
         guard !segments.isEmpty else { return [] }
 
         var trackIDs: [CMPersistentTrackID] = []
@@ -1653,6 +1660,35 @@ final class RecorderViewModel {
         recordingSessionClock = RecordingSessionClock(sessionZero: firstSampleTime)
     }
 
+    /// A secondary (non-primary) component's start offset relative to session zero, for
+    /// Phase 3's per-track alignment. Falls back to 0 (assume it started with the
+    /// primary) if the session clock or this component's first sample was never
+    /// resolved — degrading to the old, "everything starts together" behavior rather
+    /// than producing a nonsensical export.
+    private func secondaryOffsetSeconds(for firstSampleTime: CMTime?) -> TimeInterval {
+        guard let firstSampleTime, firstSampleTime.isValid, let recordingSessionClock else { return 0 }
+        return recordingSessionClock.signedSessionSeconds(at: firstSampleTime)
+    }
+
+    /// Phase 6 instrumentation: a handful of diagnostic lines at finalize time so a
+    /// residual timing issue is measurable from the user's own runtime debug log instead
+    /// of only guessed at. Logs session zero and every pause range in session seconds;
+    /// per-component offsets are logged at their own call sites right before export.
+    private func logSessionTimingSummary(pauseTimeline: RecordingPauseTimeline) {
+        guard let recordingSessionClock else {
+            runtimeDebugLog("Recording session timing: session clock never resolved (primary component's first sample never arrived)")
+            return
+        }
+        runtimeDebugLog("Recording session timing: session zero (host time) = \(recordingSessionClock.sessionZero.seconds)")
+        if pauseTimeline.ranges.isEmpty {
+            runtimeDebugLog("Recording session timing: no pauses")
+        } else {
+            for range in pauseTimeline.ranges {
+                runtimeDebugLog("Recording session timing: pause [\(range.start)s, \(range.end)s] in session time")
+            }
+        }
+    }
+
     private func completeResumeAfterTransitionSound(duration: TimeInterval) {
         pauseResumeTask?.cancel()
         let delay = max(0, duration)
@@ -2596,11 +2632,17 @@ final class RecorderViewModel {
         }
 
         let warning = pendingCameraSystemAudioWarning
+        // The camera is this mode's primary component (offset 0); the system audio track
+        // started independently (usually slightly before the camera) and needs its own
+        // actual offset from session zero (Phase 3.2).
+        let systemAudioOffsetSeconds = secondaryOffsetSeconds(for: systemAudioRecorder.firstSamplePresentationTime)
+        logSessionTimingSummary(pauseTimeline: recordingPauseTimeline)
         resetPendingCameraRecordingState()
         handleRecordingCompletion(
             captureResult,
             finalURL: finalURL,
             systemAudioURL: systemAudioURL,
+            systemAudioOffsetSeconds: systemAudioOffsetSeconds,
             warningText: warning
         )
     }
@@ -2609,6 +2651,7 @@ final class RecorderViewModel {
         _ result: Result<URL, Error>,
         finalURL: URL,
         systemAudioURL: URL? = nil,
+        systemAudioOffsetSeconds: TimeInterval = 0,
         warningText: String? = nil
     ) {
         let pauseTimeline = recordingPauseTimeline
@@ -2625,7 +2668,8 @@ final class RecorderViewModel {
                         timeline: isAutoReframeEnabled ? autoReframeTimeline.shifted(by: pauseTimeline) : AutoReframeTimeline(),
                         cameraMode: selectedMode,
                         systemAudioURL: systemAudioURL,
-                        pauseTimeline: pauseTimeline
+                        pauseTimeline: pauseTimeline,
+                        cameraSystemAudioOffsetSeconds: systemAudioOffsetSeconds
                     )
                     try? FileManager.default.removeItem(at: captureURL)
                     if let systemAudioURL {
@@ -2715,6 +2759,13 @@ final class RecorderViewModel {
         let microphoneWarning = pendingAudioMicrophoneWarning
         let systemAudioWarning = pendingAudioSystemAudioWarning
         let pauseTimeline = recordingPauseTimeline
+        // The microphone is the primary component whenever one is selected (see
+        // primaryComponentFirstSampleTime()), so its own file is already at offset 0;
+        // only the other component's actual start needs aligning against it.
+        let isMicrophonePrimary = !selectedMicrophoneID.isEmpty
+        let microphoneOffsetSeconds: TimeInterval = isMicrophonePrimary ? 0 : secondaryOffsetSeconds(for: microphoneAudioRecorder.firstSamplePresentationTime)
+        let systemAudioOffsetSeconds: TimeInterval = isMicrophonePrimary ? secondaryOffsetSeconds(for: systemAudioRecorder.firstSamplePresentationTime) : 0
+        logSessionTimingSummary(pauseTimeline: pauseTimeline)
         resetPendingAudioRecordingState()
         finishRecordingLifecycle()
 
@@ -2730,7 +2781,9 @@ final class RecorderViewModel {
                     to: finalURL,
                     microphoneVolume: microphoneVolume,
                     systemAudioVolume: systemAudioVolume,
-                    pauseTimeline: pauseTimeline
+                    pauseTimeline: pauseTimeline,
+                    microphoneOffsetSeconds: microphoneOffsetSeconds,
+                    systemAudioOffsetSeconds: systemAudioOffsetSeconds
                 )
                 if let microphoneURL {
                     try? FileManager.default.removeItem(at: microphoneURL)
@@ -2783,6 +2836,13 @@ final class RecorderViewModel {
         let pauseTimeline = recordingPauseTimeline
         let cursorTimeline = pendingScreenCursorTimeline.shifted(by: pauseTimeline)
         let keyboardShortcutTimeline = pendingScreenKeyboardShortcutTimeline.shifted(by: pauseTimeline)
+        // The screen/window capture is always this mode's primary component (offset 0);
+        // the overlay, microphone and system audio each started independently and need
+        // their own actual offset from session zero (Phase 3).
+        let overlayOffsetSeconds = secondaryOffsetSeconds(for: cameraOverlayRecorder.firstSamplePresentationTime)
+        let screenMicrophoneOffsetSeconds = secondaryOffsetSeconds(for: microphoneAudioRecorder.firstSamplePresentationTime)
+        let screenSystemAudioOffsetSeconds = secondaryOffsetSeconds(for: systemAudioRecorder.firstSamplePresentationTime)
+        logSessionTimingSummary(pauseTimeline: pauseTimeline)
         resetPendingScreenRecordingState()
         cameraOverlayRecorder.stopSession()
         finishRecordingLifecycle()
@@ -2819,7 +2879,10 @@ final class RecorderViewModel {
                         overlaySize: overlaySize,
                         cursorTimeline: cursorTimeline,
                         keyboardShortcutTimeline: keyboardShortcutTimeline,
-                        pauseTimeline: pauseTimeline
+                        pauseTimeline: pauseTimeline,
+                        overlayOffsetSeconds: overlayOffsetSeconds,
+                        screenMicrophoneOffsetSeconds: screenMicrophoneOffsetSeconds,
+                        screenSystemAudioOffsetSeconds: screenSystemAudioOffsetSeconds
                     )
                     try? FileManager.default.removeItem(at: captureURL)
                     if let overlayURL { try? FileManager.default.removeItem(at: overlayURL) }
@@ -2854,7 +2917,11 @@ final class RecorderViewModel {
         overlaySize: ScreenCameraOverlaySize = .medium,
         cursorTimeline: CursorHighlightTimeline = .empty,
         keyboardShortcutTimeline: KeyboardShortcutTimeline = .empty,
-        pauseTimeline: RecordingPauseTimeline = .empty
+        pauseTimeline: RecordingPauseTimeline = .empty,
+        overlayOffsetSeconds: TimeInterval = 0,
+        screenMicrophoneOffsetSeconds: TimeInterval = 0,
+        screenSystemAudioOffsetSeconds: TimeInterval = 0,
+        cameraSystemAudioOffsetSeconds: TimeInterval = 0
     ) async throws -> (url: URL, keyframeCount: Int, usedVideoComposition: Bool, usedFallbackExport: Bool, strategy: String) {
         let sourceAsset = AVURLAsset(url: sourceURL)
 
@@ -2874,7 +2941,10 @@ final class RecorderViewModel {
                 systemAudioAsset: systemAudioAsset,
                 microphoneVolume: microphoneVolume,
                 systemAudioVolume: systemAudioVolume,
-                pauseTimeline: pauseTimeline
+                pauseTimeline: pauseTimeline,
+                overlayOffsetSeconds: overlayOffsetSeconds,
+                microphoneOffsetSeconds: screenMicrophoneOffsetSeconds,
+                systemAudioOffsetSeconds: screenSystemAudioOffsetSeconds
             )
 
             let overlayPresetName = await Self.bestAvailableExportPreset(for: overlayComposition.composition)
@@ -2914,7 +2984,8 @@ final class RecorderViewModel {
         let exportPackage = try await makeCameraExportAsset(
             sourceAsset: sourceAsset,
             systemAudioURL: systemAudioURL,
-            pauseTimeline: pauseTimeline
+            pauseTimeline: pauseTimeline,
+            systemAudioOffsetSeconds: cameraSystemAudioOffsetSeconds
         )
 
         let cameraPresetName = await Self.bestAvailableExportPreset(for: exportPackage.asset)
@@ -2967,7 +3038,8 @@ final class RecorderViewModel {
     private func makeCameraExportAsset(
         sourceAsset: AVAsset,
         systemAudioURL: URL?,
-        pauseTimeline: RecordingPauseTimeline
+        pauseTimeline: RecordingPauseTimeline,
+        systemAudioOffsetSeconds: TimeInterval = 0
     ) async throws -> (asset: AVAsset, audioMix: AVAudioMix?) {
         let composition = AVMutableComposition()
         let duration = try await sourceAsset.load(.duration)
@@ -2999,7 +3071,7 @@ final class RecorderViewModel {
             let systemAudioAsset = AVURLAsset(url: systemAudioURL)
             let systemAudioDuration = try await systemAudioAsset.load(.duration)
             let insertDuration = min(duration, systemAudioDuration)
-            let systemSegments = pauseTimeline.segments(for: insertDuration)
+            let systemSegments = pauseTimeline.segments(for: insertDuration, offsetSeconds: systemAudioOffsetSeconds)
             let systemAudioTracks = try await systemAudioAsset.loadTracks(withMediaType: .audio)
 
             for systemAudioTrack in systemAudioTracks {

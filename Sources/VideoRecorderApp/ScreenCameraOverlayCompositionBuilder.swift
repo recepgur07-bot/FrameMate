@@ -25,7 +25,10 @@ final class ScreenCameraOverlayCompositionBuilder {
         systemAudioAsset: AVAsset? = nil,
         microphoneVolume: Float = 1.0,
         systemAudioVolume: Float = 1.0,
-        pauseTimeline: RecordingPauseTimeline = .empty
+        pauseTimeline: RecordingPauseTimeline = .empty,
+        overlayOffsetSeconds: TimeInterval = 0,
+        microphoneOffsetSeconds: TimeInterval = 0,
+        systemAudioOffsetSeconds: TimeInterval = 0
     ) async throws -> ScreenCameraOverlayComposition {
         guard let screenVideoTrack = try await screenAsset.loadTracks(withMediaType: .video).first else {
             throw CaptureRecorderError.cannotExportMP4
@@ -60,7 +63,7 @@ final class ScreenCameraOverlayCompositionBuilder {
             let overlayDuration = try await overlayAsset.load(.duration)
             visibleOverlayDuration = CMTimeMinimum(visibleScreenDuration, pauseTimeline.outputDuration(for: overlayDuration))
             try insertSegments(
-                pauseTimeline.segments(for: overlayDuration),
+                pauseTimeline.segments(for: overlayDuration, offsetSeconds: overlayOffsetSeconds),
                 of: overlayVideoTrack,
                 into: overlayCompositionTrack
             )
@@ -74,7 +77,7 @@ final class ScreenCameraOverlayCompositionBuilder {
             for audioTrack in try await systemAudioSource.loadTracks(withMediaType: .audio) {
                 if let audioCompositionTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
                     try insertSegments(
-                        pauseTimeline.segments(for: systemInsertDuration),
+                        pauseTimeline.segments(for: systemInsertDuration, offsetSeconds: systemAudioOffsetSeconds),
                         of: audioTrack,
                         into: audioCompositionTrack
                     )
@@ -92,7 +95,7 @@ final class ScreenCameraOverlayCompositionBuilder {
                 for audioTrack in try await microphoneAsset.loadTracks(withMediaType: .audio) {
                     if let audioCompositionTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) {
                         try insertSegments(
-                            pauseTimeline.segments(for: insertDuration),
+                            pauseTimeline.segments(for: insertDuration, offsetSeconds: microphoneOffsetSeconds),
                             of: audioTrack,
                             into: audioCompositionTrack
                         )

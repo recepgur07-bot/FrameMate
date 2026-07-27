@@ -22,6 +22,15 @@ struct RecordingSessionClock: Equatable {
         return max(0, (hostTime - sessionZero).seconds)
     }
 
+    /// Same as `sessionSeconds(at:)` but without clamping to 0 — used to compute a
+    /// *secondary* component's start offset relative to the primary, which can be
+    /// negative (the secondary's file began before the primary's first sample, e.g.
+    /// system audio started ahead of the camera in camera mode).
+    func signedSessionSeconds(at hostTime: CMTime) -> TimeInterval {
+        guard hostTime.isValid, sessionZero.isValid else { return 0 }
+        return (hostTime - sessionZero).seconds
+    }
+
     static func now() -> CMTime {
         CMClockGetTime(CMClockGetHostTimeClock())
     }
@@ -101,6 +110,51 @@ struct RecordingPauseTimeline: Equatable {
         }
 
         return segments
+    }
+
+    /// Cuts `sourceDuration` worth of a *secondary* component's own asset using this
+    /// (session-time) pause timeline, given that the component's own local time 0 is
+    /// `offsetSeconds` after session zero — and places the resulting segments on the same
+    /// shared output timeline the primary component (offset 0) uses via `segments(for:)`.
+    /// This is the one alignment recipe every export path (screen overlay/microphone/
+    /// system-audio, camera's system audio, audio-only's secondary track) uses, so a
+    /// secondary component that actually started later or earlier than the primary is cut
+    /// and placed correctly instead of assumed to start at the same moment (Phase 3 of the
+    /// recording-timing fix).
+    func segments(for sourceDuration: CMTime, offsetSeconds: TimeInterval) -> [RecordingSegment] {
+        guard sourceDuration.isValid, sourceDuration.seconds.isFinite, sourceDuration > .zero else { return [] }
+        guard offsetSeconds != 0 else { return segments(for: sourceDuration) }
+
+        let offsetTime = CMTime(seconds: offsetSeconds, preferredTimescale: sourceDuration.timescale)
+        let localSegments = shiftedEarlier(by: offsetSeconds).segments(for: sourceDuration)
+
+        return localSegments.compactMap { segment in
+            let destinationStart = segment.destinationStart + offsetTime
+            guard destinationStart >= .zero else {
+                // This portion of the secondary's content occurred before session zero
+                // (the primary's own first sample) and has nowhere valid to land in the
+                // shared output timeline; trim it away instead of writing it at an
+                // undefined negative position.
+                let deficit = CMTime.zero - destinationStart
+                guard segment.sourceRange.duration > deficit else { return nil }
+                let trimmedSource = CMTimeRange(
+                    start: segment.sourceRange.start + deficit,
+                    duration: segment.sourceRange.duration - deficit
+                )
+                return RecordingSegment(sourceRange: trimmedSource, destinationStart: .zero)
+            }
+            return RecordingSegment(sourceRange: segment.sourceRange, destinationStart: destinationStart)
+        }
+    }
+
+    /// Re-expresses this timeline in a coordinate system that starts `offsetSeconds`
+    /// earlier — i.e. what were session-time pause boundaries become boundaries in a
+    /// secondary component's own local (asset) time, given that component's file began
+    /// `offsetSeconds` after session zero.
+    private func shiftedEarlier(by offsetSeconds: TimeInterval) -> RecordingPauseTimeline {
+        RecordingPauseTimeline(ranges: ranges.map {
+            RecordingPauseRange(start: $0.start - offsetSeconds, end: $0.end - offsetSeconds)
+        })
     }
 
     func outputDuration(for sourceDuration: CMTime) -> CMTime {
