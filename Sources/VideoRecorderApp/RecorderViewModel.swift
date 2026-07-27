@@ -1091,6 +1091,11 @@ final class RecorderViewModel {
     private var isRestoringLastRecordingConfiguration = false
     private var recordingStartUptime: TimeInterval?
     private var commandSoundEndUptime: TimeInterval?
+    /// The recording's single time base (Phase 2 of the recording-timing fix): resolved
+    /// once the primary component's first sample has actually arrived. Pause ranges are
+    /// expressed in this clock's seconds, not in wall-clock uptime, so they line up with
+    /// where each component's file actually starts (t=0 = that file's own first sample).
+    private var recordingSessionClock: RecordingSessionClock?
     private var currentPauseStartOffset: TimeInterval?
     private var recordingPauseTimeline = RecordingPauseTimeline()
     @ObservationIgnored private var elapsedTimeAnnouncer = RecordingElapsedTimeAnnouncer()
@@ -1613,10 +1618,39 @@ final class RecorderViewModel {
     private func beginPauseTracking() {
         pauseResumeTask?.cancel()
         pauseResumeTask = nil
+        // Display-only: currentRecordingDuration and the UI elapsed timer read this, but
+        // it must never feed the pause timeline — see recordingSessionClock for that.
         recordingStartUptime = ProcessInfo.processInfo.systemUptime
+        recordingSessionClock = nil
         currentPauseStartOffset = nil
         recordingPauseTimeline = .empty
         isPaused = false
+    }
+
+    /// The component whose first sample defines this recording's session clock: the
+    /// screen/camera video for those modes, or whichever audio component is actually
+    /// running in audio-only mode (microphone if selected, otherwise system audio).
+    private func primaryComponentFirstSampleTime() -> CMTime? {
+        switch selectedRecordingSource {
+        case .camera:
+            return recorder.firstSamplePresentationTime
+        case .screen, .window:
+            return screenRecordingProvider.firstSamplePresentationTime
+        case .audio:
+            return selectedMicrophoneID.isEmpty
+                ? systemAudioRecorder.firstSamplePresentationTime
+                : microphoneAudioRecorder.firstSamplePresentationTime
+        }
+    }
+
+    /// Resolves `recordingSessionClock` the first time the primary component's first
+    /// sample becomes observable. A no-op once resolved, and a no-op if the first sample
+    /// hasn't landed yet — callers must treat "not yet resolved" as session time 0
+    /// (see beginCurrentPauseRange/finishCurrentPauseRange), never fall back to wall time.
+    private func resolveSessionClockIfPossible() {
+        guard recordingSessionClock == nil else { return }
+        guard let firstSampleTime = primaryComponentFirstSampleTime(), firstSampleTime.isValid else { return }
+        recordingSessionClock = RecordingSessionClock(sessionZero: firstSampleTime)
     }
 
     private func completeResumeAfterTransitionSound(duration: TimeInterval) {
@@ -1651,17 +1685,20 @@ final class RecorderViewModel {
     }
 
     private func beginCurrentPauseRange() {
-        guard let recordingStartUptime else { return }
-        currentPauseStartOffset = max(0, ProcessInfo.processInfo.systemUptime - recordingStartUptime)
+        resolveSessionClockIfPossible()
+        // If the primary component's first sample hasn't arrived yet, this pause has no
+        // meaningful session time other than 0 — there is no "before" in a clock that
+        // hasn't started. Falling back to wall-clock uptime here is exactly the Phase 2
+        // bug (a pause measured from a different clock than the one the cut is applied
+        // to), so we deliberately don't.
+        currentPauseStartOffset = recordingSessionClock?.sessionSeconds(at: RecordingSessionClock.now()) ?? 0
     }
 
     private func finishCurrentPauseRange() {
-        guard let pauseStart = currentPauseStartOffset,
-              let recordingStartUptime else {
-            return
-        }
+        guard let pauseStart = currentPauseStartOffset else { return }
+        resolveSessionClockIfPossible()
 
-        let pauseEnd = max(pauseStart, ProcessInfo.processInfo.systemUptime - recordingStartUptime)
+        let pauseEnd = max(pauseStart, recordingSessionClock?.sessionSeconds(at: RecordingSessionClock.now()) ?? pauseStart)
         if pauseEnd > pauseStart {
             recordingPauseTimeline.ranges.append(RecordingPauseRange(start: pauseStart, end: pauseEnd))
         }
@@ -4545,6 +4582,13 @@ final class RecorderViewModel {
     }
 
 }
+
+#if DEBUG
+extension RecorderViewModel {
+    var recordingPauseTimelineForTesting: RecordingPauseTimeline { recordingPauseTimeline }
+    var recordingSessionClockForTesting: RecordingSessionClock? { recordingSessionClock }
+}
+#endif
 
 private extension String {
     var sentenceCased: String {

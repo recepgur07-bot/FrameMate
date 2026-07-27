@@ -235,6 +235,7 @@ final class MockMicrophoneAudioRecorder: MicrophoneAudioRecordingProviding {
     private(set) var startedDeviceID: String?
     var startError: Error?
     var shouldCompleteOnStop = true
+    var firstSamplePresentationTime: CMTime?
     private var completion: ((Result<URL, Error>) -> Void)?
 
     func startRecording(deviceID: String, to url: URL, audioChannelMode: AudioChannelMode, completion: @escaping (Result<URL, Error>) -> Void) async throws {

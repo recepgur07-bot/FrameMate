@@ -9,6 +9,15 @@ protocol SystemAudioRecordingProviding: AnyObject {
     func prefetchShareableContent()
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws
     func stopRecording()
+    /// Host-clock presentation time of the first accepted audio sample of the current (or
+    /// most recently finished) recording, if one has arrived yet. Used as this component's
+    /// contribution to `RecordingSessionClock` when it is the session's primary component
+    /// (audio-only mode with no microphone, or the camera mode's system-audio track).
+    var firstSamplePresentationTime: CMTime? { get }
+}
+
+extension SystemAudioRecordingProviding {
+    var firstSamplePresentationTime: CMTime? { nil }
 }
 
 extension SystemAudioRecordingProviding {
@@ -33,6 +42,9 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
     private let sampleTracker = RecordingSampleTracker()
     private var isStopping = false
     private var prefetchedContentTask: Task<SCShareableContent, Error>?
+    private var capturedFirstSampleTime: CMTime?
+
+    var firstSamplePresentationTime: CMTime? { capturedFirstSampleTime }
 
     func prefetchShareableContent() {
         guard prefetchedContentTask == nil else { return }
@@ -85,6 +97,7 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
         hasStartedWriting = false
         sampleTracker.reset()
         isStopping = false
+        capturedFirstSampleTime = nil
 
         do {
             try await stream.startCapture()
@@ -154,6 +167,9 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
                 writerBox.value.startWriting()
                 writerBox.value.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value))
                 self.hasStartedWriting = true
+            }
+            if self.capturedFirstSampleTime == nil {
+                self.capturedFirstSampleTime = CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value)
             }
 
             guard audioInputBox.value.isReadyForMoreMediaData else { return }

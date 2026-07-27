@@ -24,6 +24,10 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
     private var outputURL: URL?
     private var isStopping = false
     private var prefetchedContentTask: Task<SCShareableContent, Error>?
+    private var capturedFirstSampleTime: CMTime?
+    private var observationStreamOutputAdded = false
+
+    var firstSamplePresentationTime: CMTime? { capturedFirstSampleTime }
 
     func prefetchShareableContent() {
         guard prefetchedContentTask == nil else { return }
@@ -106,6 +110,8 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
         hasStartedWriting = false
         sampleTracker.reset()
         isStopping = false
+        capturedFirstSampleTime = nil
+        observationStreamOutputAdded = false
 
         if #available(macOS 15.0, *) {
             let recordingOutput = Self.makeRecordingOutput(
@@ -118,6 +124,18 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
             } catch {
                 resetState()
                 throw error
+            }
+            // SCRecordingOutput writes the file itself and gives us no per-sample
+            // visibility, so we cannot otherwise learn when the primary component's
+            // first sample actually landed (RecordingSessionClock's session zero) or
+            // measure how that compares to the file's own first frame (Phase 4). This
+            // observation-only stream output is best-effort: if it fails to attach we
+            // still record, we just cannot resolve a session clock for this mode.
+            do {
+                try stream.addStreamOutput(self, type: .screen, sampleHandlerQueue: streamQueue)
+                observationStreamOutputAdded = true
+            } catch {
+                runtimeDebugLog("ScreenRecorder could not attach observation stream output: \(error.localizedDescription)")
             }
         } else {
             let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
@@ -216,6 +234,15 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
     func stream(_ stream: SCStream, didOutputSampleBuffer sampleBuffer: CMSampleBuffer, of outputType: SCStreamOutputType) {
         guard outputType == .screen else { return }
         guard CMSampleBufferIsValid(sampleBuffer) else { return }
+        // ScreenCaptureKit delivers idle/duplicate frames alongside real ones; only a
+        // `.complete` frame is an actual new sample, so this is the gate the first-sample
+        // timestamp (and, on the pre-15 path, the writer) must be based on.
+        guard Self.frameStatus(of: sampleBuffer) == .complete else { return }
+
+        if capturedFirstSampleTime == nil {
+            capturedFirstSampleTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+        }
+
         guard let writer, let videoInput else { return }
         let writerBox = UnsafeSendableBox(value: writer)
         let videoInputBox = UnsafeSendableBox(value: videoInput)
@@ -233,6 +260,20 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
                 self.sampleTracker.markAppendedSample()
             }
         }
+    }
+
+    /// Reads ScreenCaptureKit's own completeness signal off the sample buffer's
+    /// attachments. Returns `nil` (treated as "not complete") if the attachment is
+    /// missing rather than assuming the frame is usable — Phase 4.1's "measure, don't
+    /// guess" applies here too.
+    private static func frameStatus(of sampleBuffer: CMSampleBuffer) -> SCFrameStatus? {
+        guard let attachmentsArray = CMSampleBufferGetSampleAttachmentsArray(sampleBuffer, createIfNecessary: false) as? [[SCStreamFrameInfo: Any]],
+              let attachments = attachmentsArray.first,
+              let statusRawValue = attachments[.status] as? Int,
+              let status = SCFrameStatus(rawValue: statusRawValue) else {
+            return nil
+        }
+        return status
     }
 
     private func contentFilter(for target: ScreenRecordingTarget, content: SCShareableContent) throws -> SCContentFilter {
@@ -313,10 +354,32 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
         switch result {
         case .success(let url):
             runtimeDebugLog("ScreenRecorder completed successfully: \(url.path)")
+            Self.logFinalizedFirstFramePTSDiscrepancy(at: url, observedFirstSampleTime: capturedFirstSampleTime)
         case .failure(let error):
             runtimeDebugLog("ScreenRecorder completed with error: \(error.localizedDescription)")
         }
         completionToInvoke(result)
+    }
+
+    /// Reads the finalized file's own first video sample time back from disk and logs how
+    /// it compares to the first-sample time we observed live during capture. This is a
+    /// measurement only (Phase 4 of the recording-timing fix): it does not correct
+    /// anything, it exists so a residual offset between the two is visible in
+    /// `runtimeDebugLog` instead of silently assumed away.
+    private static func logFinalizedFirstFramePTSDiscrepancy(at url: URL, observedFirstSampleTime: CMTime?) {
+        guard let observedFirstSampleTime, observedFirstSampleTime.isValid else { return }
+        Task.detached(priority: .utility) {
+            let asset = AVURLAsset(url: url)
+            guard let track = try? await asset.loadTracks(withMediaType: .video).first,
+                  let timeRange = try? await track.load(.timeRange) else {
+                return
+            }
+            let realFirstFramePTS = timeRange.start
+            let deltaSeconds = (realFirstFramePTS - observedFirstSampleTime).seconds
+            runtimeDebugLog(
+                "ScreenRecorder finalized file first frame PTS \(realFirstFramePTS.seconds)s vs. observed first sample \(observedFirstSampleTime.seconds)s (delta \(deltaSeconds)s) — measurement only, not auto-corrected"
+            )
+        }
     }
 
     private func finishMacOS15RecordingIfNeeded(outputURL: URL?) async {

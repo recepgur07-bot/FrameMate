@@ -132,17 +132,89 @@ karşılaştırıldı.
    → **BUILD SUCCEEDED**;
    `xcodebuild ... -only-testing:FrameMateTests/RecorderViewModelRecordingLifecycleTests -only-testing:FrameMateTests/RecorderViewModelTests -only-testing:FrameMateTests/RecordingLifecycleStateTests -only-testing:FrameMateTests/ScreenRecorderTests test`
    → `Executed 127 tests, with 2 tests skipped and 0 failures`.
-5. Tam paket (`FrameMateTests` + `FrameMateProjectTests`) tam koşum sonucu ve
-   commit hash'i bu dosyanın altına, gerçekleştikten sonra eklenecek.
+5. **Commit: `29d7cb6`** — "Fix recording stop lifecycle getting stuck permanently
+   (Phase 1)". Bu ortamda `xcodebuild -scheme FrameMate test` (tam `test` hedefi,
+   `FrameMateTests` + `FrameMateProjectTests` birlikte) iki kez arka arkaya
+   30+ dakika CPU'suz takıldı ve koordinatör tarafından öldürülmek zorunda kaldı —
+   kök neden, test host'un gerçek bir ekran kaydı/mikrofon izin diyaloğunda
+   insan tıklaması bekleyip bloke olması (bu ortamda diyalog otomatik
+   geçilemiyor) ve/veya aynı anda iki `xcodebuild` sürecinin DerivedData
+   kilidinde çakışması. Bundan sonra yalnız
+   `xcodebuild -scheme FrameMate test-without-building -only-testing:FrameMateTests`
+   kullanıldı (tek seferde bir `xcodebuild`, önce `build-for-testing` ile derlendi).
+   Kanıt: `xcodebuild -project VideoRecorder.xcodeproj -scheme FrameMate
+   -configuration Debug build` → **BUILD SUCCEEDED**; `xcodebuild ...
+   build-for-testing` → **TEST BUILD SUCCEEDED**; `xcodebuild ...
+   test-without-building -only-testing:FrameMateTests` →
+   `Executed 364 tests, with 2 tests skipped and 0 failures (0 unexpected) in
+   21.711 (21.842) seconds`. `FrameMateProjectTests` (proje yapılandırma
+   testleri, kod değişikliğimle ilgisiz) bu ortamda tam `test` hedefiyle
+   ayrıca doğrulanamadı — bunun içindeki `testGeneratorCreatesCodexReadyMacOSStarterProject`
+   zaten kendi içinde "Ruby generator process hung… skipping" diye 120 sn'lik
+   bilinen bir ortam kaçağına sahip; asıl tıkanma ondan sonraki bir noktada,
+   gerçek bir izin diyaloğu beklediği düşünülen bir sonraki testte oldu.
 
-**Faz 2-6: bu oturumda uygulanmadı.** Sebep: kapsam çok büyük (tek bir oturumda
-`CMTime` tabanlı yeni bir oturum saati tipi, üç kayıt bileşenine ilk-örnek zamanı
-enstrümantasyonu, üç export yolunun (ekran/kamera/ses) hepsinde offset mantığının
-birleştirilmesi, `SCStreamFrameInfoStatus` filtreleme ve gerçek cihazda ölçüm,
-`recordingGeneration` ve tüm callback zincirine geçirilmesi, ve enstrümantasyon —
-her biri gerçek cihazda ayrıca doğrulanması gereken, birbirine bağımlı büyük
-değişiklikler). Faz 1'i sağlam ve gerçekten doğrulanmış şekilde bitirmek, altı fazı
-yüzeysel ve doğrulanmamış şekilde "bitti" diye işaretlemekten (ki bu görevin tam
-olarak tekrar etmemesi istenen hata) daha değerli görüldü. Kullanıcıya son özette
-bu açıkça belirtildi; Faz 2 kullanıcının orijinal "yanlış yerden kesiliyor"
-şikayetinin kök nedenidir ve ayrı bir oturumda ele alınmalıdır.
+## Bu oturum (2026-07-27, devam) — Faz 2: tek oturum saati
+
+**Doğrulanan gerçek durum (Faz 2 başında):** `RecordingSessionClock` yoktu.
+`ScreenRecordingProviding`/`CaptureRecording`/`MicrophoneAudioRecordingProviding`/
+`SystemAudioRecordingProviding` protokollerinin hiçbirinde `firstSamplePresentationTime`
+yoktu — handoff.md'nin "CameraOverlayRecorder.swift:171 zaten bunu yapıyor, aynı deseni
+kullan" notu da yanlıştı; `CameraOverlayRecorder` `fileOutput(_:didStartRecordingTo:from:)`
+delegesini hiç uygulamıyordu. `beginPauseTracking`/`beginCurrentPauseRange`/
+`finishCurrentPauseRange` üçü de tutarlı biçimde `ProcessInfo.processInfo.systemUptime` ve
+`recordingStartUptime` (duraklamayı `stopRecording()`'in çağrıldığı ana göre değil,
+`markRecordingStarted()`'ın çağrıldığı ana göre ölçen wall-clock referansı) kullanıyordu —
+bu, kullanıcının orijinal "yanlış yerden kesiliyor" şikayetinin gerçek kök nedeni.
+
+**Yapılan değişiklikler:**
+- `Sources/VideoRecorderApp/RecordingPauseTimeline.swift` — `RecordingSessionClock` struct'ı
+  eklendi (`sessionZero: CMTime`, `sessionSeconds(at:)`, `static func now()` — host clock).
+  Mevcut dosyaya eklendi (yeni dosya değil), pbxproj riski yok.
+- Dört protokole (`ScreenRecordingProviding`, `CaptureRecording`,
+  `MicrophoneAudioRecordingProviding`, `SystemAudioRecordingProviding`)
+  `var firstSamplePresentationTime: CMTime? { get }` eklendi, hepsinde `nil` varsayılanlı
+  extension ile (mevcut fake'ler derlenmeye devam ediyor).
+- `ScreenRecorder.swift`: `didOutputSampleBuffer` artık `SCStreamFrameInfo.status`'u okuyup
+  yalnız `.complete` olan örneği kabul ediyor (Faz 4.1'i de karşılıyor) ve ilk kabul edilen
+  örneğin PTS'ini `capturedFirstSampleTime`'a yazıyor. macOS 15+ yolunda (`SCRecordingOutput`
+  dosyayı kendisi yazdığı için örnek görünürlüğü yoktu) gözlem amaçlı ikinci bir
+  `addStreamOutput(.screen)` eklendi (en iyi çaba; başarısız olursa yalnız oturum saati
+  çözülemiyor, kayıt yine de devam ediyor). Başarılı tamamlanmada, dosyanın gerçek ilk kare
+  PTS'i diskten okunup gözlemlenenle karşılaştırılıp yalnız loglanıyor (Faz 4.2, düzeltme
+  yok).
+- `CaptureRecorder.swift` (kamera): `previewOutput` zaten `movieOutput` ile aynı oturumu
+  paylaşıyor; `captureOutput(_:didOutput:from:)` artık önizleme açık olmasa bile kaydın ilk
+  örneğinin zamanını bir kere yakalıyor.
+- `MicrophoneAudioRecorder.swift`, `SystemAudioRecorder.swift`: kendi örnek-yazma
+  callback'lerinde aynı şekilde ilk örnek PTS'i yakalıyor.
+- `RecorderViewModel.swift`: `primaryComponentFirstSampleTime()` moda göre doğru bileşeni
+  seçiyor (ekran/pencere → `screenRecordingProvider`, kamera → `recorder`, ses → mikrofon
+  varsa o, yoksa sistem sesi). `resolveSessionClockIfPossible()` `recordingSessionClock`'ı
+  yalnız bir kez çözüyor. `beginCurrentPauseRange`/`finishCurrentPauseRange` artık
+  `RecordingSessionClock.now()`'ı oturum saatine çevirip kullanıyor; ilk örnek henüz
+  gelmemişse "now"a düşmüyor, session time 0 kaydediyor (handoff 2.4). `currentRecordingDuration`
+  kasıtlı olarak `recordingStartUptime`/`ProcessInfo.systemUptime` üzerinde kalmaya devam
+  ediyor — ayrı, sadece ekran göstergesi (2.5). `RecordingPauseTimeline`'ın iç aritmetiğine
+  dokunulmadı, yalnız girdi kaynağı değişti.
+- Test: `Tests/VideoRecorderAppTests/RecorderViewModelRecordingLifecycleTests.swift`
+  `testPauseSessionTimeIsAnchoredToPrimaryFirstSampleNotWallClockStart` — sahte mikrofonun
+  `firstSamplePresentationTime`'ı gerçek "şimdi"den 10 saniye geriye tarihlenerek ayarlanıyor,
+  hemen ardından duraklatılıyor; duraklamanın oturum saati ~10s olması gerekiyor (~0s değil,
+  eski hatanın vereceği değer). `RecorderViewModel`'e yalnız `#if DEBUG` test seam'i eklendi
+  (`recordingPauseTimelineForTesting`, `recordingSessionClockForTesting`).
+- Kanıt: `xcodebuild -scheme FrameMate -configuration Debug build` → **BUILD SUCCEEDED**;
+  `xcodebuild ... build-for-testing` → **TEST BUILD SUCCEEDED**; `xcodebuild ...
+  test-without-building -only-testing:FrameMateTests` →
+  `Executed 365 tests, with 2 tests skipped and 0 failures (0 unexpected) in 22.311
+  (22.443) seconds`.
+- **Doğrulanmamış kalan risk**: `ScreenRecorder`'a eklenen ikinci gözlem `addStreamOutput`
+  ile birlikte `didOutputSampleBuffer`'a eklenen `.complete`-only filtre, macOS 15+ yolunda
+  gerçek cihazda hiç test edilmedi (bu ortamda ekran kaydı izni ve gerçek `SCStream` yok).
+  Filtrenin pre-15 (macOS 14.x) yazma yoluna da uygulanması var olan davranışı değiştiriyor
+  (önceden `.idle`/durum-belirsiz örnekler de yazılıyordu) — kullanıcının gerçek cihazında
+  hem macOS 14 hem 15+ ile doğrulanmalı.
+
+## Faz 3-6 — bu oturumda durum
+
+Devam ediyor; bu bölüm her faz bittikçe güncellenecek.

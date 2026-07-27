@@ -15,6 +15,15 @@ protocol CaptureRecording: AnyObject {
     func stopSession()
     func setPreviewFrameHandler(_ handler: PreviewFrameHandler?)
     func setPreviewFramesEnabled(_ isEnabled: Bool)
+    /// Host-clock presentation time of the first video sample captured since the most
+    /// recent `startRecording(to:completion:)`, if one has arrived yet. Used as this
+    /// component's contribution to `RecordingSessionClock` when it is the session's
+    /// primary component (the camera mode).
+    var firstSamplePresentationTime: CMTime? { get }
+}
+
+extension CaptureRecording {
+    var firstSamplePresentationTime: CMTime? { nil }
 }
 
 protocol MediaPermissionProviding {
@@ -94,10 +103,14 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
     private var completion: ((Result<URL, Error>) -> Void)?
     private var previewFrameHandler: PreviewFrameHandler?
     private var previewFramesEnabled = false
+    private var capturedFirstSampleTime: CMTime?
+    private var isAwaitingFirstSample = false
 
     var isRecording: Bool {
         movieOutput.isRecording
     }
+
+    var firstSamplePresentationTime: CMTime? { capturedFirstSampleTime }
 
     func requestPermissions() async throws {
         let hasCameraAccess = await requestAccess(for: .video)
@@ -245,6 +258,8 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
                     }
 
                     self.completion = completion
+                    self.capturedFirstSampleTime = nil
+                    self.isAwaitingFirstSample = true
                     movieOutput.startRecording(to: url, recordingDelegate: self)
                     continuation.resume()
                 } catch {
@@ -292,6 +307,16 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
+        // previewOutput shares the session with movieOutput, so its samples land on the
+        // same host-time base as the file movieOutput is writing — this is the only way
+        // to observe the recording's first-sample time, since AVCaptureFileOutput gives no
+        // per-sample callback of its own. Captured regardless of whether the preview
+        // handler is currently wired up.
+        if isAwaitingFirstSample {
+            isAwaitingFirstSample = false
+            capturedFirstSampleTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+        }
+
         guard previewFramesEnabled,
               let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return

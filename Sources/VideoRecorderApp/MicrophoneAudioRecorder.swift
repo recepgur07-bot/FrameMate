@@ -8,6 +8,15 @@ private struct UnsafeSendableBox<Value>: @unchecked Sendable {
 protocol MicrophoneAudioRecordingProviding: AnyObject {
     func startRecording(deviceID: String, to url: URL, audioChannelMode: AudioChannelMode, completion: @escaping (Result<URL, Error>) -> Void) async throws
     func stopRecording()
+    /// Host-clock presentation time of the first accepted audio sample of the current (or
+    /// most recently finished) recording, if one has arrived yet. Used as this component's
+    /// contribution to `RecordingSessionClock` when it is the session's primary component
+    /// (audio-only mode with a microphone selected).
+    var firstSamplePresentationTime: CMTime? { get }
+}
+
+extension MicrophoneAudioRecordingProviding {
+    var firstSamplePresentationTime: CMTime? { nil }
 }
 
 enum MicrophoneAudioRecorderError: LocalizedError, Equatable {
@@ -60,6 +69,9 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
     private var hasStartedWriting = false
     private let sampleTracker = RecordingSampleTracker()
     private var isStopping = false
+    private var capturedFirstSampleTime: CMTime?
+
+    var firstSamplePresentationTime: CMTime? { capturedFirstSampleTime }
 
     func startRecording(deviceID: String, to url: URL, audioChannelMode: AudioChannelMode, completion: @escaping (Result<URL, Error>) -> Void) async throws {
         guard let device = AVCaptureDevice(uniqueID: deviceID) else {
@@ -126,6 +138,7 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                         self.hasStartedWriting = false
                         self.sampleTracker.reset()
                         self.isStopping = false
+                        self.capturedFirstSampleTime = nil
                     }
 
                     continuation.resume()
@@ -195,6 +208,9 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                 writerBox.value.startWriting()
                 writerBox.value.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value))
                 self.hasStartedWriting = true
+            }
+            if self.capturedFirstSampleTime == nil {
+                self.capturedFirstSampleTime = CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value)
             }
 
             guard writerInputBox.value.isReadyForMoreMediaData else { return }

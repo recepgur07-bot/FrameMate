@@ -1,3 +1,4 @@
+import CoreMedia
 import XCTest
 @testable import FrameMate
 
@@ -190,6 +191,46 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
         XCTAssertTrue(
             vm.isRecording,
             "After the stop watchdog forces finalize, the lifecycle must return to idle so a new recording can start"
+        )
+    }
+
+    // Phase 2: pause session time must be anchored to the primary component's first
+    // sample, not to wall-clock time since startRecording() was called. This is the test
+    // that would have caught the original bug — a pause taken well after the recording
+    // "started" (by wall clock) must still be measured from when the first sample
+    // actually landed, which can be later.
+    func testPauseSessionTimeIsAnchoredToPrimaryFirstSampleNotWallClockStart() async {
+        let mic = MockMicrophoneAudioRecorder()
+        let vm = makeViewModel(
+            recorder: MockCaptureRecorder(microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]),
+            microphoneRecorder: mic
+        )
+        await vm.setup()
+
+        vm.isSystemAudioEnabled = false
+        vm.recordingCountdown = .none
+        vm.selectPreset(.audioOnly)
+        vm.selectedMicrophoneID = "mic-1"
+
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 150_000_000)
+        XCTAssertTrue(vm.isRecording, "Precondition: recording must have started")
+
+        // The primary component's first sample "lands" 10 real seconds before the pause
+        // below is requested (simulated by backdating the fake's first-sample time rather
+        // than actually waiting 10 seconds).
+        mic.firstSamplePresentationTime = RecordingSessionClock.now() - CMTime(seconds: 10, preferredTimescale: 600)
+
+        vm.togglePauseResume() // pause
+        try? await Task.sleep(nanoseconds: 20_000_000)
+        vm.togglePauseResume() // resume — finalizes the pause range
+
+        let pauseTimeline = vm.recordingPauseTimelineForTesting
+        XCTAssertEqual(pauseTimeline.ranges.count, 1)
+        let pauseStart = pauseTimeline.ranges.first?.start ?? -1
+        XCTAssertEqual(
+            pauseStart, 10.0, accuracy: 1.0,
+            "Pause must be anchored ~10s after session zero (the first sample), not ~0s after wall-clock recording start"
         )
     }
 }

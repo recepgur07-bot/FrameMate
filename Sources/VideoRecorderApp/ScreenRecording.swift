@@ -125,10 +125,15 @@ protocol ScreenRecordingProviding: AnyObject {
         completion: @escaping (Result<URL, Error>) -> Void
     ) async throws
     func stopRecording()
+    /// Host-clock presentation time of the first accepted video sample of the current (or
+    /// most recently finished) recording, if one has arrived yet. Used as this component's
+    /// contribution to `RecordingSessionClock` when it is the session's primary component.
+    var firstSamplePresentationTime: CMTime? { get }
 }
 
 extension ScreenRecordingProviding {
     func prefetchShareableContent() {}
+    var firstSamplePresentationTime: CMTime? { nil }
 }
 
 final class SystemScreenRecordingProvider: ScreenRecordingProviding {

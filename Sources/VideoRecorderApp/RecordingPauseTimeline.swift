@@ -1,5 +1,31 @@
 import AVFoundation
+import CoreMedia
 import Foundation
+
+/// The single time base a recording session is expressed in.
+///
+/// Every component (screen, camera, microphone, system audio) writes its own file and
+/// each file's t=0 is that component's own first sample. Session time is defined by the
+/// *primary* component's first sample host-clock time, and every pause range and track
+/// offset is derived from it, so that one recording is never described by two different
+/// clocks (wall-clock uptime at "start pressed" vs. a file's own first-sample PTS).
+struct RecordingSessionClock: Equatable {
+    /// Host-clock presentation time of the primary component's first sample.
+    let sessionZero: CMTime
+
+    /// Converts a host-clock time (as returned by `now()`) into seconds since session
+    /// zero. Negative results are clamped to 0: a host time observed before the primary's
+    /// first sample arrived (e.g. a pause requested in the brief window after "start" but
+    /// before the first frame lands) has no meaningful negative session time.
+    func sessionSeconds(at hostTime: CMTime) -> TimeInterval {
+        guard hostTime.isValid, sessionZero.isValid else { return 0 }
+        return max(0, (hostTime - sessionZero).seconds)
+    }
+
+    static func now() -> CMTime {
+        CMClockGetTime(CMClockGetHostTimeClock())
+    }
+}
 
 struct RecordingPauseRange: Equatable {
     let start: TimeInterval
