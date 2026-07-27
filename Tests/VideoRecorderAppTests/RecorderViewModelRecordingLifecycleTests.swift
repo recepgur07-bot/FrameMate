@@ -32,7 +32,8 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
 
     private func makeViewModel(
         recorder: MockCaptureRecorder = MockCaptureRecorder(),
-        microphoneRecorder: MockMicrophoneAudioRecorder = MockMicrophoneAudioRecorder()
+        microphoneRecorder: MockMicrophoneAudioRecorder = MockMicrophoneAudioRecorder(),
+        stopWatchdogTimeout: Duration = .seconds(15)
     ) -> RecorderViewModel {
         RecorderViewModel(
             recorder: recorder,
@@ -50,7 +51,8 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
             ]),
             appAccessManager: MockAppAccessManager(
                 state: AppAccessState(accessKind: .trial, trialDaysRemaining: 14, offers: [])
-            )
+            ),
+            stopWatchdogTimeout: stopWatchdogTimeout
         )
     }
 
@@ -128,5 +130,66 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
 
         // No crash and state is consistent
         XCTAssertFalse(vm.isRecording)
+    }
+
+    // Phase 1.3: audio-only with no microphone and system audio disabled has no
+    // component left to produce a completion, so it must be rejected at start rather
+    // than silently sitting in `.stopping` forever after stop.
+    func testAudioOnlyWithNoMicrophoneAndNoSystemAudioIsRejectedAtStart() async {
+        let vm = makeViewModel()
+        await vm.setup()
+
+        vm.selectedMicrophoneID = ""
+        vm.isSystemAudioEnabled = false
+        vm.recordingCountdown = .none
+
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 100_000_000)
+
+        XCTAssertFalse(vm.isRecording, "Audio-only recording with no mic and no system audio must not start")
+    }
+
+    // Phase 1.2: if a component's completion callback never arrives, the stop watchdog
+    // must force the pending result and re-enter finalize so the lifecycle returns to
+    // idle and a subsequent recording can start — instead of being stuck in `.stopping`
+    // for the lifetime of the app.
+    func testStopWatchdogUnsticksLifecycleWhenAComponentNeverCompletes() async {
+        let mic = MockMicrophoneAudioRecorder()
+        let vm = makeViewModel(
+            recorder: MockCaptureRecorder(microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]),
+            microphoneRecorder: mic,
+            stopWatchdogTimeout: .milliseconds(50)
+        )
+        await vm.setup()
+
+        vm.isSystemAudioEnabled = false
+        vm.recordingCountdown = .none
+        // Setting the preset first (as toggleAudioRecording() itself would) runs
+        // refreshDeviceState(), which re-validates the microphone selection against the
+        // recorder's device list — so the microphone must be selected afterwards, or
+        // refreshDeviceState() clears a selection that doesn't match any known device.
+        vm.selectPreset(.audioOnly)
+        vm.selectedMicrophoneID = "mic-1"
+
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 150_000_000)
+        XCTAssertTrue(vm.isRecording, "Precondition: recording must have started")
+
+        // Simulate a component whose completion callback never fires.
+        mic.shouldCompleteOnStop = false
+        vm.stopRecording()
+        XCTAssertFalse(vm.isRecording)
+
+        // Wait past the (shortened) watchdog timeout for it to force-finalize.
+        try? await Task.sleep(nanoseconds: 400_000_000)
+
+        // Proof the lifecycle is back to idle: a new recording must be able to start.
+        mic.shouldCompleteOnStop = true
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 150_000_000)
+        XCTAssertTrue(
+            vm.isRecording,
+            "After the stop watchdog forces finalize, the lifecycle must return to idle so a new recording can start"
+        )
     }
 }

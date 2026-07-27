@@ -300,16 +300,23 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
     }
 
     private func complete(_ result: Result<URL, Error>) {
-        guard let completion else { return }
-        self.completion = nil
+        // resetState() (which clears isStopping) must run on every call to complete(),
+        // even a redundant one that arrives after the completion handler was already
+        // consumed — otherwise a second completion source (e.g. the stop-fallback poll
+        // racing the SCRecordingOutput delegate) leaves isStopping latched forever and
+        // the next stopRecording() call becomes a silent no-op.
+        let completionToInvoke = completion
+        completion = nil
+        defer { resetState() }
+
+        guard let completionToInvoke else { return }
         switch result {
         case .success(let url):
             runtimeDebugLog("ScreenRecorder completed successfully: \(url.path)")
         case .failure(let error):
             runtimeDebugLog("ScreenRecorder completed with error: \(error.localizedDescription)")
         }
-        completion(result)
-        resetState()
+        completionToInvoke(result)
     }
 
     private func finishMacOS15RecordingIfNeeded(outputURL: URL?) async {
@@ -330,7 +337,11 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
             previousSize = currentSize
         }
 
-        guard completion != nil, let fallback = Self.fallbackStopResult(for: outputURL) else { return }
+        guard completion != nil else { return }
+        // fallbackStopResult can return nil (missing/unreadable file); complete() must
+        // still be reached in that case, or isStopping stays latched forever — see the
+        // comment in complete() for why this is the failure mode this guards against.
+        let fallback = Self.fallbackStopResult(for: outputURL) ?? .failure(ScreenRecordingError.emptyRecording)
         runtimeDebugLog("ScreenRecorder using final stop fallback for \(outputURL?.path ?? "<nil>")")
         complete(fallback)
     }
@@ -365,6 +376,24 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
         isStopping = false
     }
 }
+
+#if DEBUG
+extension ScreenRecorder {
+    /// Test-only seam: simulates a recorder stuck mid-stop (isStopping latched, a
+    /// completion handler still pending) without needing a real SCStream, so the
+    /// stuck-latch regression from `complete()` can be exercised directly.
+    func simulateStuckStopForTesting() {
+        isStopping = true
+        completion = { _ in }
+    }
+
+    func triggerCompleteForTesting(_ result: Result<URL, Error>) {
+        complete(result)
+    }
+
+    var isStoppingForTesting: Bool { isStopping }
+}
+#endif
 
 @available(macOS 15.0, *)
 extension ScreenRecorder: SCRecordingOutputDelegate {

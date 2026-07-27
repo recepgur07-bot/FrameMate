@@ -514,9 +514,15 @@ final class UserDefaultsFrameCoachSettingsStore: FrameCoachSettingsStoring {
 
 enum RecordingSafetyError: LocalizedError {
     case insufficientDiskSpace
+    case stopWatchdogTimedOut
 
     var errorDescription: String? {
-        String(localized: "Kayıt için yeterli boş disk alanı yok.")
+        switch self {
+        case .insufficientDiskSpace:
+            return String(localized: "Kayıt için yeterli boş disk alanı yok.")
+        case .stopWatchdogTimedOut:
+            return String(localized: "Kayıt durdurma zaman aşımına uğradı; bileşenlerden biri yanıt vermediği için kayıt zorla sonlandırıldı.")
+        }
     }
 }
 
@@ -1020,6 +1026,13 @@ final class RecorderViewModel {
     @ObservationIgnored private var frameCoachPreviewTask: Task<Void, Never>?
     @ObservationIgnored private var screenOverlayPreviewTask: Task<Void, Never>?
     @ObservationIgnored private var recordingSafetyTask: Task<Void, Never>?
+    @ObservationIgnored private var stopWatchdogTask: Task<Void, Never>?
+    /// How long stopRecording() waits for every component's completion callback before
+    /// forcing the still-pending ones and re-entering finalize, so a component that never
+    /// calls back (e.g. a delegate that silently drops) cannot leave the lifecycle stuck
+    /// in `.stopping` forever. Overridable only for tests — production always uses the
+    /// default.
+    private let stopWatchdogTimeout: Duration
     @ObservationIgnored private var sleepPreventer = SleepPreventer()
     @ObservationIgnored private var workspaceObserverTokens: [NSObjectProtocol] = []
     private var autoReframeSmoother = AutoReframeSmoother()
@@ -1117,8 +1130,10 @@ final class RecorderViewModel {
         chooseOutputDirectory: @escaping (URL) -> URL? = defaultChooseOutputDirectory,
         chooseSaveDestination: @escaping (URL) -> URL? = defaultChooseSaveDestination,
         speechCuePlayer: SpeechCuePlayer = SpeechCuePlayer(),
-        spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer()
+        spatialCuePlayer: any SpatialCuePlaying = SpatialCoachCuePlayer(),
+        stopWatchdogTimeout: Duration = .seconds(15)
     ) {
+        self.stopWatchdogTimeout = stopWatchdogTimeout
         self.recorder = recorder
         self.screenRecordingProvider = screenRecordingProvider
         self.cameraOverlayRecorder = cameraOverlayRecorder
@@ -2051,6 +2066,14 @@ final class RecorderViewModel {
     }
 
     func stopRecording() {
+        // Reject a second stopRecording() call while one is already in flight (double
+        // keyboard shortcut press, a race between the max-duration timer and a manual
+        // stop, etc.) so component teardown is never repeated against components that
+        // are already stopping. This intentionally does not require the lifecycle to
+        // have reached `.recording` first — startup does real async work before that,
+        // and a stop requested during `.preparing` must still tear down whatever has
+        // already started.
+        guard !recordingLifecycle.isStopping else { return }
         lastCompletedRecordingDuration = currentRecordingDuration
         elapsedTimeAnnouncer.stop()
         finishCurrentPauseRange()
@@ -2252,6 +2275,7 @@ final class RecorderViewModel {
         isRecording = false
         isPaused = false
         updatePreviewAnalysisState()
+        scheduleStopWatchdog()
     }
 
     private func finishRecordingLifecycle() {
@@ -2262,8 +2286,69 @@ final class RecorderViewModel {
         speechCuePlayer.isOutputSuppressed = false
         recordingSafetyTask?.cancel()
         recordingSafetyTask = nil
+        stopWatchdogTask?.cancel()
+        stopWatchdogTask = nil
         sleepPreventer.allow()
         updatePreviewAnalysisState()
+    }
+
+    /// Bounds how long a recording can stay stuck in `.stopping`: if some component's
+    /// completion callback never arrives (a delegate that silently drops, a race in the
+    /// underlying framework), the corresponding pending result is forced and the finalize
+    /// path is re-entered, so the lifecycle always returns to `.idle` and the next
+    /// recording can start.
+    private func scheduleStopWatchdog() {
+        stopWatchdogTask?.cancel()
+        stopWatchdogTask = Task { [weak self, stopWatchdogTimeout] in
+            try? await Task.sleep(for: stopWatchdogTimeout)
+            guard !Task.isCancelled else { return }
+            await MainActor.run { self?.forceStuckRecordingFinalizeIfNeeded() }
+        }
+    }
+
+    private func forceStuckRecordingFinalizeIfNeeded() {
+        guard recordingLifecycle.isStopping else { return }
+
+        switch selectedRecordingSource {
+        case .audio:
+            if pendingAudioMicrophoneCaptureResult == nil {
+                runtimeDebugLog("Stop watchdog: forcing pendingAudioMicrophoneCaptureResult after timeout")
+                pendingAudioMicrophoneCaptureResult = .success(nil)
+            }
+            if pendingAudioSystemAudioCaptureResult == nil {
+                runtimeDebugLog("Stop watchdog: forcing pendingAudioSystemAudioCaptureResult after timeout")
+                pendingAudioSystemAudioCaptureResult = .success(nil)
+            }
+            Task { await maybeFinalizeAudioRecordingExport() }
+        case .camera:
+            if pendingCameraCaptureResult == nil {
+                runtimeDebugLog("Stop watchdog: forcing pendingCameraCaptureResult after timeout")
+                pendingCameraCaptureResult = .failure(RecordingSafetyError.stopWatchdogTimedOut)
+            }
+            if pendingCameraSystemAudioCaptureResult == nil {
+                runtimeDebugLog("Stop watchdog: forcing pendingCameraSystemAudioCaptureResult after timeout")
+                pendingCameraSystemAudioCaptureResult = .success(nil)
+            }
+            completeCameraRecordingIfReady()
+        case .screen, .window:
+            if pendingScreenCaptureResult == nil {
+                runtimeDebugLog("Stop watchdog: forcing pendingScreenCaptureResult after timeout")
+                pendingScreenCaptureResult = .failure(RecordingSafetyError.stopWatchdogTimedOut)
+            }
+            if pendingOverlayCaptureResult == nil {
+                runtimeDebugLog("Stop watchdog: forcing pendingOverlayCaptureResult after timeout")
+                pendingOverlayCaptureResult = .success(nil)
+            }
+            if pendingScreenMicrophoneCaptureResult == nil {
+                runtimeDebugLog("Stop watchdog: forcing pendingScreenMicrophoneCaptureResult after timeout")
+                pendingScreenMicrophoneCaptureResult = .success(nil)
+            }
+            if pendingScreenSystemAudioCaptureResult == nil {
+                runtimeDebugLog("Stop watchdog: forcing pendingScreenSystemAudioCaptureResult after timeout")
+                pendingScreenSystemAudioCaptureResult = .success(nil)
+            }
+            maybeFinalizeScreenRecordingExport()
+        }
     }
 
     private func startAudioRecording() async throws {

@@ -77,4 +77,32 @@ final class ScreenRecorderTests: XCTestCase {
 
         XCTAssertNil(ScreenRecorder.fallbackStopResult(for: url))
     }
+
+    @MainActor
+    func testCompleteClearsStoppingLatchEvenOnRedundantCalls() {
+        let recorder = ScreenRecorder()
+        recorder.simulateStuckStopForTesting()
+        XCTAssertTrue(recorder.isStoppingForTesting)
+
+        // First completion consumes the handler and must clear the latch.
+        recorder.triggerCompleteForTesting(.failure(ScreenRecordingError.emptyRecording))
+        XCTAssertFalse(
+            recorder.isStoppingForTesting,
+            "complete() must clear isStopping so the next stopRecording() call can proceed"
+        )
+
+        // A second, redundant completion (e.g. a delegate firing after the handler was
+        // already consumed by the fallback poll, or vice versa) must not re-latch it.
+        recorder.triggerCompleteForTesting(.failure(ScreenRecordingError.emptyRecording))
+        XCTAssertFalse(recorder.isStoppingForTesting)
+
+        // Proof the recorder is genuinely usable again: stopRecording() must actually
+        // engage (flip isStopping back to true while it does its async work) rather than
+        // silently no-op because the latch was still stuck from the previous recording.
+        recorder.stopRecording()
+        XCTAssertTrue(
+            recorder.isStoppingForTesting,
+            "a fresh stopRecording() call must actually engage, not silently no-op"
+        )
+    }
 }

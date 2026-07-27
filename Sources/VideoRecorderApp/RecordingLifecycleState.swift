@@ -29,7 +29,11 @@ struct RecordingLifecycleState: Equatable {
 
     @discardableResult
     mutating func beginStopping() -> Bool {
-        guard phase == .recording else { return false }
+        // Stopping is also valid while still `.preparing`: startup does real async work
+        // (device configuration, permission checks) before reaching `.recording`, and a
+        // user can request stop in that window. Rejecting it there would silently drop
+        // the stop request instead of tearing down whatever has already started.
+        guard phase == .recording || phase == .preparing else { return false }
         phase = .stopping
         return true
     }
