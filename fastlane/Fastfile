@@ -62,13 +62,17 @@ platform :mac do
   lane :certificates do |options|
     normalize_project_release_environment!
 
-    match(
+    match_options = {
       type: "appstore",
       readonly: options[:readonly].nil? ? true : options[:readonly],
       app_identifier: required_env!("APP_IDENTIFIER"),
       git_url: required_env!("MATCH_GIT_URL"),
-      api_key: get_api_key
-    )
+      api_key: get_api_key,
+      # A Mac App Store upload also needs a separately managed installer
+      # certificate to sign the exported .pkg.
+      additional_cert_types: ["mac_installer_distribution"]
+    }
+    match(**match_options)
   end
 
   desc "Ilk kurulum: yeni appstore certificate/profile olustur"
@@ -95,6 +99,11 @@ platform :mac do
     plist_path = File.expand_path("../Resources/Info.plist", __dir__)
     sh("/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion #{build_number}' '#{plist_path}'")
 
+    # Internal TestFlight builds must be usable without a sandbox purchase. Keep
+    # the source plist safe for App Store archives even if building or uploading
+    # fails midway.
+    sh("/usr/libexec/PlistBuddy -c 'Set :FrameMateDisablePurchasesForInternalTesting true' '#{plist_path}'")
+
     profile_name = ENV["PROFILE_NAME"] || "match AppStore #{required_env!("APP_IDENTIFIER")}"
 
     # suppress_xcode_output: gym'in Türkçe karakter içeren xcodebuild çıktısını
@@ -119,27 +128,36 @@ platform :mac do
         signingStyle: "automatic"
       }
     else
-      build_options[:xcargs] = "PROVISIONING_PROFILE_SPECIFIER='#{profile_name}'"
+      # Two Apple Distribution identities with the same display name may exist
+      # in the login keychain. This fingerprint is the identity embedded in the
+      # Match App Store provisioning profile, so Xcode must not pick the other.
+      build_options[:xcargs] = "PROVISIONING_PROFILE_SPECIFIER='#{profile_name}' CODE_SIGN_IDENTITY='38B6B27BEAAE1EF769F3E52FF79895196AD14849'"
       build_options[:export_options] = {
+        signingCertificate: "38B6B27BEAAE1EF769F3E52FF79895196AD14849",
+        signingStyle: "manual",
         provisioningProfiles: {
           required_env!("APP_IDENTIFIER") => profile_name
         }
       }
     end
 
-    build_mac_app(**build_options)
+    begin
+      build_mac_app(**build_options)
 
-    upload_to_testflight(
-      api_key: api_key,
-      apple_id: CANONICAL_APP_STORE_APP_ID,
-      app_identifier: required_env!("APP_IDENTIFIER"),
-      pkg: Actions.lane_context[SharedValues::PKG_OUTPUT_PATH],
-      skip_waiting_for_build_processing: options[:skip_waiting] != false,
-      distribute_external: false,
-      notify_external_testers: false,
-      uses_non_exempt_encryption: false,
-      changelog: options[:changelog] || "Internal macOS beta build"
-    )
+      upload_to_testflight(
+        api_key: api_key,
+        apple_id: CANONICAL_APP_STORE_APP_ID,
+        app_identifier: required_env!("APP_IDENTIFIER"),
+        pkg: Actions.lane_context[SharedValues::PKG_OUTPUT_PATH],
+        skip_waiting_for_build_processing: options[:skip_waiting] != false,
+        distribute_external: false,
+        notify_external_testers: false,
+        uses_non_exempt_encryption: false,
+        changelog: options[:changelog] || "Internal macOS beta build"
+      )
+    ensure
+      sh("/usr/libexec/PlistBuddy -c 'Set :FrameMateDisablePurchasesForInternalTesting false' '#{plist_path}'")
+    end
 
     UI.success("TestFlight yuku tamamlandi: v#{version} (#{build_number})")
   end

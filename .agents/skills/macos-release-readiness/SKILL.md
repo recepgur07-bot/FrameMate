@@ -9,7 +9,7 @@ description: Use when preparing FrameMate for TestFlight, App Store submission, 
 2. Use GitHub MCP for PR and review context if release readiness depends on a specific pull request or branch discussion.
 3. Read repo-local release material before making release claims:
    - `docs/ReleaseRiskMatrix.md`
-   - `docs/app-store/app-review-notes.md`
+   - `docs/app-review-notes.md` (single canonical review-notes source; `docs/app-store/app-review-notes.md` is a pointer to it, not a separate copy)
    - `fastlane/Fastfile`
    - `fastlane/metadata/en-US/*`
    - `fastlane/metadata/tr/*`

@@ -3,8 +3,16 @@ import Foundation
 import ScreenCaptureKit
 
 protocol SystemAudioRecordingProviding: AnyObject {
+    /// Kicks off the slow ScreenCaptureKit shareable-content enumeration ahead of time so
+    /// `startRecording` doesn't have to pay for it after the user has already heard the
+    /// "recording started" cue. Best-effort; safe to skip or call more than once.
+    func prefetchShareableContent()
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws
     func stopRecording()
+}
+
+extension SystemAudioRecordingProviding {
+    func prefetchShareableContent() {}
 }
 
 private struct UnsafeSendableBox<Value>: @unchecked Sendable {
@@ -24,9 +32,25 @@ final class SystemAudioRecorder: NSObject, SystemAudioRecordingProviding, SCStre
     private var hasStartedWriting = false
     private let sampleTracker = RecordingSampleTracker()
     private var isStopping = false
+    private var prefetchedContentTask: Task<SCShareableContent, Error>?
+
+    func prefetchShareableContent() {
+        guard prefetchedContentTask == nil else { return }
+        prefetchedContentTask = Task {
+            try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        }
+    }
+
+    private func resolvedShareableContent() async throws -> SCShareableContent {
+        if let task = prefetchedContentTask {
+            prefetchedContentTask = nil
+            return try await task.value
+        }
+        return try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+    }
 
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {
-        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        let content = try await resolvedShareableContent()
         guard let display = content.displays.first else {
             throw ScreenRecordingError.displayNotFound
         }

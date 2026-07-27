@@ -12,6 +12,7 @@ struct ContentView: View {
 
     @State private var toastQueue = ToastQueue()
     @State private var isQuickHelpPresented = false
+    @State private var modeAnnouncementTask: Task<Void, Never>?
 
     var body: some View { makeBody() }
 
@@ -113,30 +114,31 @@ struct ContentView: View {
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
             viewModel.refreshDeviceState()
-            Task { await viewModel.refreshAppAccess() }
+            Task {
+                await viewModel.refreshAppAccess()
+                await viewModel.recheckScreenRecordingAccessAfterForegroundAsync()
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openQuickHelpRequested)) { _ in
             isQuickHelpPresented = true
         }
-        // VoiceOver announcements — proactively read state changes aloud so the user
-        // doesn't have to navigate to the status elements to hear what happened.
+        .onDisappear {
+            modeAnnouncementTask?.cancel()
+        }
+        // Only pause is announced here: its timeline range is excluded from the
+        // exported file. Start, resume, stop, and completion feedback is owned by
+        // RecorderViewModel so it cannot be emitted into an active recording.
         .onChange(of: currentStatus) { oldStatus, newStatus in
-            let message: String
-            switch (oldStatus, newStatus) {
-            case (.paused, .recording): message = String(localized: "Kayıt devam ediyor")
-            case (_, .recording):       message = String(localized: "Kayıt başladı")
-            case (_, .paused):          message = String(localized: "Kayıt duraklatıldı")
-            case (_, .preparing):       message = String(localized: "Kayıt hazırlanıyor")
-            case (_, .ready):           message = String(localized: "Kayıt durduruldu")
+            if case (_, .paused) = (oldStatus, newStatus) {
+                NSAccessibility.post(
+                    element: NSApp.mainWindow as Any,
+                    notification: .announcementRequested,
+                    userInfo: [
+                        NSAccessibility.NotificationUserInfoKey.announcement: String(localized: "Kayıt duraklatıldı"),
+                        NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                    ]
+                )
             }
-            NSAccessibility.post(
-                element: NSApp.mainWindow as Any,
-                notification: .announcementRequested,
-                userInfo: [
-                    NSAccessibility.NotificationUserInfoKey.announcement: message,
-                    NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
-                ]
-            )
             // Toast: show for meaningful state transitions
             switch (oldStatus, newStatus) {
             case (.paused, .recording):
@@ -153,25 +155,6 @@ struct ContentView: View {
         }
         .onChange(of: viewModel.completedRecording) { _, newRecording in
             guard let recording = newRecording else { return }
-            let durationText: String
-            if let secs = viewModel.lastCompletedRecordingDuration, secs > 0 {
-                let m = Int(secs) / 60
-                let s = Int(secs) % 60
-                durationText = m > 0
-                    ? String(localized: ", \(m) dakika \(s) saniye")
-                    : String(localized: ", \(s) saniye")
-            } else {
-                durationText = ""
-            }
-            let announcement = String(localized: "Kayıt tamamlandı: \(recording.url.lastPathComponent)\(durationText)")
-            NSAccessibility.post(
-                element: NSApp.mainWindow as Any,
-                notification: .announcementRequested,
-                userInfo: [
-                    NSAccessibility.NotificationUserInfoKey.announcement: announcement,
-                    NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
-                ]
-            )
             toastQueue.post(
                 message: String(localized: "Kayıt tamamlandı: \(recording.url.lastPathComponent)"),
                 style: .success
@@ -190,17 +173,27 @@ struct ContentView: View {
             )
             toastQueue.post(message: String(localized: "Hata: \(error)"), style: .error)
         }
-        // VoiceOver: Announce mode changes so the user knows which cards are now active.
+        // VoiceOver: A short debounce makes rapid Cmd+1/Cmd+2/Cmd+3 navigation
+        // announce the final mode only, rather than queueing every intermediate mode.
         .onChange(of: viewModel.selectedPreset) { _, newPreset in
-            NSAccessibility.post(
-                element: NSApp.mainWindow as Any,
-                notification: .announcementRequested,
-                userInfo: [
-                    NSAccessibility.NotificationUserInfoKey.announcement:
-                        String(localized: "Mod seçildi: \(newPreset.label)"),
-                    NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.medium.rawValue
-                ]
-            )
+            modeAnnouncementTask?.cancel()
+            modeAnnouncementTask = Task {
+                do {
+                    try await Task.sleep(for: .milliseconds(300))
+                    guard !Task.isCancelled else { return }
+                    NSAccessibility.post(
+                        element: NSApp.mainWindow as Any,
+                        notification: .announcementRequested,
+                        userInfo: [
+                            NSAccessibility.NotificationUserInfoKey.announcement:
+                                String(localized: "Mod seçildi: \(newPreset.label)"),
+                            NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.medium.rawValue
+                        ]
+                    )
+                } catch {
+                    // Cancellation is expected when the user selects another mode quickly.
+                }
+            }
         }
         // Toast: microphone permission changes
         .onChange(of: viewModel.microphonePermissionStatus) { _, newStatus in
@@ -227,6 +220,8 @@ struct ContentView: View {
         // VoiceOver: step-by-step guide when screen recording permission is denied
         .onChange(of: viewModel.screenRecordingPermissionStatus) { _, _ in
             if let guide = viewModel.screenRecordingPermissionGuide {
+                // The actionable permission guide supersedes a pending generic mode label.
+                modeAnnouncementTask?.cancel()
                 NSAccessibility.post(
                     element: NSApp.mainWindow as Any,
                     notification: .announcementRequested,
@@ -1101,6 +1096,27 @@ struct ContentView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             }
 
+            if let blocker = viewModel.recordingStartBlocker {
+                HStack(spacing: 8) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundStyle(.orange)
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(String(localized: "Kayıt düğmesi pasif"))
+                            .font(.caption.weight(.semibold))
+                        Text(blocker)
+                            .font(.caption)
+                    }
+                    Spacer(minLength: 0)
+                }
+                .foregroundStyle(.primary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color.orange.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .accessibilityElement(children: .combine)
+            }
+
             // Record + Pause buttons
             HStack(spacing: 16) {
                 Spacer()
@@ -1127,6 +1143,7 @@ struct ContentView: View {
                     state: recordButtonState,
                     countdownRemaining: viewModel.countdownRemaining,
                     accessibilityLabel: recordingButtonTitle,
+                    accessibilityHint: recordingButtonAccessibilityHint,
                     action: { viewModel.toggleRecording() }
                 )
                 .disabled(!viewModel.canStartRecording && !viewModel.isRecording && !viewModel.isCountingDown)
@@ -1175,6 +1192,13 @@ struct ContentView: View {
         if viewModel.isPreparingRecording { return String(localized: "Kayıt hazırlanıyor…") }
         if viewModel.isCountingDown { return String(localized: "İptal Et (\(viewModel.countdownRemaining))") }
         return viewModel.isRecording ? String(localized: "Kaydı Durdur") : String(localized: "Kaydı Başlat")
+    }
+
+    private var recordingButtonAccessibilityHint: String {
+        if let blocker = viewModel.recordingStartBlocker {
+            return blocker
+        }
+        return String(localized: "\(GlobalHotkeyMonitor.recordingToggleDisplay) son seçili modu başlatır veya durdurur.")
     }
 
     private var frameCoachStatusText: String {

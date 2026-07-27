@@ -118,6 +118,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         XCTAssertTrue(viewModel.isFrameCoachEnabled)
         XCTAssertEqual(recorder.configureCallCount, 0)
         XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 0)
+        XCTAssertTrue(speaker.spokenTexts.isEmpty)
     }
 
     func testStartingAudioRecordingCancelsPendingFrameCoachPreviewPreparation() async {

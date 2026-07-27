@@ -971,6 +971,16 @@ final class RecorderViewModel {
         }
     }
 
+    /// The same user-facing explanation shown beside a disabled record button
+    /// and exposed as its VoiceOver hint. `statusText` is refreshed whenever
+    /// permissions, inputs, or the selected recording mode changes.
+    var recordingStartBlocker: String? {
+        guard !isRecording, !isPreparingRecording, !isCountingDown, !canStartRecording else {
+            return nil
+        }
+        return statusText
+    }
+
     var canPauseRecording: Bool {
         isRecording && !isPreparingRecording && pauseResumeTask == nil
     }
@@ -992,6 +1002,10 @@ final class RecorderViewModel {
 
     private var hasSetUp = false
     private var isRecorderConfigured = false
+    private var lastConfiguredVideoDeviceID: String?
+    private var lastConfiguredAudioDeviceID: String?
+    private var lastConfiguredMode: RecordingMode?
+    private var lastConfiguredAudioChannelMode: AudioChannelMode?
     private var lastAnnouncedSubjectCount: FrameSubjectCount?
     private var lastAnnouncedSubjectCountWasOverflow = false
     private var pendingSubjectCount: FrameSubjectCount?
@@ -1513,6 +1527,17 @@ final class RecorderViewModel {
             throw CaptureRecorderError.microphoneNotFound
         }
 
+        // Re-adding identical inputs to a running AVCaptureSession forces the camera
+        // to re-negotiate exposure/focus, which is a visible multi-second stall right
+        // before recording starts. Skip the rebuild when nothing actually changed.
+        if isRecorderConfigured,
+           lastConfiguredVideoDeviceID == selectedCameraID,
+           lastConfiguredAudioDeviceID == selectedMicrophoneID,
+           lastConfiguredMode == selectedMode,
+           lastConfiguredAudioChannelMode == audioChannelMode {
+            return
+        }
+
         try await recorder.configure(
             videoDeviceID: selectedCameraID,
             audioDeviceID: selectedMicrophoneID,
@@ -1520,6 +1545,10 @@ final class RecorderViewModel {
             audioChannelMode: audioChannelMode
         )
         isRecorderConfigured = true
+        lastConfiguredVideoDeviceID = selectedCameraID
+        lastConfiguredAudioDeviceID = selectedMicrophoneID
+        lastConfiguredMode = selectedMode
+        lastConfiguredAudioChannelMode = audioChannelMode
     }
 
     func toggleRecording() {
@@ -1679,7 +1708,11 @@ final class RecorderViewModel {
             consecutiveMissingFaceAnalyses = 0
             lastGoodFrameAt = nil
             lastGoodInstruction = nil
-            speechCuePlayer.speakIfNeeded(String(localized: "Kadraj koçu açık"), isEnabled: true, settings: frameCoachPreferences)
+            speechCuePlayer.speakIfNeeded(
+                String(localized: "Kadraj koçu açık"),
+                isEnabled: allowsAudibleFrameCoachFeedback,
+                settings: frameCoachPreferences
+            )
             // "Kadraj koçu açık" duyurulduktan sonra frekans kapısını sıfırla ki
             // ilk analiz talimatı gecikme yaşamadan hemen söylensin.
             speechCuePlayer.resetFrequencyGate()
@@ -1690,7 +1723,11 @@ final class RecorderViewModel {
             consecutiveMissingFaceAnalyses = 0
             lastGoodFrameAt = nil
             lastGoodInstruction = nil
-            speechCuePlayer.speakIfNeeded(String(localized: "Kadraj koçu kapalı"), isEnabled: true, settings: frameCoachPreferences)
+            speechCuePlayer.speakIfNeeded(
+                String(localized: "Kadraj koçu kapalı"),
+                isEnabled: allowsAudibleFrameCoachFeedback,
+                settings: frameCoachPreferences
+            )
         }
     }
 
@@ -1718,7 +1755,12 @@ final class RecorderViewModel {
         guard isFrameCoachEnabled else { return }
 
         currentFrameCoachInstruction = instruction
-        speechCuePlayer.speakIfNeeded(instruction, isEnabled: isFrameCoachEnabled, key: instruction, settings: frameCoachPreferences)
+        speechCuePlayer.speakIfNeeded(
+            instruction,
+            isEnabled: isFrameCoachEnabled && allowsAudibleFrameCoachFeedback,
+            key: instruction,
+            settings: frameCoachPreferences
+        )
     }
 
     func processFrameCoachAnalysis(_ analysis: FrameAnalysis?) {
@@ -1737,7 +1779,7 @@ final class RecorderViewModel {
                 currentFrameCoachInstruction = CaptureCoachingEngine.lowLightInstruction
                 speechCuePlayer.speakIfNeeded(
                     CaptureCoachingEngine.lowLightInstruction.sentenceCased,
-                    isEnabled: true,
+                    isEnabled: allowsAudibleFrameCoachFeedback,
                     settings: frameCoachPreferences
                 )
                 return
@@ -1749,7 +1791,11 @@ final class RecorderViewModel {
             // Yüz kaybolunca kısa aralıkla tekrar et (2s) — kör kullanıcı hızlıca uyarılmalı.
             var urgentPreferences = frameCoachPreferences
             urgentPreferences.repeatInterval = .short
-            speechCuePlayer.speakIfNeeded(FrameCoachingEngine.noFaceInstruction, isEnabled: true, settings: urgentPreferences)
+            speechCuePlayer.speakIfNeeded(
+                FrameCoachingEngine.noFaceInstruction,
+                isEnabled: allowsAudibleFrameCoachFeedback,
+                settings: urgentPreferences
+            )
             return
         }
 
@@ -1761,13 +1807,18 @@ final class RecorderViewModel {
             profile: automaticFrameCoachingProfile(for: analysis)
         )
         let guidance = guidanceDetail.text
-        if let cue = spatialCueResolver.cue(for: analysis, guidance: guidanceDetail, mode: selectedMode) {
+        if allowsAudibleFrameCoachFeedback,
+           let cue = spatialCueResolver.cue(for: analysis, guidance: guidanceDetail, mode: selectedMode) {
             spatialCuePlayer.play(cue, preferences: frameCoachPreferences)
         }
 
         if guidanceDetail.kind == .lowLight {
             currentFrameCoachInstruction = guidance
-            speechCuePlayer.speakIfNeeded(guidance.sentenceCased, isEnabled: true, settings: frameCoachPreferences)
+            speechCuePlayer.speakIfNeeded(
+                guidance.sentenceCased,
+                isEnabled: allowsAudibleFrameCoachFeedback,
+                settings: frameCoachPreferences
+            )
             return
         }
 
@@ -1819,7 +1870,12 @@ final class RecorderViewModel {
             lastAnnouncedSubjectCountWasOverflow = analysis.isOverflowing
             pendingSubjectCount = nil
             pendingSubjectCountStreak = 0
-            speechCuePlayer.speakIfNeeded(composite, isEnabled: true, key: guidance.sentenceCased, settings: frameCoachPreferences)
+            speechCuePlayer.speakIfNeeded(
+                composite,
+                isEnabled: allowsAudibleFrameCoachFeedback,
+                key: guidance.sentenceCased,
+                settings: frameCoachPreferences
+            )
             return
         } else {
             pendingSubjectCount = nil
@@ -1831,10 +1887,24 @@ final class RecorderViewModel {
         if isGood {
             var confirmPreferences = frameCoachPreferences
             confirmPreferences.repeatInterval = .short
-            speechCuePlayer.speakIfNeeded(guidance.sentenceCased, isEnabled: true, key: guidance.sentenceCased, settings: confirmPreferences)
+            speechCuePlayer.speakIfNeeded(
+                guidance.sentenceCased,
+                isEnabled: allowsAudibleFrameCoachFeedback,
+                key: guidance.sentenceCased,
+                settings: confirmPreferences
+            )
         } else {
-            speechCuePlayer.speakIfNeeded(guidance.sentenceCased, isEnabled: true, key: guidance.sentenceCased, settings: frameCoachPreferences)
+            speechCuePlayer.speakIfNeeded(
+                guidance.sentenceCased,
+                isEnabled: allowsAudibleFrameCoachFeedback,
+                key: guidance.sentenceCased,
+                settings: frameCoachPreferences
+            )
         }
+    }
+
+    private var allowsAudibleFrameCoachFeedback: Bool {
+        !isRecording && !isPreparingRecording
     }
 
     func startRecording(afterCommandSoundDelay commandSoundDelay: TimeInterval = 0) {
@@ -1943,6 +2013,9 @@ final class RecorderViewModel {
             pendingCameraSystemAudioWarning = nil
             pendingCameraSystemAudioCaptureResult = isSystemAudioEnabled ? nil : .success(nil)
 
+            if isSystemAudioEnabled {
+                systemAudioRecorder.prefetchShareableContent()
+            }
             await playStartSoundBeforeCapture()
 
             if isSystemAudioEnabled {
@@ -2010,7 +2083,6 @@ final class RecorderViewModel {
         markRecordingStopping()
         pauseResumeTask?.cancel()
         pauseResumeTask = nil
-        playCommandReceivedSoundIfEnabled()
         setRecordingFinishingStatus(String(localized: "Kayıt durdu. Dosya hazırlanıyor"), key: "recording-file-preparing")
         sleepPreventer.allow()
         recordingDurationTask?.cancel()
@@ -2126,12 +2198,31 @@ final class RecorderViewModel {
 
     private func setRecordingFinishingStatus(_ text: String, key: String) {
         statusText = text
-        speechCuePlayer.speakIfNeeded(text, isEnabled: true, key: key)
     }
 
     private func markRecordingFileReady() {
         playStopSoundIfEnabled()
-        speechCuePlayer.speakIfNeeded(String(localized: "Kayıt hazır"), isEnabled: true, key: "recording-file-ready")
+        announceCompletedRecordingForVoiceOver()
+    }
+
+    private func announceCompletedRecordingForVoiceOver() {
+        guard NSWorkspace.shared.isVoiceOverEnabled else { return }
+
+        let filename = completedRecording?.url.lastPathComponent ?? lastSavedURL?.lastPathComponent
+        let message: String
+        if let filename, !filename.isEmpty {
+            message = String(localized: "Kayıt tamamlandı, dosya hazır: \(filename)")
+        } else {
+            message = String(localized: "Kayıt tamamlandı, dosya hazır")
+        }
+        NSAccessibility.post(
+            element: NSApp as Any,
+            notification: .announcementRequested,
+            userInfo: [
+                NSAccessibility.NotificationUserInfoKey.announcement: message,
+                NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+            ]
+        )
     }
 
     private func beginRecordingPreparation() -> Bool {
@@ -2149,10 +2240,11 @@ final class RecorderViewModel {
         completedRecording = nil
         errorText = nil
         self.statusText = statusText
+        speechCuePlayer.isOutputSuppressed = true
+        spatialCuePlayer.reset()
         sleepPreventer.prevent(reason: sleepReason)
         startMaxDurationTimer()
         startRecordingSafetyMonitor()
-        startElapsedAnnouncer()
     }
 
     private func markRecordingStopping() {
@@ -2167,6 +2259,7 @@ final class RecorderViewModel {
         isRecording = false
         isPaused = false
         isPreparingRecording = false
+        speechCuePlayer.isOutputSuppressed = false
         recordingSafetyTask?.cancel()
         recordingSafetyTask = nil
         sleepPreventer.allow()
@@ -2191,6 +2284,9 @@ final class RecorderViewModel {
         pendingAudioSystemAudioCaptureURL = nil
         pendingAudioSystemAudioWarning = nil
 
+        if isSystemAudioEnabled {
+            systemAudioRecorder.prefetchShareableContent()
+        }
         await playStartSoundBeforeCapture()
 
         do {
@@ -2267,6 +2363,11 @@ final class RecorderViewModel {
         pendingScreenCursorTimeline = .empty
         pendingScreenKeyboardShortcutTimeline = .empty
         pendingOverlayCaptureResult = isScreenCameraOverlayEnabled ? nil : .success(nil)
+
+        screenRecordingProvider.prefetchShareableContent()
+        if isSystemAudioEnabled {
+            systemAudioRecorder.prefetchShareableContent()
+        }
 
         do {
             await playStartSoundBeforeCapture()
@@ -2424,13 +2525,6 @@ final class RecorderViewModel {
                         } else {
                             statusText = String(localized: "Kaydedildi: \(exportResult.url.path) (\(summary))")
                         }
-                        speechCuePlayer.reset()
-                        speechCuePlayer.speakIfNeeded(
-                            summary.sentenceCased,
-                            isEnabled: true,
-                            key: "export-\(exportResult.usedVideoComposition)-\(exportResult.keyframeCount)-\(exportResult.strategy)",
-                            settings: frameCoachPreferences
-                        )
                         markRecordingFileReady()
                     }
                 } catch {
@@ -2534,15 +2628,6 @@ final class RecorderViewModel {
                 speechCuePlayer.reset()
                 markRecordingFileReady()
             } catch {
-                // Announce the error via VoiceOver regardless of recording state
-                NSAccessibility.post(
-                    element: NSApp as AnyObject,
-                    notification: .announcementRequested,
-                    userInfo: [
-                        NSAccessibility.NotificationUserInfoKey.announcement: String(localized: "Ses kaydı dışa aktarılamadı: \(error.localizedDescription)"),
-                        NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
-                    ]
-                )
                 // Don't clobber state if a new recording has already started
                 guard !isRecording, pendingAudioRecordingFinalURL == nil else { return }
                 report(error)
@@ -3258,29 +3343,12 @@ final class RecorderViewModel {
         if error is CaptureRecorderError {
             isRecorderConfigured = false
         }
-        // An NSAccessibility announcement is silent when VoiceOver is off.
-        // Route errors through the adaptive speech channel as well.
+        // ContentView owns the VoiceOver error announcement. Use app voice only
+        // when VoiceOver is off, otherwise the same error would be announced twice.
         speechCuePlayer.reset()
-        speechCuePlayer.speakIfNeeded(
+        speechCuePlayer.speakUsingAppVoiceWhenVoiceOverIsOff(
             String(localized: "Hata: \(error.localizedDescription)"),
-            isEnabled: true,
-            key: "recording-error",
-            settings: FrameCoachPreferences(
-                speechMode: .automatic,
-                feedbackFrequency: .frequent,
-                repeatInterval: .short,
-                showsOnScreenText: true,
-                spatialAudioMode: .off,
-                playsCenterConfirmation: false
-            )
-        )
-        NSAccessibility.post(
-            element: NSApp as AnyObject,
-            notification: .announcementRequested,
-            userInfo: [
-                NSAccessibility.NotificationUserInfoKey.announcement: "Hata: \(error.localizedDescription)",
-                NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
-            ]
+            key: "recording-error"
         )
     }
 
@@ -3677,6 +3745,7 @@ final class RecorderViewModel {
 
     /// Announces the current recording settings summary via VoiceOver.
     func announceCurrentSettings() {
+        guard !isRecording && !isPreparingRecording else { return }
         var parts = [String(localized: "Mod \(currentPresetReadinessLabel)."), accessibilitySetupSummary]
         if let permissionSummary = accessibilityPermissionSummary {
             parts.append(permissionSummary)
@@ -3903,6 +3972,11 @@ final class RecorderViewModel {
         }
         if microphonePermissionStatus != .authorized {
             names.append(String(localized: "mikrofon"))
+        }
+        if selectedRecordingSource == .camera,
+           isSystemAudioEnabled,
+           screenRecordingPermissionStatus != .authorized {
+            names.append(String(localized: "macOS ekran kaydı (sistem sesi açık)"))
         }
         return names
     }
@@ -4182,7 +4256,27 @@ final class RecorderViewModel {
         await refreshScreenRecordingSources()
     }
 
-    private func refreshScreenRecordingSources() async {
+    /// Uygulama arka plandan öne döndüğünde (ör. kullanıcı Sistem Ayarları'ndan
+    /// Ekran Kaydı iznini açıp uygulamaya geri döndüğünde) çağrılır.
+    /// `CGPreflightScreenCaptureAccess` bu süreç için sonucu önbelleğe alır ve
+    /// izin Ayarlar'dan sonradan açılsa bile süreç yeniden başlamadan
+    /// güncellenmeyebilir. Bu yüzden burada gerçek kaynağı (SCShareableContent)
+    /// zorla sorgulayarak önbellekteki yanlış "izin yok" durumunu düzeltiyoruz.
+    func recheckScreenRecordingAccessAfterForeground() {
+        Task {
+            await recheckScreenRecordingAccessAfterForegroundAsync()
+        }
+    }
+
+    /// `refreshDeviceState()` tarafından tetiklenen kısa süreli (varsayılan,
+    /// zorlamasız) kaynak taramasından sonra çalışacak şekilde ayrıca `await`
+    /// edilebilir; böylece o taramanın önbelleği yanlışlıkla geri
+    /// sıfırlamasından sonra en güncel/doğru sonuç kazanır.
+    func recheckScreenRecordingAccessAfterForegroundAsync() async {
+        await refreshScreenRecordingSources(forceSourceFetch: true)
+    }
+
+    private func refreshScreenRecordingSources(forceSourceFetch: Bool = false) async {
         guard selectedRecordingSource != .camera && selectedRecordingSource != .audio else {
             availableDisplays = []
             availableWindows = []
@@ -4194,10 +4288,15 @@ final class RecorderViewModel {
             return
         }
 
-        // SCShareableContent.excludingDesktopWindows, ekran kaydı izni olmadan
-        // sistemde permission prompt tetikleyebilir veya asılı kalabilir.
-        // İzin verilmemişse listeleri boş bırak, statusText'i güncelle.
-        guard screenRecordingPermissionStatus == .authorized else {
+        // SCShareableContent.excludingDesktopWindows, izin daha hiç sorulmamışken
+        // sistemde permission prompt tetikleyebilir veya asılı kalabilir; bu yüzden
+        // normalde yalnızca CGPreflightScreenCaptureAccess "izinli" derse çağrılır.
+        // Ancak o kontrol süreç ömrü boyunca önbelleğe alınır: kullanıcı izni
+        // Ayarlar'dan sonradan açarsa uygulama bunu göremeyebilir. Ekran kaydı
+        // için "henüz sorulmadı" durumu olmadığından (bkz. ScreenRecordingAuthorizationStatus),
+        // forceSourceFetch true olduğunda gerçek kaynağı sorgulayıp önbelleği
+        // kendiliğinden düzeltiyoruz; bu tekrar bir sistem isteği tetiklemez.
+        guard forceSourceFetch || screenRecordingPermissionStatus == .authorized else {
             availableDisplays = []
             availableWindows = []
             selectedDisplayID = ""

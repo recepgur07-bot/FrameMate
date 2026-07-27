@@ -56,6 +56,11 @@ final class SpeechCuePlayer {
     private var lastSpokenAt: Date?
     private var lastAnnouncementAt: Date?
 
+    /// Recording can capture both app speech and VoiceOver output. The recorder
+    /// owns this gate so guidance remains visible, but is never emitted while a
+    /// recording is open.
+    var isOutputSuppressed = false
+
     init(
         speaker: any InstructionSpeaking = SystemInstructionSpeaker(),
         announcer: (any InstructionAnnouncing)? = SystemAccessibilityAnnouncer(),
@@ -107,7 +112,7 @@ final class SpeechCuePlayer {
         settings: FrameCoachPreferences,
         enforceFrequencyLimit: Bool
     ) {
-        guard isEnabled else { return }
+        guard isEnabled, !isOutputSuppressed else { return }
 
         let currentTime = now()
         let dedupeKey = key ?? instruction
@@ -151,6 +156,22 @@ final class SpeechCuePlayer {
     /// Koç açıldıktan hemen sonra ilk talimatın frekans kısıtına takılmaması için kullanılır.
     func resetFrequencyGate() {
         lastAnnouncementAt = nil
+    }
+
+    /// Critical state changes already use an accessibility announcement when
+    /// VoiceOver is running. Keep the app-voice fallback exclusive to the
+    /// VoiceOver-off case so the same error is not spoken twice.
+    func speakUsingAppVoiceWhenVoiceOverIsOff(_ instruction: String, key: String) {
+        guard !isVoiceOverEnabled() else { return }
+        let settings = FrameCoachPreferences(
+            speechMode: .appVoice,
+            feedbackFrequency: .frequent,
+            repeatInterval: .short,
+            showsOnScreenText: true,
+            spatialAudioMode: .off,
+            playsCenterConfirmation: false
+        )
+        speakIfNeeded(instruction, isEnabled: true, key: key, settings: settings)
     }
 
     private func outputRoute(for speechMode: FrameCoachSpeechMode) -> SpeechOutputRoute {

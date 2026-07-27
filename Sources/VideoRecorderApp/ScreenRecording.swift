@@ -113,6 +113,10 @@ protocol ScreenRecordingProviding: AnyObject {
     func requestAccess() async -> ScreenRecordingPermissionRequestResult
     func availableDisplays() async throws -> [ScreenDisplayOption]
     func availableWindows() async throws -> [ScreenWindowOption]
+    /// Kicks off the slow ScreenCaptureKit shareable-content enumeration ahead of time so
+    /// `startRecording` doesn't have to pay for it after the user has already heard the
+    /// "recording started" cue. Best-effort; safe to skip or call more than once.
+    func prefetchShareableContent()
     func startRecording(
         target: ScreenRecordingTarget,
         microphoneDeviceID: String,
@@ -121,6 +125,10 @@ protocol ScreenRecordingProviding: AnyObject {
         completion: @escaping (Result<URL, Error>) -> Void
     ) async throws
     func stopRecording()
+}
+
+extension ScreenRecordingProviding {
+    func prefetchShareableContent() {}
 }
 
 final class SystemScreenRecordingProvider: ScreenRecordingProviding {

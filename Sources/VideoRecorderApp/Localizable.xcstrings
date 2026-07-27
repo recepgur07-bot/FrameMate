@@ -1,6 +1,23 @@
 {
   "sourceLanguage": "tr",
   "strings": {
+    "Kayıt düğmesi pasif": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record button unavailable"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt düğmesi pasif"
+          }
+        }
+      }
+    },
     "Adsız pencere": {
       "extractionState": "manual",
       "localizations": {
@@ -14,6 +31,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Adsız pencere"
+          }
+        }
+      }
+    },
+    "macOS ekran kaydı (sistem sesi açık)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS screen recording (system audio enabled)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS ekran kaydı (sistem sesi açık)"
           }
         }
       }

@@ -23,6 +23,22 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
     private let sampleTracker = RecordingSampleTracker()
     private var outputURL: URL?
     private var isStopping = false
+    private var prefetchedContentTask: Task<SCShareableContent, Error>?
+
+    func prefetchShareableContent() {
+        guard prefetchedContentTask == nil else { return }
+        prefetchedContentTask = Task {
+            try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        }
+    }
+
+    private func resolvedShareableContent() async throws -> SCShareableContent {
+        if let task = prefetchedContentTask {
+            prefetchedContentTask = nil
+            return try await task.value
+        }
+        return try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+    }
 
     func authorizationStatus() -> ScreenRecordingAuthorizationStatus {
         systemProvider.authorizationStatus()
@@ -74,7 +90,7 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
         to url: URL,
         completion: @escaping (Result<URL, Error>) -> Void
     ) async throws {
-        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        let content = try await resolvedShareableContent()
         let filter = try contentFilter(for: target, content: content)
         let size = captureSize(for: target, content: content)
         let configuration = Self.makeStreamConfiguration(

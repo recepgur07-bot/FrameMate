@@ -75,6 +75,22 @@ final class SpeechCuePlayerTests: XCTestCase {
         XCTAssertTrue(speaker.spokenTexts.isEmpty)
     }
 
+    func testSuppressesSpeechWhileRecordingOutputIsOpen() {
+        let speaker = SpeechInstructionSpeakerStub()
+        let announcer = AccessibilityAnnouncerSpy()
+        let player = SpeechCuePlayer(
+            speaker: speaker,
+            announcer: announcer,
+            isVoiceOverEnabled: { true }
+        )
+        player.isOutputSuppressed = true
+
+        player.speakIfNeeded("Biraz sola", isEnabled: true)
+
+        XCTAssertTrue(speaker.spokenTexts.isEmpty)
+        XCTAssertTrue(announcer.announcements.isEmpty)
+    }
+
     func testSuppressesInstructionWhileSpeakerIsStillSpeaking() {
         let speaker = SpeechInstructionSpeakerStub()
         speaker.isSpeaking = true
@@ -172,6 +188,35 @@ final class SpeechCuePlayerTests: XCTestCase {
 
         XCTAssertTrue(speaker.spokenTexts.isEmpty)
         XCTAssertTrue(announcer.announcements.isEmpty)
+    }
+
+    func testCriticalAppVoiceFallbackIsSilentWhenVoiceOverIsRunning() {
+        let speaker = SpeechInstructionSpeakerStub()
+        let announcer = AccessibilityAnnouncerSpy()
+        let player = SpeechCuePlayer(
+            speaker: speaker,
+            announcer: announcer,
+            isVoiceOverEnabled: { true }
+        )
+
+        player.speakUsingAppVoiceWhenVoiceOverIsOff("Hata", key: "recording-error")
+
+        XCTAssertTrue(speaker.spokenTexts.isEmpty)
+        XCTAssertTrue(announcer.announcements.isEmpty)
+    }
+
+    func testCriticalAppVoiceFallbackSpeaksOnceWhenVoiceOverIsOff() {
+        let speaker = SpeechInstructionSpeakerStub()
+        let player = SpeechCuePlayer(
+            speaker: speaker,
+            announcer: nil,
+            isVoiceOverEnabled: { false }
+        )
+
+        player.speakUsingAppVoiceWhenVoiceOverIsOff("Hata", key: "recording-error")
+        player.speakUsingAppVoiceWhenVoiceOverIsOff("Hata", key: "recording-error")
+
+        XCTAssertEqual(speaker.spokenTexts, ["Hata"])
     }
 
     func testSuppressesRepeatedAnnouncementDuringCooldownWhenVoiceOverIsRunning() {

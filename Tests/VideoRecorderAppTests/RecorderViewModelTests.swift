@@ -2292,6 +2292,34 @@ final class RecorderViewModelTests: XCTestCase {
         )
     }
 
+    func testCameraRecordingBlockerNamesScreenPermissionWhenSystemAudioIsEnabled() async {
+        let permissions = RecorderPermissionsStub(
+            statuses: [.video: .authorized, .audio: .authorized]
+        )
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+        )
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: MockScreenRecordingProvider(status: .denied),
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: "/tmp", isDirectory: true)),
+            soundEffectPlayer: SoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
+        viewModel.isSystemAudioEnabled = true
+        viewModel.refreshDeviceState()
+
+        XCTAssertFalse(viewModel.canStartRecording)
+        XCTAssertEqual(
+            viewModel.recordingStartBlocker,
+            "Kayıt için şu izinler gerekli: macOS ekran kaydı (sistem sesi açık). Aşağıdaki butonlardan izin verin."
+        )
+    }
+
     func testCameraRecordingStartsSystemAudioRecorderWhenEnabled() async {
         let permissions = RecorderPermissionsStub(
             statuses: [.video: .authorized, .audio: .authorized]
@@ -3198,12 +3226,11 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isPaused)
     }
 
-    func testStopRecordingPlaysCommandSoundAfterCaptureStop() {
+    func testStopRecordingDoesNotPlayCommandSoundWhileCaptureIsFinishing() {
         let events = RecordingStartEventLog()
         let recorder = MockCaptureRecorder()
         recorder.onStop = { events.append("capture-stop") }
         let soundEffectPlayer = MockSoundEffectPlayer()
-        soundEffectPlayer.onCommandReceived = { events.append("stop-command-sound") }
         soundEffectPlayer.onStop = { events.append("stop-sound") }
         let viewModel = RecorderViewModel(
             recorder: recorder,
@@ -3218,8 +3245,8 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.stopRecording()
 
         XCTAssertEqual(soundEffectPlayer.stopCallCount, 0)
-        XCTAssertEqual(soundEffectPlayer.commandReceivedCallCount, 1)
-        XCTAssertEqual(events.values, ["capture-stop", "stop-command-sound"])
+        XCTAssertEqual(soundEffectPlayer.commandReceivedCallCount, 0)
+        XCTAssertEqual(events.values, ["capture-stop"])
         XCTAssertEqual(viewModel.statusText, "Kayıt durdu. Dosya hazırlanıyor")
     }
 

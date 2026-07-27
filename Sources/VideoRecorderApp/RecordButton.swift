@@ -19,6 +19,8 @@ struct RecordButton: View {
     let countdownRemaining: Int
     /// Must be set to ContentView's `recordingButtonTitle` computed var.
     let accessibilityLabel: String
+    /// Explains why the button is unavailable, when recording cannot start yet.
+    let accessibilityHint: String
     let action: () -> Void
 
     @State private var ringScale: CGFloat = 1.0
@@ -47,9 +49,7 @@ struct RecordButton: View {
             .buttonStyle(.plain)
             .disabled(state == .preparing)
             .accessibilityLabel(accessibilityLabel)
-            .accessibilityHint(
-                String(localized: "\(GlobalHotkeyMonitor.recordingToggleDisplay) son seçili modu başlatır veya durdurur.")
-            )
+            .accessibilityHint(accessibilityHint)
         }
         .onAppear { startPulseIfRecording() }
         .onChange(of: state) { _, _ in startPulseIfRecording() }
