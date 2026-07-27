@@ -279,7 +279,53 @@ gereken bir iş.
   ekran+kamera-overlay veya kamera+sistem-sesi kaydında A/V senkronizasyonunun gerçekten
   doğru olduğu bu ortamda (gerçek cihaz/izin yok) doğrulanamadı.
 
-## Faz 4-6 — bu oturumda durum
+## Faz 4 — durum
 
-Devam ediyor; bu bölüm her faz bittikçe güncellenecek. Faz 6'nın bir kısmı (oturum sıfırı
-ve duraklama aralıklarının loglanması) yukarıdaki Faz 3 commit'inde zaten var.
+**Zaten tamamlandı** — Faz 2 commit'inde (`ScreenRecorder.swift`): `didOutputSampleBuffer`
+`SCStreamFrameInfo.status`'u okuyup yalnız `.complete` örneği kabul ediyor (4.1) ve
+`complete(_:)`'in başarı dalı, tamamlanan dosyanın gerçek ilk kare PTS'ini diskten okuyup
+gözlemlenen ilk örnek zamanıyla karşılaştırıp yalnız logluyor, düzeltmiyor (4.2). Ayrı bir
+commit gerekmedi. Gerçek cihazda doğrulanmadı (yukarıdaki Faz 2 kaydındaki risk notuna
+bakınız).
+
+## Bu oturum (2026-07-27, devam) — Faz 5: oturum nesli (generation)
+
+**Doğrulanan gerçek durum (Faz 5 başında):** `recordingGeneration` yoktu (önceki
+seyir-defteri girdisinin "zaten var, `:1196`'da" iddiası yanlıştı — o satırda böyle bir şey
+yok). Üç finalize yolunun (ekran, kamera, ses) hiçbirinde eski bir export'un
+`lastSavedURL`/`completedRecording`/`statusText`/`errorText` yazmasını engelleyen bir
+mekanizma yoktu. Ses yolunda (`maybeFinalizeAudioRecordingExport`) yalnızca catch bloğunda
+`guard !isRecording, pendingAudioRecordingFinalURL == nil` adlı geçici (ad-hoc) bir kontrol
+vardı — bu, başarı yolunda (asıl UI state yazımının olduğu yer) hiç yoktu.
+
+**Yapılan değişiklikler:**
+- `recordingGeneration: Int` eklendi, her `beginRecordingPreparation()` çağrısında
+  (yeni başlatma denemesi) artırılıyor.
+- `isCurrentGeneration(_:)` yardımcı fonksiyonu eklendi.
+- Üç finalize yolunun (`maybeFinalizeScreenRecordingExport`, `handleRecordingCompletion`,
+  `maybeFinalizeAudioRecordingExport`) hepsi `finishRecordingLifecycle()`'dan hemen önce
+  `let generation = recordingGeneration` ile nesli yakalıyor; `await` sonrası her UI-state
+  yazımından (başarı VE hata dallarının hepsi) önce `isCurrentGeneration(generation)`
+  kontrol ediliyor — eşleşmezse yalnız `runtimeDebugLog` ile not düşülüp state
+  değiştirilmiyor. Ses yolundaki eski ad-hoc kontrol kaldırılıp yerine bu konuldu.
+- Test: `RecorderViewModelTests.swift`
+  `testStaleGenerationExportDoesNotOverwriteNewerRecordingState` — gecikmeli
+  `MockAudioRecordingExporter` ile N. nesil export hâlâ beklerken N+1. nesil kayıt
+  başlatılıyor; N. neslin export'u tamamlandığında `lastSavedURL`/`completedRecording`'in
+  hâlâ `nil` kaldığı (N+1'in state'ini ezmediği) doğrulanıyor.
+- Kanıt: `xcodebuild -scheme FrameMate -configuration Debug build` → **BUILD SUCCEEDED**;
+  `xcodebuild ... test-without-building -only-testing:FrameMateTests` →
+  `Executed 368 tests, with 2 tests skipped and 0 failures (0 unexpected) in 22.630
+  (22.762) seconds`.
+
+## Faz 6 — durum
+
+Oturum sıfırı ve duraklama aralıklarının loglanması (`logSessionTimingSummary`) Faz 3
+commit'inde zaten eklendi ve üç finalize yolunun hepsinden çağrılıyor. Faz 4'ün kendi
+enstrümantasyonu (gerçek ilk kare PTS farkı) da Faz 2 commit'inde var. Handoff'un istediği
+"her bileşenin ilk örnek zamanı" ve "her hesaplanan offset" logları eksikti — bu oturumda
+`secondaryOffsetSeconds(for:)`'a çağrıldığı üç yerde (`maybeFinalizeScreenRecordingExport`,
+`completeCameraRecordingIfReady`, `maybeFinalizeAudioRecordingExport`) offset hesaplanır
+hesaplanmaz `runtimeDebugLog` ile eklendi (aşağıdaki commit'e bakınız) — böylece Faz 6 artık
+tam: oturum sıfırı, duraklama aralıkları, her bileşenin hesaplanan offset'i ve ekran
+dosyasının gerçek ilk kare PTS farkı, hepsi `runtimeDebugLog`'da.

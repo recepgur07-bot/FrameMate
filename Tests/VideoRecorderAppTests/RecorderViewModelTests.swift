@@ -3286,6 +3286,54 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.statusText.hasPrefix("Kaydedildi:"))
     }
 
+    // Phase 5: a previous recording's export (generation N) can still be finishing in the
+    // background when the user starts a new recording (generation N+1) — finalize is
+    // driven by async callbacks, not by the view model's live isRecording flag. The old
+    // export completing must not clobber lastSavedURL/completedRecording/statusText that
+    // now describe the newer recording.
+    func testStaleGenerationExportDoesNotOverwriteNewerRecordingState() async {
+        let exporter = MockAudioRecordingExporter()
+        exporter.delayNanoseconds = 250_000_000
+        let mic = MockMicrophoneAudioRecorder()
+        let viewModel = RecorderViewModel(
+            recorder: RecorderCaptureStub(cameras: [], microphones: [InputDevice(id: "mic-1", name: "USB Mic")]),
+            screenRecordingProvider: MockScreenRecordingProvider(),
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            microphoneAudioRecorder: mic,
+            audioRecordingExporter: exporter,
+            fileNamer: RecordingFileNamer(homeDirectory: URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            lastRecordingConfigurationStore: MockLastRecordingConfigurationStore(),
+            permissionProvider: RecorderPermissionsStub(statuses: [.audio: .authorized])
+        )
+        await viewModel.setup()
+        viewModel.selectPreset(RecordingPreset.audioOnly)
+        viewModel.refreshDeviceState()
+
+        viewModel.startRecording()
+        for _ in 0..<20 where !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+        XCTAssertTrue(viewModel.isRecording, "Precondition: first recording must have started")
+
+        viewModel.stopRecording() // generation N's export starts and will take 250ms
+        try? await Task.sleep(nanoseconds: 30_000_000) // let it begin, but not finish
+
+        viewModel.startRecording() // generation N+1, starts while N's export is still pending
+        for _ in 0..<20 where !viewModel.isRecording {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+        XCTAssertTrue(viewModel.isRecording, "Precondition: second recording must have started while the first export was still pending")
+
+        try? await Task.sleep(nanoseconds: 350_000_000) // past generation N's export delay
+
+        XCTAssertNil(
+            viewModel.lastSavedURL,
+            "A stale (generation N) export completion must not overwrite state describing the newer (generation N+1) recording"
+        )
+        XCTAssertNil(viewModel.completedRecording)
+    }
+
     func testStopSoundPlaysWhenAudioFileIsReady() async {
         let soundEffectPlayer = MockSoundEffectPlayer()
         let exporter = MockAudioRecordingExporter()

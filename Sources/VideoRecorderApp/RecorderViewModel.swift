@@ -1095,6 +1095,10 @@ final class RecorderViewModel {
     private var pendingAudioSystemAudioCaptureURL: URL?
     private var pendingAudioSystemAudioWarning: String?
     private var recordingLifecycle = RecordingLifecycleState()
+    /// Monotonic counter identifying the current recording attempt (Phase 5). Captured by
+    /// each finalize/export task at stop time so a stale task from a previous recording
+    /// can detect it's no longer current and skip writing UI state.
+    private var recordingGeneration = 0
     private var isRestoringLastRecordingConfiguration = false
     private var recordingStartUptime: TimeInterval?
     private var commandSoundEndUptime: TimeInterval?
@@ -1665,9 +1669,21 @@ final class RecorderViewModel {
     /// primary) if the session clock or this component's first sample was never
     /// resolved — degrading to the old, "everything starts together" behavior rather
     /// than producing a nonsensical export.
+    /// Phase 5: whether `generation` (captured by a finalize/export task at stop time)
+    /// still matches the live recording attempt. A mismatch means a newer recording has
+    /// since started and this task's result must not overwrite its UI state.
+    private func isCurrentGeneration(_ generation: Int) -> Bool {
+        generation == recordingGeneration
+    }
+
     private func secondaryOffsetSeconds(for firstSampleTime: CMTime?) -> TimeInterval {
-        guard let firstSampleTime, firstSampleTime.isValid, let recordingSessionClock else { return 0 }
-        return recordingSessionClock.signedSessionSeconds(at: firstSampleTime)
+        guard let firstSampleTime, firstSampleTime.isValid, let recordingSessionClock else {
+            runtimeDebugLog("Recording session timing: a secondary component's first sample was never observed; treating its offset as 0")
+            return 0
+        }
+        let offset = recordingSessionClock.signedSessionSeconds(at: firstSampleTime)
+        runtimeDebugLog("Recording session timing: secondary component offset = \(offset)s (first sample host time \(firstSampleTime.seconds)s)")
+        return offset
     }
 
     /// Phase 6 instrumentation: a handful of diagnostic lines at finalize time so a
@@ -2324,6 +2340,11 @@ final class RecorderViewModel {
     private func beginRecordingPreparation() -> Bool {
         guard recordingLifecycle.beginPreparing() else { return false }
         isPreparingRecording = true
+        // Phase 5: every start attempt gets a new generation, so a finalize/export task
+        // from a previous recording — still running when this one begins, since finalize
+        // is driven by async callbacks decoupled from the view model's live state — can
+        // recognize it is stale and must not overwrite this recording's UI state.
+        recordingGeneration += 1
         return true
     }
 
@@ -2655,6 +2676,11 @@ final class RecorderViewModel {
         warningText: String? = nil
     ) {
         let pauseTimeline = recordingPauseTimeline
+        // Captured before finishRecordingLifecycle() advances state, so this export's
+        // eventual completion can tell whether a newer recording has since started
+        // (Phase 5) — finalize is driven by this async Task, decoupled from whatever the
+        // view model's live properties say by the time it completes.
+        let generation = recordingGeneration
         finishRecordingLifecycle()
 
         switch result {
@@ -2676,6 +2702,10 @@ final class RecorderViewModel {
                         try? FileManager.default.removeItem(at: systemAudioURL)
                     }
                     await MainActor.run {
+                        guard isCurrentGeneration(generation) else {
+                            runtimeDebugLog("Camera export finished for a stale generation; discarding its result")
+                            return
+                        }
                         lastSavedURL = exportResult.url
                         completedRecording = makeCompletedRecordingSummary(for: exportResult.url, warnings: warningText.map { [$0] } ?? [])
                         lastAutoReframeKeyframeCount = exportResult.keyframeCount
@@ -2695,11 +2725,19 @@ final class RecorderViewModel {
                     }
                 } catch {
                     await MainActor.run {
+                        guard isCurrentGeneration(generation) else {
+                            runtimeDebugLog("Camera export failed for a stale generation; not reporting: \(error.localizedDescription)")
+                            return
+                        }
                         report(error)
                     }
                 }
             }
         case .failure(let error):
+            guard isCurrentGeneration(generation) else {
+                runtimeDebugLog("Camera capture failed for a stale generation; not reporting: \(error.localizedDescription)")
+                return
+            }
             report(error)
         }
     }
@@ -2766,11 +2804,20 @@ final class RecorderViewModel {
         let microphoneOffsetSeconds: TimeInterval = isMicrophonePrimary ? 0 : secondaryOffsetSeconds(for: microphoneAudioRecorder.firstSamplePresentationTime)
         let systemAudioOffsetSeconds: TimeInterval = isMicrophonePrimary ? secondaryOffsetSeconds(for: systemAudioRecorder.firstSamplePresentationTime) : 0
         logSessionTimingSummary(pauseTimeline: pauseTimeline)
+        // Captured before finishRecordingLifecycle(): this function stays suspended across
+        // the `await` below, during which a new recording can start and bump the
+        // generation (Phase 5) — every write of UI state after that await must check it's
+        // still describing the recording the user is currently looking at.
+        let generation = recordingGeneration
         resetPendingAudioRecordingState()
         finishRecordingLifecycle()
 
         switch (microphoneResult, systemAudioResult) {
         case (.failure(let error), _), (_, .failure(let error)):
+            guard isCurrentGeneration(generation) else {
+                runtimeDebugLog("Audio capture failed for a stale generation; not reporting: \(error.localizedDescription)")
+                return
+            }
             report(error)
         case (.success(let microphoneURL), .success(let systemAudioURL)):
             setRecordingFinishingStatus(String(localized: "Ses dosyası hazırlanıyor"), key: "audio-file-preparing")
@@ -2792,6 +2839,10 @@ final class RecorderViewModel {
                     try? FileManager.default.removeItem(at: systemAudioURL)
                 }
                 didCompleteAudioRecordingExport = true
+                guard isCurrentGeneration(generation) else {
+                    runtimeDebugLog("Audio export finished for a stale generation; discarding its result")
+                    return
+                }
                 let warnings = [microphoneWarning, systemAudioWarning].compactMap { $0 }
                 lastSavedURL = exportURL
                 completedRecording = makeCompletedRecordingSummary(for: exportURL, warnings: warnings)
@@ -2803,8 +2854,10 @@ final class RecorderViewModel {
                 speechCuePlayer.reset()
                 markRecordingFileReady()
             } catch {
-                // Don't clobber state if a new recording has already started
-                guard !isRecording, pendingAudioRecordingFinalURL == nil else { return }
+                guard isCurrentGeneration(generation) else {
+                    runtimeDebugLog("Audio export failed for a stale generation; not reporting: \(error.localizedDescription)")
+                    return
+                }
                 report(error)
             }
         }
@@ -2843,12 +2896,17 @@ final class RecorderViewModel {
         let screenMicrophoneOffsetSeconds = secondaryOffsetSeconds(for: microphoneAudioRecorder.firstSamplePresentationTime)
         let screenSystemAudioOffsetSeconds = secondaryOffsetSeconds(for: systemAudioRecorder.firstSamplePresentationTime)
         logSessionTimingSummary(pauseTimeline: pauseTimeline)
+        let generation = recordingGeneration
         resetPendingScreenRecordingState()
         cameraOverlayRecorder.stopSession()
         finishRecordingLifecycle()
 
         switch (screenResult, overlayResult, microphoneResult, systemAudioResult) {
         case (.failure(let error), _, _, _):
+            guard isCurrentGeneration(generation) else {
+                runtimeDebugLog("Screen capture failed for a stale generation; not reporting: \(error.localizedDescription)")
+                return
+            }
             report(error)
         case (.success(let captureURL), let overlayResult, let microphoneResult, let systemAudioResult):
             let overlayURL = (try? overlayResult.get()) ?? nil
@@ -2889,6 +2947,10 @@ final class RecorderViewModel {
                     if let microphoneURL { try? FileManager.default.removeItem(at: microphoneURL) }
                     if let systemAudioURL { try? FileManager.default.removeItem(at: systemAudioURL) }
                     await MainActor.run {
+                        guard isCurrentGeneration(generation) else {
+                            runtimeDebugLog("Screen export finished for a stale generation; discarding its result")
+                            return
+                        }
                         lastSavedURL = exportResult.url
                         completedRecording = makeCompletedRecordingSummary(for: exportResult.url, warnings: warnings)
                         statusText = isPartialRecovery
@@ -2897,7 +2959,13 @@ final class RecorderViewModel {
                         markRecordingFileReady()
                     }
                 } catch {
-                    await MainActor.run { report(error) }
+                    await MainActor.run {
+                        guard isCurrentGeneration(generation) else {
+                            runtimeDebugLog("Screen export failed for a stale generation; not reporting: \(error.localizedDescription)")
+                            return
+                        }
+                        report(error)
+                    }
                 }
             }
         }
