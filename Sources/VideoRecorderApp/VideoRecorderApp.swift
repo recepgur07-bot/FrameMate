@@ -215,6 +215,21 @@ struct VideoRecorderApp: App {
 
                     switch action {
                     case .hide:
+                        // VoiceOver: hiding the app also moves VoiceOver's context away
+                        // from FrameMate entirely. Without this, a VoiceOver user who
+                        // enabled "hide window on recording start" would have no way of
+                        // knowing the app just vanished or how to get back to it.
+                        if NSWorkspace.shared.isVoiceOverEnabled {
+                            NSAccessibility.post(
+                                element: NSApp as Any,
+                                notification: .announcementRequested,
+                                userInfo: [
+                                    NSAccessibility.NotificationUserInfoKey.announcement:
+                                        String(localized: "Kayıt başladı, pencere gizlendi. Kaydı durdurmak için \(GlobalHotkeyMonitor.recordingToggleDisplay) kısayolunu kullanabilirsin."),
+                                    NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
+                                ]
+                            )
+                        }
                         mainWindowController.hideMainWindow()
                     case .show:
                         mainWindowController.showMainWindow()

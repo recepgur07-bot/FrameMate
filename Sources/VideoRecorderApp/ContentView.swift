@@ -5,6 +5,23 @@ extension Notification.Name {
     static let openQuickHelpRequested = Notification.Name("openQuickHelpRequested")
 }
 
+/// Shared by every view in this file that needs to post a VoiceOver announcement
+/// outside the normal accessibility-label/hint flow (state transitions, sheet
+/// messages) — not just `ContentView` itself.
+fileprivate func postAccessibilityAnnouncement(
+    _ text: String,
+    priority: NSAccessibilityPriorityLevel = .high
+) {
+    NSAccessibility.post(
+        element: NSApp.mainWindow as Any,
+        notification: .announcementRequested,
+        userInfo: [
+            NSAccessibility.NotificationUserInfoKey.announcement: text,
+            NSAccessibility.NotificationUserInfoKey.priority: priority.rawValue
+        ]
+    )
+}
+
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openSettings) private var openSettings
@@ -129,29 +146,32 @@ struct ContentView: View {
         // exported file. Start, resume, stop, and completion feedback is owned by
         // RecorderViewModel so it cannot be emitted into an active recording.
         .onChange(of: currentStatus) { oldStatus, newStatus in
-            if case (_, .paused) = (oldStatus, newStatus) {
-                NSAccessibility.post(
-                    element: NSApp.mainWindow as Any,
-                    notification: .announcementRequested,
-                    userInfo: [
-                        NSAccessibility.NotificationUserInfoKey.announcement: String(localized: "Kayıt duraklatıldı"),
-                        NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
-                    ]
-                )
-            }
-            // Toast: show for meaningful state transitions
+            // VoiceOver: every meaningful recording-state transition gets an explicit
+            // announcement, not just a toast — a toast alone is only heard if the
+            // VoiceOver cursor happens to already be near it.
             switch (oldStatus, newStatus) {
             case (.paused, .recording):
+                postAccessibilityAnnouncement(String(localized: "Kayıt devam ediyor"))
                 toastQueue.post(message: String(localized: "Kayıt devam ediyor"), style: .success)
             case (_, .recording):
+                postAccessibilityAnnouncement(String(localized: "Kayıt başladı"))
                 toastQueue.post(message: String(localized: "Kayıt başladı"), style: .success)
             case (.recording, .ready):
+                postAccessibilityAnnouncement(String(localized: "Kayıt durduruldu"))
                 toastQueue.post(message: String(localized: "Kayıt durduruldu"), style: .info)
             case (_, .paused):
+                postAccessibilityAnnouncement(String(localized: "Kayıt duraklatıldı"))
                 toastQueue.post(message: String(localized: "Kayıt duraklatıldı"), style: .info)
             default:
                 break
             }
+        }
+        // VoiceOver: the button-disabling blocker banner ("Kayıt düğmesi pasif: …")
+        // previously only appeared silently in the Action Zone; a user whose
+        // VoiceOver cursor is elsewhere would never learn why the button won't respond.
+        .onChange(of: viewModel.recordingStartBlocker) { _, newBlocker in
+            guard let blocker = newBlocker else { return }
+            postAccessibilityAnnouncement(String(localized: "Kayıt düğmesi pasif: \(blocker)"))
         }
         .onChange(of: viewModel.completedRecording) { _, newRecording in
             guard let recording = newRecording else { return }
@@ -162,15 +182,7 @@ struct ContentView: View {
         }
         .onChange(of: viewModel.errorText) { _, newError in
             guard let error = newError else { return }
-            NSAccessibility.post(
-                element: NSApp.mainWindow as Any,
-                notification: .announcementRequested,
-                userInfo: [
-                    NSAccessibility.NotificationUserInfoKey.announcement:
-                        String(localized: "Hata: \(error)"),
-                    NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
-                ]
-            )
+            postAccessibilityAnnouncement(String(localized: "Hata: \(error)"))
             toastQueue.post(message: String(localized: "Hata: \(error)"), style: .error)
         }
         // VoiceOver: A short debounce makes rapid Cmd+1/Cmd+2/Cmd+3 navigation
@@ -181,15 +193,7 @@ struct ContentView: View {
                 do {
                     try await Task.sleep(for: .milliseconds(300))
                     guard !Task.isCancelled else { return }
-                    NSAccessibility.post(
-                        element: NSApp.mainWindow as Any,
-                        notification: .announcementRequested,
-                        userInfo: [
-                            NSAccessibility.NotificationUserInfoKey.announcement:
-                                String(localized: "Mod seçildi: \(newPreset.label)"),
-                            NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.medium.rawValue
-                        ]
-                    )
+                    postAccessibilityAnnouncement(String(localized: "Mod seçildi: \(newPreset.label)"), priority: .medium)
                 } catch {
                     // Cancellation is expected when the user selects another mode quickly.
                 }
@@ -199,8 +203,10 @@ struct ContentView: View {
         .onChange(of: viewModel.microphonePermissionStatus) { _, newStatus in
             switch newStatus {
             case .authorized:
+                postAccessibilityAnnouncement(String(localized: "Mikrofon izni verildi"))
                 toastQueue.post(message: String(localized: "Mikrofon izni verildi"), style: .success)
             case .denied, .restricted:
+                postAccessibilityAnnouncement(String(localized: "Mikrofon izni reddedildi"))
                 toastQueue.post(message: String(localized: "Mikrofon izni reddedildi — Sistem Ayarları'ndan etkinleştirebilirsin"), style: .error)
             default:
                 break
@@ -210,8 +216,10 @@ struct ContentView: View {
         .onChange(of: viewModel.cameraPermissionStatus) { _, newStatus in
             switch newStatus {
             case .authorized:
+                postAccessibilityAnnouncement(String(localized: "Kamera izni verildi"))
                 toastQueue.post(message: String(localized: "Kamera izni verildi"), style: .success)
             case .denied, .restricted:
+                postAccessibilityAnnouncement(String(localized: "Kamera izni reddedildi"))
                 toastQueue.post(message: String(localized: "Kamera izni reddedildi — Sistem Ayarları'ndan etkinleştirebilirsin"), style: .error)
             default:
                 break
@@ -222,14 +230,7 @@ struct ContentView: View {
             if let guide = viewModel.screenRecordingPermissionGuide {
                 // The actionable permission guide supersedes a pending generic mode label.
                 modeAnnouncementTask?.cancel()
-                NSAccessibility.post(
-                    element: NSApp.mainWindow as Any,
-                    notification: .announcementRequested,
-                    userInfo: [
-                        NSAccessibility.NotificationUserInfoKey.announcement: guide,
-                        NSAccessibility.NotificationUserInfoKey.priority: NSAccessibilityPriorityLevel.high.rawValue
-                    ]
-                )
+                postAccessibilityAnnouncement(guide)
             }
         }
         // Toast: screen recording permission — always needs restart after grant
@@ -664,7 +665,7 @@ struct ContentView: View {
             Text(title)
                 .font(.headline.weight(.semibold))
                 .foregroundStyle(.primary)
-                .accessibilityHidden(true)
+                .accessibilityAddTraits(.isHeader)
             content()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1770,6 +1771,7 @@ private struct CompletedRecordingSheet: View {
     let onSaveAs: (String) -> Void
     let onClose: () -> Void
     @State private var editableName: String
+    @AccessibilityFocusState private var isTitleFocused: Bool
 
     init(
         completedRecording: CompletedRecordingSummary,
@@ -1792,6 +1794,8 @@ private struct CompletedRecordingSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Kayıt Tamamlandı")
                 .font(.title2.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($isTitleFocused)
 
             Text(completedRecording.url.path)
                 .font(.footnote)
@@ -1841,16 +1845,29 @@ private struct CompletedRecordingSheet: View {
         }
         .padding(24)
         .frame(minWidth: 520)
+        .onAppear {
+            // VoiceOver: move the virtual cursor to the sheet's title as soon as it
+            // opens, mirroring the proven pattern in QuickHelpTopicView — without this
+            // the cursor stays wherever it was in the main window, so a VoiceOver user
+            // may not realize this sheet appeared at all.
+            Task {
+                try? await Task.sleep(for: .milliseconds(150))
+                isTitleFocused = true
+            }
+        }
     }
 }
 
 private struct AppPaywallSheet: View {
     @Bindable var viewModel: RecorderViewModel
+    @AccessibilityFocusState private var isTitleFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text(String(localized: "Pro erişim seç"))
                 .font(.title2.weight(.semibold))
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($isTitleFocused)
 
             Text(String(localized: "Yıllık plan 14 gün ücretsiz deneme ile başlar. Bu deneme, App Store hesabın daha önce kullanmadıysa görünür. Ömür boyu planı istersen doğrudan tek seferde satın alabilirsin."))
                 .foregroundStyle(.secondary)
@@ -1899,6 +1916,20 @@ private struct AppPaywallSheet: View {
         }
         .padding(24)
         .frame(minWidth: 460)
+        .onAppear {
+            // VoiceOver: move the cursor to the sheet's title as soon as it opens —
+            // same pattern as CompletedRecordingSheet/QuickHelpTopicView.
+            Task {
+                try? await Task.sleep(for: .milliseconds(150))
+                isTitleFocused = true
+            }
+        }
+        .onChange(of: viewModel.paywallMessageText) { _, newMessage in
+            // VoiceOver: a purchase/restore failure or notice was previously only
+            // shown as orange text — silent for anyone not already focused on it.
+            guard let message = newMessage else { return }
+            postAccessibilityAnnouncement(message)
+        }
     }
 
     @ViewBuilder

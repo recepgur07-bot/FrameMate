@@ -32,7 +32,8 @@ struct FMCard<Content: View>: View {
                 )
             } else {
                 headerRow
-                    .accessibilityHidden(true)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isHeader)
             }
 
             if isExpanded {

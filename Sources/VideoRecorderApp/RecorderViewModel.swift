@@ -2424,6 +2424,7 @@ final class RecorderViewModel {
         spatialCuePlayer.reset()
         sleepPreventer.prevent(reason: sleepReason)
         startMaxDurationTimer()
+        startElapsedAnnouncer()
         startRecordingSafetyMonitor()
     }
 
