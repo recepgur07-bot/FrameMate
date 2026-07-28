@@ -1,7 +1,9 @@
 import AppKit
+import AVFoundation
 
 protocol SoundEffectPlaying {
     @discardableResult func playCommandReceived() -> TimeInterval
+    func playCountdownTick(remaining: Int, total: Int)
     @discardableResult func playStart() -> TimeInterval
     @discardableResult func playStop() -> TimeInterval
     @discardableResult func playPauseResume() -> TimeInterval
@@ -9,12 +11,17 @@ protocol SoundEffectPlaying {
 
 extension SoundEffectPlaying {
     @discardableResult func playCommandReceived() -> TimeInterval { 0 }
+    func playCountdownTick(remaining: Int, total: Int) {}
     @discardableResult func playPauseResume() -> TimeInterval { 0 }
 }
 
 struct SoundEffectPlayer: SoundEffectPlaying {
     @discardableResult func playCommandReceived() -> TimeInterval {
         play(named: "baslama")
+    }
+
+    func playCountdownTick(remaining: Int, total: Int) {
+        CountdownTonePlayer.shared.play(remaining: remaining, total: total)
     }
 
     @discardableResult func playStart() -> TimeInterval {
@@ -57,6 +64,49 @@ struct SoundEffectPlayer: SoundEffectPlaying {
             return nil
         }
         return developmentURL
+    }
+}
+
+/// A short, nonverbal countdown cue. Its pitch rises toward zero so it remains
+/// understandable even when VoiceOver is not speaking the visible countdown.
+private final class CountdownTonePlayer {
+    static let shared = CountdownTonePlayer()
+
+    private let engine = AVAudioEngine()
+    private let player = AVAudioPlayerNode()
+    private let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
+
+    private init() {
+        engine.attach(player)
+        engine.connect(player, to: engine.mainMixerNode, format: format)
+    }
+
+    func play(remaining: Int, total: Int) {
+        guard total > 0 else { return }
+        if !engine.isRunning {
+            do {
+                try engine.start()
+            } catch {
+                runtimeDebugLog("Countdown tone engine could not start: \(error.localizedDescription)")
+                return
+            }
+        }
+
+        let frameCount = AVAudioFrameCount(format.sampleRate * 0.075)
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount),
+              let samples = buffer.floatChannelData?.pointee else { return }
+        buffer.frameLength = frameCount
+
+        let completedSteps = max(0, total - remaining)
+        let frequency = 520.0 + Double(completedSteps) * 150.0
+        for frame in 0..<Int(frameCount) {
+            let progress = Double(frame) / Double(frameCount)
+            let envelope = sin(.pi * progress)
+            samples[frame] = Float(sin(2 * .pi * frequency * progress * Double(frameCount) / format.sampleRate) * envelope * 0.18)
+        }
+
+        player.scheduleBuffer(buffer, at: nil, options: .interrupts)
+        player.play()
     }
 }
 

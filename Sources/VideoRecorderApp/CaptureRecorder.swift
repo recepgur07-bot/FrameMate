@@ -3,6 +3,10 @@ import Foundation
 
 typealias PreviewFrameHandler = (CVPixelBuffer, CMTime) -> Void
 
+private struct CaptureUnsafeSendableBox<Value>: @unchecked Sendable {
+    let value: Value
+}
+
 protocol CaptureRecording: AnyObject {
     var session: AVCaptureSession { get }
 
@@ -61,6 +65,7 @@ enum CaptureRecorderError: LocalizedError {
     case cannotExportMP4
     case alreadyRecording
     case notConfigured
+    case recordingStartTimedOut
     case cameraVideoEffectsActive([String])
 
     var errorDescription: String? {
@@ -85,6 +90,8 @@ enum CaptureRecorderError: LocalizedError {
             return String(localized: "Kayıt zaten devam ediyor.")
         case .notConfigured:
             return String(localized: "Kayıt oturumu henüz hazır değil.")
+        case .recordingStartTimedOut:
+            return String(localized: "Kamera kaydı zamanında başlatılamadı.")
         case .cameraVideoEffectsActive(let effectNames):
             let joinedNames = effectNames.joined(separator: ", ")
             return String(localized: "Kamera denetim merkezindeki video efektleri açık: \(joinedNames). Bu efektleri kapatıp tekrar deneyin.")
@@ -93,22 +100,33 @@ enum CaptureRecorderError: LocalizedError {
 
 }
 
-final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVCaptureVideoDataOutputSampleBufferDelegate, CaptureRecording, @unchecked Sendable {
+final class CaptureRecorder: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate, AVCaptureAudioDataOutputSampleBufferDelegate, CaptureRecording, @unchecked Sendable {
+    private static let recordingStartTimeout: DispatchTimeInterval = .seconds(8)
+    private static let writerDrainDelay: DispatchTimeInterval = .milliseconds(250)
     let session = AVCaptureSession()
 
     private let sessionQueue = DispatchQueue(label: "com.local.VideoRecorder.capture-session")
     private let previewOutputQueue = DispatchQueue(label: "com.local.VideoRecorder.preview-output")
-    private let movieOutput = AVCaptureMovieFileOutput()
+    private let audioOutputQueue = DispatchQueue(label: "com.local.VideoRecorder.camera-audio-output")
+    private let writerQueue = DispatchQueue(label: "com.local.VideoRecorder.camera-writer")
     private let previewOutput = AVCaptureVideoDataOutput()
+    private let audioOutput = AVCaptureAudioDataOutput()
     private var completion: ((Result<URL, Error>) -> Void)?
+    private var recordingStartContinuation: CheckedContinuation<Void, Error>?
+    private var recordingStartAttempt = 0
+    private var writer: AVAssetWriter?
+    private var videoWriterInput: AVAssetWriterInput?
+    private var audioWriterInput: AVAssetWriterInput?
+    private var outputURL: URL?
+    private var isRecording = false
+    private var isStopping = false
+    private var hasStartedWriting = false
+    private var hasAppendedAudioSample = false
+    private var audioChannelMode: AudioChannelMode = .automatic
     private var previewFrameHandler: PreviewFrameHandler?
     private var previewFramesEnabled = false
     private var capturedFirstSampleTime: CMTime?
     private var isAwaitingFirstSample = false
-
-    var isRecording: Bool {
-        movieOutput.isRecording
-    }
 
     var firstSamplePresentationTime: CMTime? { capturedFirstSampleTime }
 
@@ -181,17 +199,10 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
                     }
                     session.addInput(audioInput)
 
-                    if !session.outputs.contains(movieOutput) {
-                        guard session.canAddOutput(movieOutput) else {
-                            throw CaptureRecorderError.cannotAddMovieOutput
-                        }
-                        session.addOutput(movieOutput)
-                    }
-                    MovieOutputVideoEncoding.applyHEVCSettings(to: movieOutput)
-                    MovieOutputAudioEncoding.applyChannelMode(audioChannelMode, to: movieOutput)
-
                     if !session.outputs.contains(previewOutput) {
-                        previewOutput.alwaysDiscardsLateVideoFrames = true
+                        // These frames are both previewed and encoded. Dropping a late
+                        // frame here can make the movie clock start after the microphone.
+                        previewOutput.alwaysDiscardsLateVideoFrames = false
                         previewOutput.videoSettings = [
                             kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA
                         ]
@@ -202,7 +213,16 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
                         session.addOutput(previewOutput)
                     }
 
+                    if !session.outputs.contains(audioOutput) {
+                        audioOutput.setSampleBufferDelegate(self, queue: audioOutputQueue)
+                        guard session.canAddOutput(audioOutput) else {
+                            throw CaptureRecorderError.cannotAddMovieOutput
+                        }
+                        session.addOutput(audioOutput)
+                    }
+
                     applyOrientation(for: mode)
+                    self.audioChannelMode = audioChannelMode
                     continuation.resume()
                 } catch {
                     continuation.resume(throwing: error)
@@ -237,13 +257,13 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
     }
 
     func startRecording(to url: URL, completion: @escaping (Result<URL, Error>) -> Void) async throws {
-        try await withCheckedThrowingContinuation { continuation in
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             sessionQueue.async { [self] in
                 do {
-                    guard session.outputs.contains(movieOutput) else {
+                    guard session.outputs.contains(previewOutput), session.outputs.contains(audioOutput) else {
                         throw CaptureRecorderError.notConfigured
                     }
-                    guard !movieOutput.isRecording else {
+                    guard !isRecording else {
                         throw CaptureRecorderError.alreadyRecording
                     }
                     if let videoDevice = currentVideoDevice(),
@@ -257,11 +277,34 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
                         session.startRunning()
                     }
 
+                    let writer = try makeWriter(to: url, audioChannelMode: self.audioChannelMode)
+                    self.writer = writer.writer
+                    self.videoWriterInput = writer.videoInput
+                    self.audioWriterInput = writer.audioInput
+                    self.outputURL = url
                     self.completion = completion
+                    self.recordingStartContinuation = continuation
+                    self.recordingStartAttempt += 1
+                    let startAttempt = self.recordingStartAttempt
                     self.capturedFirstSampleTime = nil
                     self.isAwaitingFirstSample = true
-                    movieOutput.startRecording(to: url, recordingDelegate: self)
-                    continuation.resume()
+                    self.hasStartedWriting = false
+                    self.hasAppendedAudioSample = false
+                    self.isStopping = false
+                    self.isRecording = true
+
+                    // `startRecording` is only complete once AVFoundation confirms it
+                    // has begun writing. Do not leave the UI in “preparing” forever if
+                    // a camera never produces a valid stream.
+                    self.sessionQueue.asyncAfter(deadline: .now() + Self.recordingStartTimeout) { [self] in
+                        guard self.recordingStartAttempt == startAttempt,
+                              let pendingContinuation = self.recordingStartContinuation else {
+                            return
+                        }
+                        self.recordingStartContinuation = nil
+                        self.cancelRecordingLocked()
+                        pendingContinuation.resume(throwing: CaptureRecorderError.recordingStartTimedOut)
+                    }
                 } catch {
                     continuation.resume(throwing: error)
                 }
@@ -270,9 +313,16 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
     }
 
     func stopRecording() {
-        sessionQueue.async { [movieOutput] in
-            guard movieOutput.isRecording else { return }
-            movieOutput.stopRecording()
+        sessionQueue.async { [self] in
+            guard isRecording, !isStopping else { return }
+            isStopping = true
+            if session.isRunning {
+                session.stopRunning()
+            }
+
+            writerQueue.asyncAfter(deadline: .now() + Self.writerDrainDelay) { [self] in
+                finishRecordingOnWriterQueue()
+            }
         }
     }
 
@@ -288,41 +338,68 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
         }
     }
 
-    func fileOutput(
-        _ output: AVCaptureFileOutput,
-        didFinishRecordingTo outputFileURL: URL,
-        from connections: [AVCaptureConnection],
-        error: Error?
-    ) {
-        if let error {
-            completion?(.failure(error))
-        } else {
-            completion?(.success(outputFileURL))
-        }
-        completion = nil
-    }
-
     func captureOutput(
         _ output: AVCaptureOutput,
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
-        // previewOutput shares the session with movieOutput, so its samples land on the
-        // same host-time base as the file movieOutput is writing — this is the only way
-        // to observe the recording's first-sample time, since AVCaptureFileOutput gives no
-        // per-sample callback of its own. Captured regardless of whether the preview
-        // handler is currently wired up.
+        if output === audioOutput {
+            appendAudioSample(sampleBuffer)
+            return
+        }
+        guard output === previewOutput else { return }
         if isAwaitingFirstSample {
             isAwaitingFirstSample = false
             capturedFirstSampleTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
         }
 
+        appendVideoSample(sampleBuffer)
+
         guard previewFramesEnabled,
               let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
-
         previewFrameHandler?(imageBuffer, CMSampleBufferGetPresentationTimeStamp(sampleBuffer))
+    }
+
+    private func appendVideoSample(_ sampleBuffer: CMSampleBuffer) {
+        guard CMSampleBufferIsValid(sampleBuffer) else { return }
+        let sampleBufferBox = CaptureUnsafeSendableBox(value: sampleBuffer)
+        writerQueue.async { [self] in
+            // Audio is the timeline anchor. This deliberately preserves the first
+            // spoken sound even if the camera delivers its first encoded frame later.
+            guard hasStartedWriting,
+                  !isStopping,
+                  let videoWriterInput,
+                  videoWriterInput.isReadyForMoreMediaData else { return }
+            _ = videoWriterInput.append(sampleBufferBox.value)
+        }
+    }
+
+    private func appendAudioSample(_ sampleBuffer: CMSampleBuffer) {
+        guard CMSampleBufferIsValid(sampleBuffer) else { return }
+        let sampleBufferBox = CaptureUnsafeSendableBox(value: sampleBuffer)
+        writerQueue.async { [self] in
+            guard isRecording, !isStopping,
+                  let writer,
+                  let audioWriterInput else { return }
+
+            if !hasStartedWriting {
+                guard writer.startWriting() else {
+                    completeRecording(.failure(writer.error ?? CaptureRecorderError.cannotExportMP4))
+                    return
+                }
+                let presentationTime = CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value)
+                writer.startSession(atSourceTime: presentationTime)
+                hasStartedWriting = true
+                runtimeDebugLog("Camera recording started writing audio: \(outputURL?.path ?? "unknown")")
+            }
+
+            guard audioWriterInput.isReadyForMoreMediaData,
+                  audioWriterInput.append(sampleBufferBox.value) else { return }
+            hasAppendedAudioSample = true
+            resumeRecordingStartIfNeeded()
+        }
     }
 
     private func requestAccess(for mediaType: AVMediaType) async -> Bool {
@@ -346,8 +423,7 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
 
     private func applyOrientation(for mode: RecordingMode) {
         let angle: CGFloat = mode.captureRotationAngle  // always 0
-        let connections = [movieOutput.connection(with: .video),
-                           previewOutput.connection(with: .video)].compactMap { $0 }
+        let connections = [previewOutput.connection(with: .video)].compactMap { $0 }
         for connection in connections {
             if connection.isVideoRotationAngleSupported(angle) {
                 connection.videoRotationAngle = angle
@@ -360,6 +436,95 @@ final class CaptureRecorder: NSObject, AVCaptureFileOutputRecordingDelegate, AVC
             .compactMap { $0 as? AVCaptureDeviceInput }
             .first(where: { $0.device.hasMediaType(.video) })?
             .device
+    }
+
+    private func makeWriter(to url: URL, audioChannelMode: AudioChannelMode) throws -> (writer: AVAssetWriter, videoInput: AVAssetWriterInput, audioInput: AVAssetWriterInput) {
+        let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
+        let fallbackVideoSettings: [String: Any] = [
+            AVVideoCodecKey: AVVideoCodecType.hevc,
+            AVVideoWidthKey: 1920,
+            AVVideoHeightKey: 1080,
+            AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 8_000_000]
+        ]
+        let videoInput = AVAssetWriterInput(
+            mediaType: .video,
+            outputSettings: previewOutput.recommendedVideoSettingsForAssetWriter(writingTo: .mov) ?? fallbackVideoSettings
+        )
+        videoInput.expectsMediaDataInRealTime = true
+
+        var audioSettings = audioOutput.recommendedAudioSettingsForAssetWriter(writingTo: .mov) ?? [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: 48_000,
+            AVEncoderBitRateKey: 128_000,
+            AVNumberOfChannelsKey: 1
+        ]
+        if audioChannelMode == .mono {
+            audioSettings[AVNumberOfChannelsKey] = 1
+        }
+        let audioInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+        audioInput.expectsMediaDataInRealTime = true
+
+        guard writer.canAdd(videoInput), writer.canAdd(audioInput) else {
+            throw CaptureRecorderError.cannotExportMP4
+        }
+        writer.add(videoInput)
+        writer.add(audioInput)
+        return (writer, videoInput, audioInput)
+    }
+
+    private func resumeRecordingStartIfNeeded() {
+        sessionQueue.async { [self] in
+            guard let continuation = recordingStartContinuation else { return }
+            recordingStartContinuation = nil
+            continuation.resume()
+        }
+    }
+
+    private func finishRecordingOnWriterQueue() {
+        guard let writer, let outputURL, hasStartedWriting, hasAppendedAudioSample else {
+            completeRecording(.failure(CaptureRecorderError.cannotExportMP4))
+            return
+        }
+        videoWriterInput?.markAsFinished()
+        audioWriterInput?.markAsFinished()
+        writer.finishWriting { [weak self] in
+            if let error = writer.error {
+                self?.completeRecording(.failure(error))
+            } else {
+                self?.completeRecording(.success(outputURL))
+            }
+        }
+    }
+
+    private func completeRecording(_ result: Result<URL, Error>) {
+        sessionQueue.async { [self] in
+            let pendingContinuation = recordingStartContinuation
+            recordingStartContinuation = nil
+            let completion = completion
+            resetRecordingStateLocked()
+            if let pendingContinuation {
+                pendingContinuation.resume(throwing: CaptureRecorderError.recordingStartTimedOut)
+            }
+            completion?(result)
+        }
+    }
+
+    private func cancelRecordingLocked() {
+        writer?.cancelWriting()
+        resetRecordingStateLocked()
+    }
+
+    private func resetRecordingStateLocked() {
+        writer = nil
+        videoWriterInput = nil
+        audioWriterInput = nil
+        outputURL = nil
+        completion = nil
+        isRecording = false
+        isStopping = false
+        hasStartedWriting = false
+        hasAppendedAudioSample = false
+        isAwaitingFirstSample = false
     }
 }
 

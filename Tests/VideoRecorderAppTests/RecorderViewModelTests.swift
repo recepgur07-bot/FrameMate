@@ -143,7 +143,7 @@ final class RecorderViewModelTests: XCTestCase {
     func testDirectStartDoesNotBeginScreenRecordingWithoutScreenPermission() async {
         let screenProvider = MockScreenRecordingProvider(
             status: .denied,
-            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+            displays: []
         )
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(),
@@ -170,7 +170,7 @@ final class RecorderViewModelTests: XCTestCase {
     func testGlobalToggleDoesNotBeginCountdownWhenSelectedModeCannotStart() async {
         let screenProvider = MockScreenRecordingProvider(
             status: .denied,
-            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+            displays: []
         )
         let viewModel = RecorderViewModel(
             recorder: MockCaptureRecorder(),
@@ -1289,7 +1289,7 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(recorder.stopSessionCalled)
     }
 
-    func testSetupDoesNotStartCameraPreviewForAutoReframeOnly() async {
+    func testSelectingCameraModeWarmsSessionWithoutEnablingPreviewFrames() async {
         let recorder = RecorderCaptureStub(
             cameras: [InputDevice(id: "cam-1", name: "FaceTime HD")],
             microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]
@@ -1304,11 +1304,13 @@ final class RecorderViewModelTests: XCTestCase {
         )
 
         await viewModel.setup()
+        viewModel.selectPreset(.horizontalCamera)
+        viewModel.refreshDeviceState()
         try? await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertTrue(viewModel.isAutoReframeEnabled)
         XCTAssertFalse(viewModel.isFrameCoachEnabled)
-        XCTAssertFalse(recorder.startSessionInBackgroundCalled)
+        XCTAssertTrue(recorder.startSessionInBackgroundCalled)
         XCTAssertFalse(recorder.previewFramesEnabled)
     }
 
@@ -3052,7 +3054,7 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: sourceURL.path))
     }
 
-    func testStartSoundPlaysBeforeSystemAudioCaptureStarts() async {
+    func testCameraStartSoundPlaysAfterCaptureTracksHaveStarted() async {
         let events = RecordingStartEventLog()
         let recorder = RecorderCaptureStub(
             cameras: [InputDevice(id: "camera-1", name: "Camera")],
@@ -3080,7 +3082,7 @@ final class RecorderViewModelTests: XCTestCase {
             try? await Task.sleep(for: .milliseconds(10))
         }
 
-        XCTAssertEqual(events.values.prefix(2), ["start-sound", "system-audio-start"])
+        XCTAssertEqual(events.values.prefix(2), ["system-audio-start", "start-sound"])
     }
 
     func testToggleRecordingPlaysCommandSoundBeforeCountdown() async {
@@ -3099,8 +3101,10 @@ final class RecorderViewModelTests: XCTestCase {
         viewModel.recordingCountdown = .three
 
         viewModel.toggleRecording()
+        try? await Task.sleep(nanoseconds: 100_000_000)
 
         XCTAssertEqual(soundEffectPlayer.commandReceivedCallCount, 1)
+        XCTAssertEqual(soundEffectPlayer.countdownTickCallCount, 1)
         XCTAssertTrue(viewModel.isCountingDown)
         XCTAssertFalse(viewModel.isRecording)
     }
@@ -3543,6 +3547,7 @@ private final class MockSoundEffectPlayer: SoundEffectPlaying {
     var commandReceivedDurations: [TimeInterval] = [0]
     var pauseResumeDurations: [TimeInterval] = [0]
     var commandReceivedCallCount = 0
+    var countdownTickCallCount = 0
     var startCallCount = 0
     var pauseResumeCallCount = 0
     var stopCallCount = 0
@@ -3552,6 +3557,10 @@ private final class MockSoundEffectPlayer: SoundEffectPlaying {
         onCommandReceived()
         guard !commandReceivedDurations.isEmpty else { return 0 }
         return commandReceivedDurations.removeFirst()
+    }
+
+    func playCountdownTick(remaining: Int, total: Int) {
+        countdownTickCallCount += 1
     }
 
     func playStart() -> TimeInterval {

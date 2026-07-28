@@ -97,13 +97,11 @@ private extension NSMenuItem {
 }
 
 func runtimeDebugLog(_ message: String) {
-#if DEBUG
     appendDebugLog(
         prefix: "[Runtime]",
         message: message,
-        path: "/tmp/videorecorder-runtime.log"
+        fileName: "videorecorder-runtime.log"
     )
-#endif
 }
 
 private func debugLog(_ message: String) {
@@ -111,15 +109,18 @@ private func debugLog(_ message: String) {
     appendDebugLog(
         prefix: "[VideoRecorderApplication]",
         message: message,
-        path: "/tmp/videorecorder-keyevents.log"
+        fileName: "videorecorder-keyevents.log"
     )
 #endif
 }
 
-private func appendDebugLog(prefix: String, message: String, path: String) {
-#if DEBUG
-    let line = "\(prefix) \(message)\n"
-    let url = URL(fileURLWithPath: path)
+private func appendDebugLog(prefix: String, message: String, fileName: String) {
+    // App Sandbox blocks writes to absolute system paths like /tmp; the sandboxed
+    // temporary directory (inside the app's container) is the only writable spot
+    // that doesn't need a user-granted security-scoped bookmark.
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
+    let timestamp = ISO8601DateFormatter().string(from: Date())
+    let line = "\(timestamp) \(prefix) \(message)\n"
     let data = Data(line.utf8)
 
     if FileManager.default.fileExists(atPath: url.path),
@@ -130,5 +131,4 @@ private func appendDebugLog(prefix: String, message: String, path: String) {
     } else {
         try? data.write(to: url)
     }
-#endif
 }

@@ -329,3 +329,67 @@ enstrümantasyonu (gerçek ilk kare PTS farkı) da Faz 2 commit'inde var. Handof
 hesaplanmaz `runtimeDebugLog` ile eklendi (aşağıdaki commit'e bakınız) — böylece Faz 6 artık
 tam: oturum sıfırı, duraklama aralıkları, her bileşenin hesaplanan offset'i ve ekran
 dosyasının gerçek ilk kare PTS farkı, hepsi `runtimeDebugLog`'da.
+
+## Bu oturum (2026-07-28) — gerçek cihaz doğrulaması tıkanıklığı için loglama düzeltmesi
+
+**Sorun:** Kullanıcı (VoiceOver kullanıcısı, görme engelli) iki gündür gerçek uygulamada
+kayıt sorunları yaşadığını bildiriyor ama sorunu sözle tarif etmek yetersiz kalıyor.
+Kod incelemesinde şu bulundu: `runtimeDebugLog` (`VideoRecorderApplication.swift:99`) ve
+altındaki `appendDebugLog` fonksiyonu `#if DEBUG` bloğu içindeydi — yani kullanıcı
+paketlenmiş/Release build'i test ediyorsa (App Store yeniden gönderim görevi sürüyor,
+muhtemel senaryo budur) Faz 2-6'da eklenen tüm zamanlama enstrümantasyonu **hiç
+yazılmıyordu**. Bu, önceki oturumların kullanıcının sorununu anlayamamasının olası kök
+nedeni.
+
+**Yapılan değişiklikler:**
+- `runtimeDebugLog`/`appendDebugLog` (`VideoRecorderApplication.swift`) artık `#if DEBUG`
+  koşulu olmadan, build tipinden bağımsız her zaman `/tmp/videorecorder-runtime.log`'a
+  yazıyor; her satıra ISO8601 zaman damgası eklendi. (`debugLog`/keyevents logu kasıtlı
+  olarak DEBUG-gated bırakıldı, kayıt sorunuyla ilgisiz.)
+- `beginRecordingPreparation()` (`RecorderViewModel.swift`) her kayıt denemesinde
+  `=== YENİ KAYIT OTURUMU BAŞLADI (generation N) ===` satırı yazıyor, böylece log
+  dosyasında hangi denemenin nerede başladığı net.
+- `report(_:)` ve `handleCaptureDeviceDisconnect(_:)` — kullanıcıya VoiceOver ile
+  duyurulan iki hata yolu — artık hata metnini `runtimeDebugLog`'a da yazıyor.
+- Bu Mac'te çalışan bir masaüstü (AppKit) uygulaması olduğu için log dosyası doğrudan bu
+  ortamdan okunabilir; kullanıcının sorunu ayrıca tarif etmesine gerek kalmıyor.
+- Kanıt: `xcodebuild -scheme FrameMate -configuration Release build CODE_SIGNING_ALLOWED=NO`
+  → **BUILD SUCCEEDED** (Release'de log kodu artık gerçekten derleniyor, doğrulandı);
+  `xcodebuild -scheme FrameMate -configuration Debug test-without-building
+  -only-testing:FrameMateTests` → `Executed 368 tests, with 2 tests skipped and 0
+  failures`.
+- **Doğrulanmamış kalan risk**: Kullanıcının gerçekte hangi build'i (Xcode'dan Debug mı,
+  yoksa kurulu Release/App Store sürümü mü) çalıştırdığı henüz teyit edilmedi; sonraki
+  adım kullanıcının normal kullanım sırasında `/tmp/videorecorder-runtime.log`'un
+  gerçekten büyüdüğünü doğrulamak.
+
+## Bu oturum (2026-07-28, devam) — kod imzalama kararsızlığı bulundu
+
+**Bulgu:** Kullanıcı test için hazırlanan build'i çalıştırdığında `runtimeDebugLog`
+dosyası yine hiç oluşmadı ve `/usr/bin/log show --predicate 'process == "FrameMate"'`
+çıktısında şu sıra görüldü: uygulama açılışında çok sayıda `(TCC) TCCAccessRequest() IPC`
+satırı, ardından bir `performClick`/`sendAction`, ardından hemen
+`applicationShouldTerminate: NSTerminateNow` ile temiz ama beklenmedik bir kapanma.
+`project.pbxproj`'da FrameMate hedefinin Debug yapılandırması (satır ~913)
+`CODE_SIGN_IDENTITY = "-"` (ad-hoc) + `ENABLE_HARDENED_RUNTIME = YES` kullanıyordu.
+Ad-hoc imza, kaynak her değiştiğinde (yani her yeniden derlemede) imza özetini
+değiştirir; TCC (Ekran Kaydı/Kamera/Mikrofon izinleri) bunu her seferinde "yeni/farklı
+uygulama" sayıp izinleri sıfırlayabilir ve hardened runtime + ScreenCaptureKit
+kombinasyonunda izin onayından hemen sonra uygulamanın yeniden başlatılmasını
+zorlayabilir — gözlenen "izin iste → tıkla → uygulama hemen kapandı" sırasıyla tutarlı.
+
+**Değişiklik:** `project.pbxproj`, FrameMate hedefi Debug config: `CODE_SIGN_IDENTITY`
+`"-"`'den `"Apple Development"`'a değiştirildi (anahtar zincirinde geçerli bir
+"Apple Development: Created via API (DT83VVA6NB)" sertifikası bulundu — `Apple
+Distribution` sertifikaları serial 4FE8...454 iptal edilmiş/geçersizdi, `security
+find-identity -v -p codesigning` ile doğrulandı). `DEVELOPMENT_TEAM` zaten
+`9MA297YYN2` olarak ayarlıydı, değiştirilmedi. Release config'e dokunulmadı
+(App Store gönderimi hâlâ `Apple Distribution` kullanıyor).
+
+**Kanıt:** `xcodebuild -scheme FrameMate -configuration Debug build` → **BUILD
+SUCCEEDED**, `codesign -dv` çıktısı artık `TeamIdentifier=9MA297YYN2` ile stabil.
+
+**Doğrulanmamış kalan risk:** Bu imza değişikliğinin gerçekten TCC/ScreenCaptureKit
+kararsızlığını çözüp çözmediği, kullanıcının bir sonraki gerçek kayıt denemesiyle
+doğrulanmalı — henüz `/tmp/videorecorder-runtime.log` bu düzeltmeyle dolu bir kayıt
+denemesi görmedi.

@@ -31,16 +31,21 @@ final class ScreenRecorder: NSObject, ScreenRecordingProviding, SCStreamOutput, 
 
     func prefetchShareableContent() {
         guard prefetchedContentTask == nil else { return }
+        runtimeDebugLog("ScreenCaptureKit content prefetch requested")
         prefetchedContentTask = Task {
-            try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+            let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+            runtimeDebugLog("ScreenCaptureKit content prefetch completed")
+            return content
         }
     }
 
     private func resolvedShareableContent() async throws -> SCShareableContent {
         if let task = prefetchedContentTask {
             prefetchedContentTask = nil
+            runtimeDebugLog("ScreenCaptureKit recording start is using prefetched content")
             return try await task.value
         }
+        runtimeDebugLog("ScreenCaptureKit recording start has no prefetched content")
         return try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
     }
 

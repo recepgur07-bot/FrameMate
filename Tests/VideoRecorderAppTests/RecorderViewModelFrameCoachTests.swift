@@ -109,6 +109,11 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
 
         await viewModel.setup()
         viewModel.selectPreset(.horizontalCamera)
+        for _ in 0..<20 where recorder.configureCallCount == 0 || recorder.startSessionInBackgroundCallCount == 0 {
+            await Task.yield()
+        }
+        let configureCountBeforeToggle = recorder.configureCallCount
+        let sessionStartCountBeforeToggle = recorder.startSessionInBackgroundCallCount
         viewModel.isRecording = true
 
         viewModel.toggleFrameCoach()
@@ -116,8 +121,8 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
 
         XCTAssertTrue(viewModel.isRecording)
         XCTAssertTrue(viewModel.isFrameCoachEnabled)
-        XCTAssertEqual(recorder.configureCallCount, 0)
-        XCTAssertEqual(recorder.startSessionInBackgroundCallCount, 0)
+        XCTAssertEqual(recorder.configureCallCount, configureCountBeforeToggle)
+        XCTAssertEqual(recorder.startSessionInBackgroundCallCount, sessionStartCountBeforeToggle)
         XCTAssertTrue(speaker.spokenTexts.isEmpty)
     }
 
@@ -202,7 +207,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         XCTAssertFalse(viewModel.isRecording)
         XCTAssertFalse(viewModel.isFrameCoachEnabled)
         XCTAssertFalse(recorder.previewFramesEnabled)
-        XCTAssertGreaterThan(recorder.stopSessionCallCount, stopSessionCallCountBeforeRecording)
+        XCTAssertEqual(recorder.stopSessionCallCount, stopSessionCallCountBeforeRecording)
     }
 
     func testToggleFrameCoachDisablesCoachAndClearsInstruction() {

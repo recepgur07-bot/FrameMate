@@ -1107,6 +1107,7 @@ final class RecorderViewModel {
     /// expressed in this clock's seconds, not in wall-clock uptime, so they line up with
     /// where each component's file actually starts (t=0 = that file's own first sample).
     private var recordingSessionClock: RecordingSessionClock?
+    private var isCameraSessionWarmed = false
     private var currentPauseStartOffset: TimeInterval?
     private var recordingPauseTimeline = RecordingPauseTimeline()
     @ObservationIgnored private var elapsedTimeAnnouncer = RecordingElapsedTimeAnnouncer()
@@ -1458,6 +1459,11 @@ final class RecorderViewModel {
         isRecordingPauseResumeSoundEnabled = userDefaultBool(forKey: "recording.sound.pauseResume", defaultValue: true)
         configureFrameCoachFeed()
         refreshDeviceState()
+        // A restored/default camera preset must warm the same capture session that
+        // Frame Coach uses. Previously this only happened after an explicit picker
+        // change or when Frame Coach was enabled, leaving the first normal video
+        // recording to cold-start the camera pipeline.
+        applySelectedInputs()
         if !recoveredTemporaryRecordingURLs.isEmpty {
             statusText = String(localized: "Önceki oturumdan kurtarılabilir kayıt dosyaları bulundu.")
         }
@@ -1514,8 +1520,35 @@ final class RecorderViewModel {
         if !hasRequiredPermissions {
             isRecorderConfigured = false
         }
+
+        // ScreenCaptureKit'in paylaşılabilir ekran/pencere listesini ilk kez istemesi
+        // bazı Mac'lerde birkaç saniye sürebiliyor. Bu iş daha önce kayıt düğmesine
+        // basıldıktan sonra başlatılıyordu; ses kaydı yolunda bulunmayan bu bekleme,
+        // video kaydının geç başladığı izlenimini veriyordu. Kullanıcı ekran/pencere
+        // modunu seçtiğinde içeriği önceden ısıtıyoruz; kayıt anı yalnızca hazır sonucu
+        // kullanır. İzin yokken çağırmıyoruz, böylece açılışta beklenmedik bir sistem
+        // izni istemi oluşturmayız.
+        if screenRecordingPermissionStatus == .authorized {
+            switch selectedRecordingSource {
+            case .screen, .window:
+                screenRecordingProvider.prefetchShareableContent()
+            case .camera, .audio:
+                break
+            }
+            if isSystemAudioEnabled {
+                systemAudioRecorder.prefetchShareableContent()
+            }
+        }
+
         Task {
-            await refreshScreenRecordingSources()
+            // The user has explicitly selected screen/window capture. On recent
+            // macOS releases the preflight API may retain a denied answer after
+            // the user enables “Screen & System Audio Recording”, while the
+            // ScreenCaptureKit query succeeds. Validate with the actual capture
+            // capability instead of leaving the UI stuck on the cached result.
+            await refreshScreenRecordingSources(
+                forceSourceFetch: selectedRecordingSource == .screen || selectedRecordingSource == .window
+            )
         }
         updatePreviewAnalysisState()
         updateScreenOverlayPreviewState()
@@ -1524,7 +1557,7 @@ final class RecorderViewModel {
     func applySelectedInputs() {
         guard hasSetUp, !isRecording else { return }
         guard selectedPreset.isCameraPreset else {
-            recorder.stopSession()
+            stopCameraSessionIfNeeded()
             statusText = makeStatusText()
             errorText = nil
             updateScreenOverlayPreviewState()
@@ -1537,9 +1570,12 @@ final class RecorderViewModel {
                 // başlatmaz; sistem sesi izni burada zorunlu değil (bkz.
                 // prepareAnalysisPreviewIfPossible ile aynı gerekçe).
                 try await configureRecorder(requireSystemAudioReadiness: false)
-                if isFrameCoachEnabled {
-                    recorder.startSessionInBackground()
-                }
+                // Movie output'un ilk ses/video örnekleri gelmeden önce kayda başlamış
+                // görünmesini önlemek için kamera akışını seçili kamera modunda önceden
+                // ısıtıyoruz. Bu, analiz karelerini açmaz; yalnızca donanım hattını
+                // kayıt düğmesine basılmadan hazırlar.
+                guard self.selectedPreset.isCameraPreset, !self.isRecording else { return }
+                self.startCameraSessionIfNeeded()
                 statusText = String(localized: "\(currentPresetReadinessLabel) hazır.")
                 errorText = nil
             } catch {
@@ -1569,6 +1605,7 @@ final class RecorderViewModel {
             return
         }
 
+        stopCameraSessionIfNeeded()
         try await recorder.configure(
             videoDeviceID: selectedCameraID,
             audioDeviceID: selectedMicrophoneID,
@@ -1580,6 +1617,18 @@ final class RecorderViewModel {
         lastConfiguredAudioDeviceID = selectedMicrophoneID
         lastConfiguredMode = selectedMode
         lastConfiguredAudioChannelMode = audioChannelMode
+    }
+
+    private func startCameraSessionIfNeeded() {
+        guard !isCameraSessionWarmed else { return }
+        recorder.startSessionInBackground()
+        isCameraSessionWarmed = true
+    }
+
+    private func stopCameraSessionIfNeeded() {
+        guard isCameraSessionWarmed else { return }
+        recorder.stopSession()
+        isCameraSessionWarmed = false
     }
 
     func toggleRecording() {
@@ -1766,6 +1815,10 @@ final class RecorderViewModel {
                 while await MainActor.run(body: { self.countdownRemaining }) > 0 {
                     let remaining = await MainActor.run(body: { self.countdownRemaining })
                     await MainActor.run {
+                        self.soundEffectPlayer.playCountdownTick(
+                            remaining: remaining,
+                            total: self.recordingCountdown.rawValue
+                        )
                         self.speechCuePlayer.speakIfNeeded(
                             "\(remaining)",
                             isEnabled: true,
@@ -2117,20 +2170,6 @@ final class RecorderViewModel {
             pendingCameraSystemAudioWarning = nil
             pendingCameraSystemAudioCaptureResult = isSystemAudioEnabled ? nil : .success(nil)
 
-            if isSystemAudioEnabled {
-                systemAudioRecorder.prefetchShareableContent()
-            }
-            await playStartSoundBeforeCapture()
-
-            if isSystemAudioEnabled {
-                try await systemAudioRecorder.startRecording(to: systemAudioURL) { [weak self] result in
-                    Task { @MainActor in
-                        self?.handleCameraSystemAudioRecordingCompletion(result)
-                    }
-                }
-                pendingCameraSystemAudioCaptureURL = systemAudioURL
-            }
-
             do {
                 try await recorder.startRecording(to: captureURL) { [weak self] result in
                     Task { @MainActor in
@@ -2149,6 +2188,29 @@ final class RecorderViewModel {
                 statusText: String(localized: "Kayıt yapılıyor"),
                 sleepReason: "Video kaydı devam ediyor"
             )
+
+            // The capture must already be accepting microphone samples before its
+            // audible start cue. Previously this cue was played *before* starting
+            // the camera pipeline, inviting the user to speak while the first
+            // seconds of the recording were still unavailable.
+            if isSystemAudioEnabled {
+                systemAudioRecorder.prefetchShareableContent()
+                do {
+                    try await systemAudioRecorder.startRecording(to: systemAudioURL) { [weak self] result in
+                        Task { @MainActor in
+                            self?.handleCameraSystemAudioRecordingCompletion(result)
+                        }
+                    }
+                    pendingCameraSystemAudioCaptureURL = systemAudioURL
+                } catch {
+                    // The camera movie is already recording. Treat a late system-audio
+                    // setup failure as an optional-track warning rather than abandoning
+                    // a valid camera recording after the user has started speaking.
+                    pendingCameraSystemAudioCaptureResult = .success(nil)
+                    pendingCameraSystemAudioWarning = error.localizedDescription
+                }
+            }
+            await playStartSoundBeforeCapture()
         } catch {
             report(error)
         }
@@ -2345,6 +2407,7 @@ final class RecorderViewModel {
         // is driven by async callbacks decoupled from the view model's live state — can
         // recognize it is stale and must not overwrite this recording's UI state.
         recordingGeneration += 1
+        runtimeDebugLog("=== YENİ KAYIT OTURUMU BAŞLADI (generation \(recordingGeneration)) ===")
         return true
     }
 
@@ -2543,6 +2606,9 @@ final class RecorderViewModel {
         pendingScreenKeyboardShortcutTimeline = .empty
         pendingOverlayCaptureResult = isScreenCameraOverlayEnabled ? nil : .success(nil)
 
+        // Normalde refreshDeviceState() bu işi ekran modu seçilir seçilmez başlatır.
+        // Bu çağrı yalnızca uygulama kaynaktan henüz ısınmadan kayıt başlatılırsa
+        // güvenlik ağıdır; sağlayıcı aynı işi ikinci kez başlatmaz.
         screenRecordingProvider.prefetchShareableContent()
         if isSystemAudioEnabled {
             systemAudioRecorder.prefetchShareableContent()
@@ -2550,6 +2616,8 @@ final class RecorderViewModel {
 
         do {
             await playStartSoundBeforeCapture()
+
+            runtimeDebugLog("Screen recording start: start cue finished; preparing optional tracks")
 
             if isCursorHighlightEnabled, let targetFrame = currentScreenCaptureTargetFrame() {
                 cursorHighlightRecorder.startTracking(targetFrame: targetFrame)
@@ -2567,6 +2635,7 @@ final class RecorderViewModel {
                     }
                 }
                 pendingScreenOverlayCaptureURL = overlayCaptureURL
+                runtimeDebugLog("Screen recording start: camera overlay started")
             }
 
             if !selectedMicrophoneID.isEmpty {
@@ -2576,6 +2645,7 @@ final class RecorderViewModel {
                     }
                 }
                 pendingScreenMicrophoneCaptureURL = microphoneCaptureURL
+                runtimeDebugLog("Screen recording start: microphone track started")
             }
 
             if isSystemAudioEnabled {
@@ -2585,8 +2655,10 @@ final class RecorderViewModel {
                     }
                 }
                 pendingScreenSystemAudioCaptureURL = systemAudioCaptureURL
+                runtimeDebugLog("Screen recording start: system-audio track started")
             }
 
+            runtimeDebugLog("Screen recording start: starting ScreenCaptureKit stream")
             try await screenRecordingProvider.startRecording(
                 target: target,
                 microphoneDeviceID: "",
@@ -2597,6 +2669,7 @@ final class RecorderViewModel {
                     self?.handleScreenRecordingCompletion(result, finalURL: finalURL)
                 }
             }
+            runtimeDebugLog("Screen recording start: ScreenCaptureKit startCapture returned")
         } catch {
             cleanupFailedScreenRecordingStart()
             throw error
@@ -3597,6 +3670,7 @@ final class RecorderViewModel {
     }
 
     private func report(_ error: Error) {
+        runtimeDebugLog("HATA gösterildi (generation \(recordingGeneration)): \(error.localizedDescription)")
         refreshPermissionStatus()
         errorText = error.localizedDescription
         statusText = "Hata: \(error.localizedDescription)"
@@ -3656,6 +3730,7 @@ final class RecorderViewModel {
         let message = device.hasMediaType(.audio)
             ? String(localized: "Mikrofon bağlantısı kesildi. Kayıt güvenle durduruluyor.")
             : String(localized: "Kamera bağlantısı kesildi. Kayıt güvenle durduruluyor.")
+        runtimeDebugLog("HATA gösterildi (generation \(recordingGeneration)): \(message)")
         errorText = message
         statusText = message
         speechCuePlayer.reset()
@@ -4352,7 +4427,7 @@ final class RecorderViewModel {
                 try await configureRecorder(requireSystemAudioReadiness: false)
                 guard !Task.isCancelled else { return }
                 guard isCameraPreviewAnalysisActive, !isRecording, !isPreparingRecording else { return }
-                recorder.startSessionInBackground()
+                startCameraSessionIfNeeded()
             } catch {
                 report(error)
             }
@@ -4478,9 +4553,12 @@ final class RecorderViewModel {
         recorder.setPreviewFramesEnabled(isCameraPreviewAnalysisActive)
         cameraOverlayRecorder.setPreviewFramesEnabled(isScreenOverlayFrameCoachActive)
 
-        if !isCameraPreviewAnalysisActive, !isRecording {
+        // Normal camera mode keeps the warmed capture session alive between recordings.
+        // Frame Coach is optional; disabling it must not make the next video recording
+        // cold-start the camera and lose the user's opening words.
+        if !isCameraPreviewAnalysisActive, !isRecording, !selectedPreset.isCameraPreset {
             cancelFrameCoachPreviewPreparation()
-            recorder.stopSession()
+            stopCameraSessionIfNeeded()
         } else if !isRecording, !isPreparingRecording {
             scheduleFrameCoachPreviewPreparation()
         }
@@ -4657,6 +4735,7 @@ final class RecorderViewModel {
 
         guard refresh else { return }
         refreshDeviceState()
+        applySelectedInputs()
     }
 
     private func restoreLastRecordingConfiguration(_ configuration: LastRecordingConfiguration) {
