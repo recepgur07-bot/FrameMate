@@ -18,3 +18,5 @@ xcuserdata/
 *.xcworkspace/xcuserdata/
 .build/
 .playwright-mcp/
+docs/ai-work/.locks/
+fastlane/backups/
