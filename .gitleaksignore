@@ -1,0 +1,3 @@
+# Screenshot asset identifiers in this committed JSON file; reviewed false positives.
+86017aa8be7ed2b70ea5344f9ba41392cfb961f4:fastlane/scripts/mac_store_screenshot_copy.json:generic-api-key:8
+86017aa8be7ed2b70ea5344f9ba41392cfb961f4:fastlane/scripts/mac_store_screenshot_copy.json:generic-api-key:47

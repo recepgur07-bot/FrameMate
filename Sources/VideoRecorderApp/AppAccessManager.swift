@@ -288,7 +288,9 @@ final class AppAccessManager: AppAccessManaging {
                     plan: product.plan,
                     title: info?.displayName ?? product.plan.defaultTitle,
                     price: info?.displayPrice,
-                    description: info?.description.isEmpty == false ? info!.description : product.plan.defaultDescription,
+                    description: info.flatMap { info in
+                        info.description.isEmpty ? nil : info.description
+                    } ?? product.plan.defaultDescription,
                     isAvailableForPurchase: info != nil
                 )
             }

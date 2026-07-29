@@ -1647,10 +1647,10 @@ final class RecorderViewModel {
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
 
-        playCommandReceivedSoundIfEnabled()
+        let commandSoundDelay = playCommandReceivedSoundIfEnabled()
 
         if recordingCountdown == .none {
-            startRecording()
+            startRecording(afterCommandSoundDelay: commandSoundDelay)
         } else {
             beginCountdown()
         }
@@ -2066,7 +2066,9 @@ final class RecorderViewModel {
 
     func startRecording(afterCommandSoundDelay commandSoundDelay: TimeInterval = 0) {
         Task {
-            _ = commandSoundDelay
+            if commandSoundDelay > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(commandSoundDelay * 1_000_000_000))
+            }
             await startRecordingAsync()
         }
     }
@@ -2093,10 +2095,10 @@ final class RecorderViewModel {
         guard ensureRecordingAccess() else { return }
         guard ensureSelectedRecordingCanStart() else { return }
 
-        playCommandReceivedSoundIfEnabled()
+        let commandSoundDelay = playCommandReceivedSoundIfEnabled()
 
         if recordingCountdown == .none {
-            startRecording()
+            startRecording(afterCommandSoundDelay: commandSoundDelay)
         } else {
             beginCountdown()
         }
@@ -3171,10 +3173,18 @@ final class RecorderViewModel {
     }
 
     private static func bestAvailableExportPreset(for asset: AVAsset) async -> String {
-        let compatiblePresets = await AVAssetExportSession.exportPresets(compatibleWith: asset)
-        return compatiblePresets.contains(AVAssetExportPresetHEVCHighestQuality)
-            ? AVAssetExportPresetHEVCHighestQuality
-            : AVAssetExportPresetHighestQuality
+        let candidates = [AVAssetExportPresetHEVCHighestQuality, AVAssetExportPresetHighestQuality]
+        for preset in candidates {
+            if await AVAssetExportSession.compatibility(
+                ofExportPreset: preset,
+                with: asset,
+                outputFileType: .mp4
+            ) {
+                return preset
+            }
+        }
+
+        return AVAssetExportPresetHighestQuality
     }
 
     private func makeCameraExportAsset(

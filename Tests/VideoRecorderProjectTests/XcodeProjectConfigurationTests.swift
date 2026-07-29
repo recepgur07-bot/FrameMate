@@ -279,6 +279,45 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         }
     }
 
+    func testRepoEnforcesSwiftQualityToolsInLocalAndCIWorkflows() throws {
+        let repoRoot = repoRootURL()
+        let requiredPaths = [
+            ".swiftformat",
+            ".swiftlint.yml",
+            ".gitleaksignore",
+            "tools/mobile-quality-gate.sh",
+            ".github/workflows/mobile-quality.yml",
+        ]
+
+        for relativePath in requiredPaths {
+            XCTAssertTrue(
+                FileManager.default.fileExists(atPath: repoRoot.appendingPathComponent(relativePath).path),
+                "Missing required project quality file at \(relativePath)"
+            )
+        }
+
+        let gateContents = try String(
+            contentsOf: repoRoot.appendingPathComponent("tools/mobile-quality-gate.sh"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(gateContents.contains("gitleaks git ."))
+        XCTAssertTrue(gateContents.contains("swiftformat --lint ."))
+        XCTAssertTrue(gateContents.contains("swiftlint lint --quiet"))
+        XCTAssertTrue(gateContents.contains("xcodebuild test -project"))
+        XCTAssertTrue(gateContents.contains("FrameCoachLocalizationCatalogTests.rb"))
+        XCTAssertTrue(gateContents.contains("StoreScreenshotStylerTests.rb"))
+
+        let workflowContents = try String(
+            contentsOf: repoRoot.appendingPathComponent(".github/workflows/mobile-quality.yml"),
+            encoding: .utf8
+        )
+        XCTAssertTrue(workflowContents.contains("tools/mobile-quality-gate.sh"))
+        XCTAssertTrue(workflowContents.contains("platform=macOS"))
+        XCTAssertTrue(workflowContents.contains("swiftformat"))
+        XCTAssertTrue(workflowContents.contains("swiftlint"))
+        XCTAssertTrue(workflowContents.contains("imagemagick"))
+    }
+
     func testGeneratorCreatesCodexReadyMacOSStarterProject() throws {
         let repoRoot = repoRootURL()
         let scriptURL = repoRoot.appendingPathComponent("tools/create_macos_codex_starter.rb")

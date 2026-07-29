@@ -74,7 +74,12 @@ private final class CountdownTonePlayer {
 
     private let engine = AVAudioEngine()
     private let player = AVAudioPlayerNode()
-    private let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)!
+    private let format: AVAudioFormat = {
+        guard let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1) else {
+            fatalError("Countdown tone audio format could not be created.")
+        }
+        return format
+    }()
 
     private init() {
         engine.attach(player)

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "candidate": {
+    "bundle_id": "com.recepgur.VideoRecorder",
+    "marketing_version": "1.0",
+    "build_number": "DOĞRULANAMADI",
+    "archive_info_plist_sha256": "DOĞRULANAMADI"
+  },
+  "reviewed_at": "2026-07-29",
+  "reviewer": "release-owner-pending",
+  "app_privacy_declaration_reviewed": false,
+  "privacy_policy_reviewed": false,
+  "sdk_inventory": [
+    {
+      "name": "Apple system frameworks (AVFoundation, ScreenCaptureKit, SwiftUI, StoreKit)",
+      "version": "macOS SDK supplied by Xcode; exact release archive version pending",
+      "source": "Xcode/macOS system frameworks; no third-party package manager dependencies found",
+      "purpose": "Local screen, camera, microphone recording, interface, and App Store purchases",
+      "privacy_manifest_path_or_status": "Resources/PrivacyInfo.xcprivacy",
+      "required_reason_api_reviewed": false,
+      "data_collected_or_transmitted": [],
+      "app_privacy_declaration_matches": false,
+      "privacy_policy_matches": false,
+      "permission_or_tracking_impact": "Camera, microphone, Screen Recording and optional Accessibility permission; manifest states no tracking or collected data",
+      "notes": "Static source review only. Confirm binary-linked frameworks and App Store Connect answers against the immutable archive."
+    }
+  ],
+  "attestation": {
+    "all_runtime_dependencies_inventoried": false,
+    "no_unresolved_or_doğrulanamadı_fields": false,
+    "notes": "No third-party SDK manifest was found in project sources. This is a human review record and does not replace App Store Connect or legal review."
+  }
+}

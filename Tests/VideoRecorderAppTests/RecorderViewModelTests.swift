@@ -710,8 +710,6 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isKeyboardShortcutOverlayEnabled)
         XCTAssertTrue(viewModel.isCursorHighlightEnabled)
     }
-
-
     func testPersistsLastRecordingConfigurationWhenSettingsChange() {
         let store = MockLastRecordingConfigurationStore()
         let viewModel = RecorderViewModel(

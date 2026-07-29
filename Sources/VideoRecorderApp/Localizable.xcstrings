@@ -9229,6 +9229,23 @@
         }
       }
     },
+    "Mikrofon kanalı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Microphone channel"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mikrofon kanalı"
+          }
+        }
+      }
+    },
     "Üçten fazla kişi görünüyor, en öne çıkan üç kişiye göre yönlendiriliyor": {
       "extractionState": "manual",
       "localizations": {

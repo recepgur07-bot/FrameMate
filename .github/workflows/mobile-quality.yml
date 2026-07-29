@@ -1,0 +1,22 @@
+name: macOS quality gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install quality tools
+        run: brew install gitleaks swiftformat swiftlint xcbeautify imagemagick
+      - name: Run quality gate
+        run: >-
+          bash tools/mobile-quality-gate.sh
+          --project VideoRecorder.xcodeproj
+          --scheme FrameMate
+          --destination 'platform=macOS'

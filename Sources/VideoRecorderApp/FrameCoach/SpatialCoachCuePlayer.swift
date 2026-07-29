@@ -66,7 +66,10 @@ final class SpatialCoachCuePlayer: SpatialCuePlaying {
     private func configureEngineIfNeeded() {
         guard sourceNode == nil else { return }
 
-        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 2)!
+        guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 2) else {
+            runtimeDebugLog("SpatialCoachCuePlayer could not create a stereo audio format")
+            return
+        }
         let node = AVAudioSourceNode(format: format) { [weak self] _, _, frameCount, audioBufferList -> OSStatus in
             guard let self else { return noErr }
 

@@ -1,0 +1,6 @@
+# FrameMate'in mevcut Swift 5 stili için düşük gürültülü format doğrulaması.
+# Yeni kurallar yalnız kabul edilmiş bir format-baseline değişikliğinde eklenir.
+--swiftversion 5.0
+--exclude Pods,Carthage,.build,DerivedData,build
+--disable all
+--enable trailingSpace,consecutiveBlankLines

@@ -19,8 +19,6 @@ enum RecordingMode: String, Identifiable, CaseIterable {
             return String(localized: "1080p Dikey")
         }
     }
-
-
     var width: Int32 {
         switch self {
         case .horizontal1080p:

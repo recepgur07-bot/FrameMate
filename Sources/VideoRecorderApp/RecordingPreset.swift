@@ -42,8 +42,6 @@ enum RecordingPreset: String, Identifiable, Codable, CaseIterable {
             return String(localized: "Ses kaydı modu")
         }
     }
-
-
     var commandMenuLabel: String {
         label
     }

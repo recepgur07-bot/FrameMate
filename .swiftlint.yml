@@ -1,0 +1,21 @@
+# CI'da kararlı ve davranış/risk odaklı SwiftLint başlangıç profili.
+# Biçim kuralları SwiftFormat tarafından denetlenir; testlerde kasıtlı force-try
+# kullanımı olduğundan bu profil üretim kaynaklarını kapsar.
+included:
+  - Sources
+
+excluded:
+  - Pods
+  - Carthage
+  - .build
+  - DerivedData
+  - build
+
+only_rules:
+  - empty_count
+  - fatal_error_message
+  - force_cast
+  - force_try
+  - force_unwrapping
+  - todo
+  - unused_import
