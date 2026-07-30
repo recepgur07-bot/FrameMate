@@ -29,7 +29,7 @@ enum AppAccessPlan: String, CaseIterable, Equatable {
     var defaultDescription: String {
         switch self {
         case .yearly:
-            return String(localized: "14 gün ücretsiz deneme ile başlar, ardından yıllık abonelik olarak devam eder. Deneme, App Store hesabın daha önce kullanmadıysa gösterilir.")
+            return String(localized: "Yıllık abonelik. Sınırsız kayıt ve tüm Pro özellikleri açar.")
         case .lifetime:
             return String(localized: "Tek seferlik satın alımla kalıcı erişim. Önce yıllık plan alman gerekmez.")
         }
@@ -37,10 +37,11 @@ enum AppAccessPlan: String, CaseIterable, Equatable {
 }
 
 enum AppAccessKind: Equatable {
-    case trial
+    case localTrial
+    case freeTier
+    case freeTierExhausted
     case yearly
     case lifetime
-    case expired
 }
 
 struct AppStoreProductInfo: Equatable, Identifiable {
@@ -67,17 +68,26 @@ struct AppAccessOffer: Equatable, Identifiable {
 
 struct AppAccessState: Equatable {
     var accessKind: AppAccessKind
-    var trialDaysRemaining: Int
+    var localTrialDaysRemaining: Int
+    var freeTierSecondsRemaining: Int
     var offers: [AppAccessOffer]
 
     static let `default` = AppAccessState(
-        accessKind: .expired,
-        trialDaysRemaining: 0,
+        accessKind: .freeTierExhausted,
+        localTrialDaysRemaining: 0,
+        freeTierSecondsRemaining: 0,
         offers: []
     )
 
     var canStartRecording: Bool {
-        accessKind != .expired
+        switch accessKind {
+        case .localTrial, .yearly, .lifetime:
+            return true
+        case .freeTier:
+            return freeTierSecondsRemaining > 0
+        case .freeTierExhausted:
+            return false
+        }
     }
 }
 
@@ -89,21 +99,35 @@ struct SystemDateProvider: DateProviding {
     var now: Date { Date() }
 }
 
-protocol TrialStartDateStoring: AnyObject {
-    var startDate: Date? { get set }
+protocol FreeTierUsageStoring: AnyObject {
+    var localTrialStartDate: Date? { get set }
+    var currentPeriodStartDate: Date? { get set }
+    var consumedSecondsThisPeriod: Int { get set }
 }
 
-final class UserDefaultsTrialStartDateStore: TrialStartDateStoring {
+final class UserDefaultsFreeTierUsageStore: FreeTierUsageStoring {
     private let defaults: UserDefaults
-    private let key = "appAccess.trialStartDate"
+    private let trialStartKey = "appAccess.localTrialStartDate"
+    private let periodStartKey = "appAccess.currentPeriodStartDate"
+    private let consumedSecondsKey = "appAccess.consumedSecondsThisPeriod"
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
     }
 
-    var startDate: Date? {
-        get { defaults.object(forKey: key) as? Date }
-        set { defaults.set(newValue, forKey: key) }
+    var localTrialStartDate: Date? {
+        get { defaults.object(forKey: trialStartKey) as? Date }
+        set { defaults.set(newValue, forKey: trialStartKey) }
+    }
+
+    var currentPeriodStartDate: Date? {
+        get { defaults.object(forKey: periodStartKey) as? Date }
+        set { defaults.set(newValue, forKey: periodStartKey) }
+    }
+
+    var consumedSecondsThisPeriod: Int {
+        get { defaults.integer(forKey: consumedSecondsKey) }
+        set { defaults.set(newValue, forKey: consumedSecondsKey) }
     }
 }
 
@@ -187,15 +211,17 @@ protocol AppAccessManaging: AnyObject {
     func refresh() async
     func purchase(plan: AppAccessPlan) async -> AppStorePurchaseResult
     func restorePurchases() async
+    func consumeFreeTierUsage(seconds: TimeInterval)
 }
 
 @MainActor
 final class AppAccessManager: AppAccessManaging {
     private let storeKit: any AppStorePurchasing
-    private let trialStore: any TrialStartDateStoring
+    private let usageStore: any FreeTierUsageStoring
     private let clock: any DateProviding
     private let calendar: Calendar
-    private let trialLengthInDays: Int
+    private let localTrialLengthInDays: Int
+    private let freeTierSecondsPerPeriod: Int
     private let allowsUnitTestAccessFallback: Bool
     private let allowsDebugAccessFallback: Bool
     private let allowsInternalTestingAccessFallback: Bool
@@ -204,10 +230,11 @@ final class AppAccessManager: AppAccessManaging {
 
     init(
         storeKit: any AppStorePurchasing = StoreKitPurchaseController(),
-        trialStore: any TrialStartDateStoring = UserDefaultsTrialStartDateStore(),
+        usageStore: any FreeTierUsageStoring = UserDefaultsFreeTierUsageStore(),
         clock: any DateProviding = SystemDateProvider(),
         calendar: Calendar = .current,
-        trialLengthInDays: Int = 14,
+        localTrialLengthInDays: Int = 3,
+        freeTierSecondsPerPeriod: Int = 7 * 60,
         allowsUnitTestAccessFallback: Bool = true,
         allowsDebugAccessFallback: Bool = true,
         allowsInternalTestingAccessFallback: Bool = Bundle.main.object(
@@ -215,10 +242,11 @@ final class AppAccessManager: AppAccessManaging {
         ) as? Bool ?? false
     ) {
         self.storeKit = storeKit
-        self.trialStore = trialStore
+        self.usageStore = usageStore
         self.clock = clock
         self.calendar = calendar
-        self.trialLengthInDays = trialLengthInDays
+        self.localTrialLengthInDays = localTrialLengthInDays
+        self.freeTierSecondsPerPeriod = freeTierSecondsPerPeriod
         self.allowsUnitTestAccessFallback = allowsUnitTestAccessFallback
         self.allowsDebugAccessFallback = allowsDebugAccessFallback
         self.allowsInternalTestingAccessFallback = allowsInternalTestingAccessFallback
@@ -227,6 +255,7 @@ final class AppAccessManager: AppAccessManaging {
     func refresh() async {
         let offers = await loadOffers()
         let entitlements = await storeKit.currentEntitlementProductIDs()
+        let local = resolveLocalAccessState(now: clock.now)
 
         let accessKind: AppAccessKind
         if entitlements.contains(AppAccessProduct.lifetime.rawValue) {
@@ -242,14 +271,51 @@ final class AppAccessManager: AppAccessManaging {
         } else if allowsDebugAccessFallback && isDebugBuild && !isRunningUnitTests {
             accessKind = .yearly
         } else {
-            accessKind = .expired
+            accessKind = local.kind
         }
 
         state = AppAccessState(
             accessKind: accessKind,
-            trialDaysRemaining: 0,
+            localTrialDaysRemaining: local.daysRemaining,
+            freeTierSecondsRemaining: local.secondsRemaining,
             offers: offers
         )
+    }
+
+    /// Local, account-free access: a short unlimited trial followed by a
+    /// permanent monthly free-recording quota. Runs entirely off-device so
+    /// a new install never has to touch StoreKit until the user chooses to
+    /// buy Pro.
+    private func resolveLocalAccessState(now: Date) -> (kind: AppAccessKind, daysRemaining: Int, secondsRemaining: Int) {
+        if usageStore.localTrialStartDate == nil {
+            usageStore.localTrialStartDate = now
+        }
+        let trialStart = usageStore.localTrialStartDate ?? now
+        let elapsedTrialDays = calendar.dateComponents([.day], from: trialStart, to: now).day ?? 0
+        if elapsedTrialDays < localTrialLengthInDays {
+            return (.localTrial, localTrialLengthInDays - elapsedTrialDays, freeTierSecondsPerPeriod)
+        }
+
+        if let periodStart = usageStore.currentPeriodStartDate {
+            let elapsedMonths = calendar.dateComponents([.month], from: periodStart, to: now).month ?? 0
+            if elapsedMonths >= 1 {
+                usageStore.currentPeriodStartDate = now
+                usageStore.consumedSecondsThisPeriod = 0
+            }
+        } else {
+            usageStore.currentPeriodStartDate = now
+            usageStore.consumedSecondsThisPeriod = 0
+        }
+
+        let remaining = max(0, freeTierSecondsPerPeriod - usageStore.consumedSecondsThisPeriod)
+        return (remaining > 0 ? .freeTier : .freeTierExhausted, 0, remaining)
+    }
+
+    /// Records recording time against the monthly free-tier quota. No-op
+    /// outside `.freeTier` (paid plans and the local trial are unmetered).
+    func consumeFreeTierUsage(seconds: TimeInterval) {
+        guard state.accessKind == .freeTier else { return }
+        usageStore.consumedSecondsThisPeriod += Int(seconds.rounded(.up))
     }
 
     func purchase(plan: AppAccessPlan) async -> AppStorePurchaseResult {

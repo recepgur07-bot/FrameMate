@@ -184,7 +184,7 @@ final class RecorderViewModelFrameCoachTests: XCTestCase {
         )
 
         await viewModel.setup()
-        viewModel.appAccessState = AppAccessState(accessKind: .lifetime, trialDaysRemaining: 0, offers: [])
+        viewModel.appAccessState = AppAccessState(accessKind: .lifetime, localTrialDaysRemaining: 0, freeTierSecondsRemaining: 0, offers: [])
         viewModel.selectPreset(.horizontalCamera)
         viewModel.isSystemAudioEnabled = false
         viewModel.recordingCountdown = .none

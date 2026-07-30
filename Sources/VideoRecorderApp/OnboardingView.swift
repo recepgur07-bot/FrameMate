@@ -35,6 +35,12 @@ struct OnboardingView: View {
                             insertion: .move(edge: .trailing),
                             removal: .move(edge: .leading)
                         ))
+                case 3:
+                    OnboardingAccessModelPage()
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing),
+                            removal: .move(edge: .leading)
+                        ))
                 default:
                     Color.clear
                 }
@@ -67,7 +73,7 @@ struct OnboardingView: View {
 
     private var stepIndicator: some View {
         HStack(spacing: 8) {
-            ForEach(0..<3) { index in
+            ForEach(0..<4) { index in
                 Circle()
                     .fill(index == currentStep ? Color.fmAccent : Color.secondary.opacity(0.3))
                     .frame(width: index == currentStep ? 10 : 7, height: index == currentStep ? 10 : 7)
@@ -80,7 +86,7 @@ struct OnboardingView: View {
     private var navigationRow: some View {
         HStack {
             Spacer()
-            if currentStep < 2 {
+            if currentStep < 3 {
                 Button(String(localized: "İleri")) {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         currentStep += 1
@@ -291,6 +297,27 @@ private struct OnboardingPermissionsPage: View {
         feedbackMessage = message
         feedbackColor = color
         viewModel.announceText(message)
+    }
+}
+
+// MARK: - Access Model Page
+
+private struct OnboardingAccessModelPage: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("Nasıl Çalışır?")
+                .font(.title2)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader)
+
+            Text("İlk 3 gün sınırsız kayıt yapabilirsin, hiçbir hesap gerekmez. Sonrasında her ay 7 dakika ücretsiz kaydın olur — süre dolunca bir sonraki ay otomatik yenilenir. İstediğin an Pro'ya geçip sınırsız kullanabilirsin.")
+                .font(.body)
+                .foregroundStyle(.secondary)
+        }
+        .padding(.horizontal, 32)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(String(localized: "Adım 4 / 4: Nasıl Çalışır?"))
     }
 }
 

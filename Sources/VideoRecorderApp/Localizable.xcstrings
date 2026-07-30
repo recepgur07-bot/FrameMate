@@ -7155,23 +7155,6 @@
         }
       }
     },
-    "Yıllık plan veya Apple deneme süresiyle tüm Pro kayıt özellikleri açık.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "All Pro recording features are available with the yearly plan or Apple trial."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yıllık plan veya Apple deneme süresiyle tüm Pro kayıt özellikleri açık."
-          }
-        }
-      }
-    },
     "Dock'ta göster": {
       "extractionState": "manual",
       "localizations": {
@@ -7512,23 +7495,6 @@
         }
       }
     },
-    "14 gün ücretsiz deneme ile başlar, ardından yıllık abonelik olarak devam eder. Deneme, App Store hesabın daha önce kullanmadıysa gösterilir.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Starts with a 14-day free trial, then continues as a yearly subscription. The trial appears if your App Store account has not used it before."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "14 gün ücretsiz deneme ile başlar, ardından yıllık abonelik olarak devam eder. Deneme, App Store hesabın daha önce kullanmadıysa gösterilir."
-          }
-        }
-      }
-    },
     "Tek seferlik satın alımla kalıcı erişim. Önce yıllık plan alman gerekmez.": {
       "extractionState": "manual",
       "localizations": {
@@ -7542,23 +7508,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Tek seferlik satın alımla kalıcı erişim. Önce yıllık plan alman gerekmez."
-          }
-        }
-      }
-    },
-    "14 günlük ücretsiz deneme için yıllık planı veya kalıcı erişim için ömür boyu planı seç.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Choose the yearly plan for a 14-day free trial or the lifetime plan for permanent access."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "14 günlük ücretsiz deneme için yıllık planı veya kalıcı erişim için ömür boyu planı seç."
           }
         }
       }
@@ -7593,23 +7542,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Şimdilik tüm kayıt özellikleri açık. Süre bitince plan seçebilirsin."
-          }
-        }
-      }
-    },
-    "Yıllık plan 14 gün ücretsiz deneme ile başlar. Bu deneme, App Store hesabın daha önce kullanmadıysa görünür. Ömür boyu planı istersen doğrudan tek seferde satın alabilirsin.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The yearly plan starts with a 14-day free trial. This trial appears if your App Store account has not used it before. If you prefer lifetime access, you can buy it directly with a one-time purchase."
-          }
-        },
-        "tr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yıllık plan 14 gün ücretsiz deneme ile başlar. Bu deneme, App Store hesabın daha önce kullanmadıysa görünür. Ömür boyu planı istersen doğrudan tek seferde satın alabilirsin."
           }
         }
       }
@@ -9246,6 +9178,160 @@
         }
       }
     },
+    "Yıllık abonelik. Sınırsız kayıt ve tüm Pro özellikleri açar.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Annual subscription. Unlocks unlimited recording and all Pro features." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Yıllık abonelik. Sınırsız kayıt ve tüm Pro özellikleri açar." } }
+      }
+    },
+    "Bu ayki ücretsiz kayıt süreniz bitti. Yeni kota bir sonraki ay başında yenilenecek.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your free recording time for this month has ended. Your new quota will renew at the start of next month." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Bu ayki ücretsiz kayıt süreniz bitti. Yeni kota bir sonraki ay başında yenilenecek." } }
+      }
+    },
+    "Zaten her ay 7 dakika ücretsiz kayıt hakkın var. Sınırsız kayıt, gelişmiş kadraj koçu ve tüm özellikler için:": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "You already have 7 minutes of free recording each month. For unlimited recording, advanced Frame Coach, and all features:" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Zaten her ay 7 dakika ücretsiz kayıt hakkın var. Sınırsız kayıt, gelişmiş kadraj koçu ve tüm özellikler için:" } }
+      }
+    },
+    "Nasıl Çalışır?": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "How It Works" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Nasıl Çalışır?" } }
+      }
+    },
+    "İlk 3 gün sınırsız kayıt yapabilirsin, hiçbir hesap gerekmez. Sonrasında her ay 7 dakika ücretsiz kaydın olur — süre dolunca bir sonraki ay otomatik yenilenir. İstediğin an Pro'ya geçip sınırsız kullanabilirsin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Record without limits for your first 3 days, with no account required. After that, you get 7 free recording minutes each month, renewing automatically at the start of the next month. Upgrade to Pro anytime for unlimited access." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "İlk 3 gün sınırsız kayıt yapabilirsin, hiçbir hesap gerekmez. Sonrasında her ay 7 dakika ücretsiz kaydın olur — süre dolunca bir sonraki ay otomatik yenilenir. İstediğin an Pro'ya geçip sınırsız kullanabilirsin." } }
+      }
+    },
+    "Adım 4 / 4: Nasıl Çalışır?": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Step 4 of 4: How It Works" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Adım 4 / 4: Nasıl Çalışır?" } }
+      }
+    },
+    "Bu ayki ücretsiz kayıt süreniz doldu, kayıt durduruluyor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your free recording time for this month has ended; recording is stopping." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Bu ayki ücretsiz kayıt süreniz doldu, kayıt durduruluyor" } }
+      }
+    },
+    "Sınırsız Deneme: son 1 gün": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Unlimited trial: 1 day left" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Sınırsız Deneme: son 1 gün" } }
+      }
+    },
+    "Sınırsız Deneme: %lld gün kaldı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Unlimited trial: %lld days left" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Sınırsız Deneme: %lld gün kaldı" } }
+      }
+    },
+    "Ücretsiz Kademe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Free Tier" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Ücretsiz Kademe" } }
+      }
+    },
+    "Bu Ayki Süre Doldu": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This Month's Time Has Ended" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Bu Ayki Süre Doldu" } }
+      }
+    },
+    "Şimdilik tüm kayıt özellikleri açık, hesap gerekmez. Deneme bitince her ay 7 dakika ücretsiz kaydın olacak.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "All recording features are currently available, with no account required. After the trial, you will have 7 free recording minutes each month." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Şimdilik tüm kayıt özellikleri açık, hesap gerekmez. Deneme bitince her ay 7 dakika ücretsiz kaydın olacak." } }
+      }
+    },
+    "Bu ay %lld dk %lld sn kaldı. Kota her ayın başında yenilenir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "%1$lld min %2$lld sec left this month. Your quota renews at the start of each month." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Bu ay %lld dk %lld sn kaldı. Kota her ayın başında yenilenir." } }
+      }
+    },
+    "Yeni kota bir sonraki ay yenilenecek. Sınırsız için Pro'ya geçebilirsin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Your new quota will renew next month. Upgrade to Pro for unlimited recording." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Yeni kota bir sonraki ay yenilenecek. Sınırsız için Pro'ya geçebilirsin." } }
+      }
+    },
+    "Yıllık plan ile tüm Pro kayıt özellikleri açık.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "All Pro recording features are available with the yearly plan." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Yıllık plan ile tüm Pro kayıt özellikleri açık." } }
+      }
+    },
+    "Sınırsız deneme · %lld gün kaldı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Unlimited trial · %lld days left" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Sınırsız deneme · %lld gün kaldı" } }
+      }
+    },
+    "Sınırsız deneme, %lld gün kaldı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Unlimited trial, %lld days left" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Sınırsız deneme, %lld gün kaldı" } }
+      }
+    },
+    "Bu ay: %lld dk %lld sn kaldı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This month: %1$lld min %2$lld sec left" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Bu ay: %lld dk %lld sn kaldı" } }
+      }
+    },
+    "Bu ay %lld dakika %lld saniye kaldı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "%1$lld minutes %2$lld seconds left this month" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Bu ay %lld dakika %lld saniye kaldı" } }
+      }
+    },
+    "Ücretsiz süre bitti": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Free time ended" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Ücretsiz süre bitti" } }
+      }
+    },
+    "Bu ayki ücretsiz süre bitti": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "This month's free time has ended" } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Bu ayki ücretsiz süre bitti" } }
+      }
+    },
+    "Planları görmek için etkinleştir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "Activate to view plans." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Planları görmek için etkinleştir." } }
+      }
+    },
     "Üçten fazla kişi görünüyor, en öne çıkan üç kişiye göre yönlendiriliyor": {
       "extractionState": "manual",
       "localizations": {
@@ -9259,6 +9345,244 @@
           "stringUnit": {
             "state": "translated",
             "value": "Üçten fazla kişi görünüyor, en öne çıkan üç kişiye göre yönlendiriliyor"
+          }
+        }
+      }
+    },
+    "Kayıt süresini düzenli olarak hatırlat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remind me of recording duration regularly"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt süresini düzenli olarak hatırlat"
+          }
+        }
+      }
+    },
+    "Kayıt sırasında ne kadar süre geçtiğini belirli aralıklarla hatırlatır. Dahili mikrofonla kayıt yaparken bu hatırlatma hoparlörden duyulup mikrofona karışabilir; kulaklık kullanman veya bunu kapatman bunu önler.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminds you at regular intervals how long the recording has been running. When recording with the built-in microphone, this reminder can be heard through the speakers and picked up by the microphone; using headphones or turning this off prevents that."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt sırasında ne kadar süre geçtiğini belirli aralıklarla hatırlatır. Dahili mikrofonla kayıt yaparken bu hatırlatma hoparlörden duyulup mikrofona karışabilir; kulaklık kullanman veya bunu kapatman bunu önler."
+          }
+        }
+      }
+    },
+    "Hatırlatma şekli": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminder style"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hatırlatma şekli"
+          }
+        }
+      }
+    },
+    "Sesli okuma, süreyi VoiceOver ile söyler. Ses efekti, yalnızca kısa bir tık sesi çalar; hoparlörden mikrofona karışması daha az fark edilir.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice announcement speaks the duration via VoiceOver. Sound effect plays only a short tick sound; it is less noticeable if it bleeds from the speakers into the microphone."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesli okuma, süreyi VoiceOver ile söyler. Ses efekti, yalnızca kısa bir tık sesi çalar; hoparlörden mikrofona karışması daha az fark edilir."
+          }
+        }
+      }
+    },
+    "Hatırlatma sıklığı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reminder frequency"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hatırlatma sıklığı"
+          }
+        }
+      }
+    },
+    "Kayıt süresi hatırlatmasının hangi sıklıkta yapılacağını belirler.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Determines how often the recording duration reminder happens."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt süresi hatırlatmasının hangi sıklıkta yapılacağını belirler."
+          }
+        }
+      }
+    },
+    "Sesli okuma (VoiceOver)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voice announcement (VoiceOver)"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sesli okuma (VoiceOver)"
+          }
+        }
+      }
+    },
+    "Ses efekti": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sound effect"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ses efekti"
+          }
+        }
+      }
+    },
+    "30 saniyede bir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every 30 seconds"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 saniyede bir"
+          }
+        }
+      }
+    },
+    "1 dakikada bir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every 1 minute"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1 dakikada bir"
+          }
+        }
+      }
+    },
+    "2 dakikada bir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every 2 minutes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 dakikada bir"
+          }
+        }
+      }
+    },
+    "3 dakikada bir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every 3 minutes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 dakikada bir"
+          }
+        }
+      }
+    },
+    "5 dakikada bir": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every 5 minutes"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5 dakikada bir"
+          }
+        }
+      }
+    },
+    "Kayıt dosyası hazırlanana kadar bu pencere açık kalır ve bitince otomatik kapanır. İşlem arka planda devam ettiği için istersen şimdi de kapatabilirsin.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This window stays open until the recording file is ready and closes automatically when it's done. Processing continues in the background, so you can close this now if you'd like."
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt dosyası hazırlanana kadar bu pencere açık kalır ve bitince otomatik kapanır. İşlem arka planda devam ettiği için istersen şimdi de kapatabilirsin."
           }
         }
       }

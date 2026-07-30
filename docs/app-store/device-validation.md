@@ -22,7 +22,7 @@ yazılmaz.
 | Kısa ekran, kamera ve ses kaydı | | `DOĞRULANAMADI` | |
 | MP4 çıktı: süre, video/audio stream, codec ve dosya boyutu | | `DOĞRULANAMADI` | `ffprobe` çıktısı |
 | Ayarlar, gizlilik ve destek URL'leri | | `DOĞRULANAMADI` | |
-| IAP satın alma hatası, trial ve Restore Purchases | | `DOĞRULANAMADI` | |
+| Yerel 3 günlük erişim, aylık 7 dakika kota, IAP satın alma hatası ve Restore Purchases | | `DOĞRULANAMADI` | |
 
 ## Erişilebilirlik
 

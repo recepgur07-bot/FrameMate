@@ -28,6 +28,7 @@
 		1F913DD08373861E9F20C988 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6CC3850B0A049070C42D181 /* MenuBarController.swift */; };
 		1F9888122474F980E3ADE218 /* XcodeProjectConfigurationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA25FB81C2F5D6E9290F98A0 /* XcodeProjectConfigurationTests.swift */; };
 		26FCE3AAB8FA681B11F17C37 /* fastlane-metadata-tr-privacy-url.txt in Resources */ = {isa = PBXBuildFile; fileRef = 8D3D076F69DB6897E1D731AF /* fastlane-metadata-tr-privacy-url.txt */; };
+		27C7DC32DE2F3BD4A9F217B7 /* sure-hatirlatma.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1582EA4864207F1884AF0375 /* sure-hatirlatma.wav */; };
 		29A091479E42A0E6B0125008 /* FrameCoachingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF7EDA1BCD320BEE436F9A95 /* FrameCoachingProfile.swift */; };
 		2A537496A9C9BCAA1EA32315 /* AutoReframeTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4E2D5ACCBC8E8335D5957E4 /* AutoReframeTimeline.swift */; };
 		2C9AA627D27B731965A64B14 /* fastlane-metadata-en-US-privacy-url.txt in Resources */ = {isa = PBXBuildFile; fileRef = D98F8685DAED306F6E7C7342 /* fastlane-metadata-en-US-privacy-url.txt */; };
@@ -118,6 +119,7 @@
 		EB34B3EAA3A6C461166478BA /* RecordingMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA52A7BC68075D3AADE54E86 /* RecordingMode.swift */; };
 		EB50B2B8CD32DAECAE768BF0 /* FrameLightingAnalyzerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03054F6D51E95DFAB3C22873 /* FrameLightingAnalyzerTests.swift */; };
 		EB64D707AE57A5820F8474A3 /* yeni-ses.wav in Resources */ = {isa = PBXBuildFile; fileRef = 3D60627DB6F3BE203C3F1321 /* yeni-ses.wav */; };
+		EBAD507F0F7F71CA43CF3CE1 /* AccessPill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78FFC4098FA86687F23864EA /* AccessPill.swift */; };
 		EE8469243B4ECEFB6E3F8F9C /* KeyboardShortcutRecorderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFB8A5BA335051A35B921197 /* KeyboardShortcutRecorderTests.swift */; };
 		EEEAFDE731AB396570467C0B /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 84D7824C5C58048EFA9AEF38 /* AppIcon.icns */; };
 		EFAE1A5719B96F48EC00351B /* SoundEffectPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F46C69822B8A4BE5D03FE9D5 /* SoundEffectPlayer.swift */; };
@@ -157,6 +159,7 @@
 		0E3D6688BAB85B8AF2CC3C69 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = IOKit.framework; sourceTree = "<group>"; };
 		0FFC2DE1A903B40C84D7B5A6 /* RecordingFileNamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingFileNamer.swift; sourceTree = "<group>"; };
 		11D9C245A5B32E5CA7B70EE6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1582EA4864207F1884AF0375 /* sure-hatirlatma.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = "sure-hatirlatma.wav"; sourceTree = "<group>"; };
 		167A3E84E02B38AAE85A6195 /* FrameLightingAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameLightingAnalyzer.swift; sourceTree = "<group>"; };
 		17800447671910879AFC1376 /* CursorHighlightRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CursorHighlightRecorder.swift; sourceTree = "<group>"; };
 		1C01FAE70D4B69B65EBE30F2 /* ara.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = ara.wav; sourceTree = "<group>"; };
@@ -203,6 +206,7 @@
 		7065951C1694B145EE150258 /* RecordingModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingModeTests.swift; sourceTree = "<group>"; };
 		70D1BA0C37FFA3D832609BF2 /* FrameMateColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameMateColors.swift; sourceTree = "<group>"; };
 		711F82A948AB4ECFDEEE1F59 /* FrameMate.xcscheme */ = {isa = PBXFileReference; path = FrameMate.xcscheme; sourceTree = "<group>"; };
+		78FFC4098FA86687F23864EA /* AccessPill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessPill.swift; sourceTree = "<group>"; };
 		7F49D6AF5042BC7D77AB81EB /* ScreenCameraOverlayPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCameraOverlayPosition.swift; sourceTree = "<group>"; };
 		84D7824C5C58048EFA9AEF38 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
 		87AC23526353405639B26E39 /* FrameCoachSpatialCue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrameCoachSpatialCue.swift; sourceTree = "<group>"; };
@@ -349,6 +353,7 @@
 		1411AE14DC4DF2288CABC750 /* VideoRecorderApp */ = {
 			isa = PBXGroup;
 			children = (
+				78FFC4098FA86687F23864EA /* AccessPill.swift */,
 				F7D6AAFD5671A9413C5E9EAC /* AppAccessManager.swift */,
 				07CAC54514EBCAFA3CBECCFA /* AppBehaviorPreferences.swift */,
 				A9EF7F5DCF5CE3C8931F02AC /* CameraOverlayRecorder.swift */,
@@ -473,6 +478,7 @@
 				1C01FAE70D4B69B65EBE30F2 /* ara.wav */,
 				4628C8728F0EF2FB94D21B74 /* baslama.wav */,
 				B791F8BEA905CA54DC936506 /* bitis.wav */,
+				1582EA4864207F1884AF0375 /* sure-hatirlatma.wav */,
 				3D60627DB6F3BE203C3F1321 /* yeni-ses.wav */,
 			);
 			name = Sounds;
@@ -607,8 +613,8 @@
 			projectRoot = "";
 			targets = (
 				7536C9796568BC62B495DCAF /* FrameMate */,
-				62B326A6F44E8AE5993ABA68 /* FrameMateProjectTests */,
 				9643D49FE2BDAB3C6E2C8153 /* FrameMateTests */,
+				62B326A6F44E8AE5993ABA68 /* FrameMateProjectTests */,
 			);
 		};
 /* End PBXProject section */
@@ -643,6 +649,7 @@
 				7086A128EABBE902F20FD697 /* ara.wav in Resources */,
 				09FC3735A6DCCC5616297BCB /* baslama.wav in Resources */,
 				9AB7FA0E63452B36326FDB86 /* bitis.wav in Resources */,
+				27C7DC32DE2F3BD4A9F217B7 /* sure-hatirlatma.wav in Resources */,
 				EB64D707AE57A5820F8474A3 /* yeni-ses.wav in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -662,6 +669,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EBAD507F0F7F71CA43CF3CE1 /* AccessPill.swift in Sources */,
 				2EFC2FBAD022B913BDB5BED9 /* AppAccessManager.swift in Sources */,
 				58247E01D4A1E327104B9FA9 /* AppBehaviorPreferences.swift in Sources */,
 				BE84B70B26A8636B100C6FE1 /* AutoReframeCompositionBuilder.swift in Sources */,
@@ -910,7 +918,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = VideoRecorder.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -940,10 +948,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 9MA297YYN2;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Tests/VideoRecorderProjectTests/Fixtures/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1013,10 +1020,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 9MA297YYN2;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

@@ -109,7 +109,7 @@ class FrameCoachLocalizationCatalogTests < Minitest::Test
       "Mevcut Ayarları Duyur",
       "Yardım ve Destek",
       "Geliştiriciye E-posta Gönder",
-      "Yıllık plan veya Apple deneme süresiyle tüm Pro kayıt özellikleri açık.",
+      "Yıllık plan ile tüm Pro kayıt özellikleri açık.",
       "Dock'ta göster"
     ]
 

@@ -278,6 +278,7 @@ enum MaxRecordingDuration: Int, CaseIterable, Identifiable {
     case fifteen = 15
     case thirty = 30
     case sixty = 60
+    case custom = -1  // sentinel — gerçek süre customMaxRecordingDurationSeconds'ta tutulur
 
     var id: Int { rawValue }
 
@@ -292,14 +293,75 @@ enum MaxRecordingDuration: Int, CaseIterable, Identifiable {
         case .fifteen:        return String(localized: "15 dakika")
         case .thirty:         return String(localized: "30 dakika")
         case .sixty:          return String(localized: "60 dakika")
+        case .custom:         return String(localized: "Özel süre")
         }
     }
 
+    /// nil for `.unlimited` (no cap) and `.custom` (resolved separately from
+    /// `RecorderViewModel.customMaxRecordingDurationSeconds`, since a fixed enum
+    /// case can't carry a user-entered value).
     var seconds: TimeInterval? {
         switch self {
         case .unlimited:     return nil
         case .ninetySeconds: return 90
+        case .custom:        return nil
         default:             return TimeInterval(rawValue * 60)
+        }
+    }
+}
+
+enum RecordingEndWarningLeadTime: Int, CaseIterable, Identifiable {
+    case none = 0
+    case threeSeconds = 3
+    case fiveSeconds = 5
+    case tenSeconds = 10
+
+    var id: Int { rawValue }
+
+    var label: String {
+        switch self {
+        case .none:         return String(localized: "Kapalı")
+        case .threeSeconds: return String(localized: "Son 3 saniye")
+        case .fiveSeconds:  return String(localized: "Son 5 saniye")
+        case .tenSeconds:   return String(localized: "Son 10 saniye")
+        }
+    }
+}
+
+enum ElapsedTimeAnnouncementMode: String, CaseIterable, Identifiable {
+    case voiceOver
+    case soundEffect
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .voiceOver:   return String(localized: "Sesli okuma (VoiceOver)")
+        case .soundEffect: return String(localized: "Ses efekti")
+        }
+    }
+}
+
+enum ElapsedTimeAnnouncementInterval: Int, CaseIterable, Identifiable {
+    case tenSeconds = 10
+    case fifteenSeconds = 15
+    case thirtySeconds = 30
+    case oneMinute = 60
+    case twoMinutes = 120
+    case threeMinutes = 180
+    case fiveMinutes = 300
+
+    var id: Int { rawValue }
+
+    var label: String {
+        switch self {
+        case .tenSeconds:    return String(localized: "10 saniyede bir")
+        case .fifteenSeconds: return String(localized: "15 saniyede bir")
+        case .thirtySeconds: return String(localized: "30 saniyede bir")
+        case .oneMinute:     return String(localized: "1 dakikada bir")
+        case .twoMinutes:    return String(localized: "2 dakikada bir")
+        case .threeMinutes:  return String(localized: "3 dakikada bir")
+        case .fiveMinutes:   return String(localized: "5 dakikada bir")
         }
     }
 }
@@ -605,13 +667,29 @@ final class RecorderViewModel {
     }
     var isRecording = false
     var isPaused = false
+    /// True while `isPaused` is true *because* the selected microphone disconnected
+    /// mid-recording (see `handleCaptureDeviceDisconnect`), as opposed to a manual
+    /// pause. Drives a distinct reconnect prompt in the recording UI instead of the
+    /// generic "duraklatıldı" label. Cleared on resume or when recording stops.
+    var isPausedForMicrophoneReconnect = false
     var isPreparingRecording = false
+    /// True from the moment recording stops until the exported file is ready.
+    /// Drives a focused "Video hazırlanıyor" panel so a VoiceOver user knows
+    /// processing is still happening without needing to press anything else.
+    var isFinalizingRecording = false
     var countdownRemaining: Int = 0
     var recordingCountdown: RecordingCountdown = .none {
         didSet { UserDefaults.standard.set(recordingCountdown.rawValue, forKey: "recording.countdown") }
     }
     var maxRecordingDuration: MaxRecordingDuration = .unlimited {
         didSet { UserDefaults.standard.set(maxRecordingDuration.rawValue, forKey: "recording.maxDuration") }
+    }
+    /// Only used when `maxRecordingDuration == .custom`; the user-entered cap, in seconds.
+    var customMaxRecordingDurationSeconds: Int = 120 {
+        didSet { UserDefaults.standard.set(customMaxRecordingDurationSeconds, forKey: "recording.maxDuration.custom") }
+    }
+    var recordingEndWarningLeadTime: RecordingEndWarningLeadTime = .none {
+        didSet { UserDefaults.standard.set(recordingEndWarningLeadTime.rawValue, forKey: "recording.endWarning.leadTime") }
     }
     var audioChannelMode: AudioChannelMode = .automatic {
         didSet { UserDefaults.standard.set(audioChannelMode.rawValue, forKey: "recording.audioChannelMode") }
@@ -627,6 +705,15 @@ final class RecorderViewModel {
     }
     var isRecordingPauseResumeSoundEnabled = true {
         didSet { UserDefaults.standard.set(isRecordingPauseResumeSoundEnabled, forKey: "recording.sound.pauseResume") }
+    }
+    var isElapsedTimeAnnouncementEnabled = true {
+        didSet { UserDefaults.standard.set(isElapsedTimeAnnouncementEnabled, forKey: "recording.elapsedAnnouncement.enabled") }
+    }
+    var elapsedTimeAnnouncementMode: ElapsedTimeAnnouncementMode = .voiceOver {
+        didSet { UserDefaults.standard.set(elapsedTimeAnnouncementMode.rawValue, forKey: "recording.elapsedAnnouncement.mode") }
+    }
+    var elapsedTimeAnnouncementInterval: ElapsedTimeAnnouncementInterval = .thirtySeconds {
+        didSet { UserDefaults.standard.set(elapsedTimeAnnouncementInterval.rawValue, forKey: "recording.elapsedAnnouncement.interval") }
     }
     var isAutoReframeEnabled = true {
         didSet { persistLastRecordingConfiguration() }
@@ -1452,11 +1539,18 @@ final class RecorderViewModel {
         applyPresetSelection(refresh: false)
         recordingCountdown = RecordingCountdown(rawValue: UserDefaults.standard.integer(forKey: "recording.countdown")) ?? .none
         maxRecordingDuration = MaxRecordingDuration(rawValue: UserDefaults.standard.integer(forKey: "recording.maxDuration")) ?? .unlimited
+        if let storedCustomDuration = UserDefaults.standard.object(forKey: "recording.maxDuration.custom") as? Int {
+            customMaxRecordingDurationSeconds = storedCustomDuration
+        }
+        recordingEndWarningLeadTime = RecordingEndWarningLeadTime(rawValue: UserDefaults.standard.integer(forKey: "recording.endWarning.leadTime")) ?? .none
         audioChannelMode = UserDefaults.standard.string(forKey: "recording.audioChannelMode").flatMap(AudioChannelMode.init(rawValue:)) ?? .automatic
         isRecordingCommandSoundEnabled = userDefaultBool(forKey: "recording.sound.commandReceived", defaultValue: true)
         isRecordingStartSoundEnabled = userDefaultBool(forKey: "recording.sound.start", defaultValue: true)
         isRecordingStopSoundEnabled = userDefaultBool(forKey: "recording.sound.stop", defaultValue: true)
         isRecordingPauseResumeSoundEnabled = userDefaultBool(forKey: "recording.sound.pauseResume", defaultValue: true)
+        isElapsedTimeAnnouncementEnabled = userDefaultBool(forKey: "recording.elapsedAnnouncement.enabled", defaultValue: true)
+        elapsedTimeAnnouncementMode = UserDefaults.standard.string(forKey: "recording.elapsedAnnouncement.mode").flatMap(ElapsedTimeAnnouncementMode.init(rawValue:)) ?? .voiceOver
+        elapsedTimeAnnouncementInterval = ElapsedTimeAnnouncementInterval(rawValue: UserDefaults.standard.integer(forKey: "recording.elapsedAnnouncement.interval")) ?? .thirtySeconds
         configureFrameCoachFeed()
         refreshDeviceState()
         // A restored/default camera preset must warm the same capture session that
@@ -1685,6 +1779,7 @@ final class RecorderViewModel {
         currentPauseStartOffset = nil
         recordingPauseTimeline = .empty
         isPaused = false
+        isPausedForMicrophoneReconnect = false
     }
 
     /// The component whose first sample defines this recording's session clock: the
@@ -1780,6 +1875,7 @@ final class RecorderViewModel {
 
         finishCurrentPauseRange()
         isPaused = false
+        isPausedForMicrophoneReconnect = false
         statusText = selectedRecordingSource == .audio ? String(localized: "Ses kaydı yapılıyor") : String(localized: "Kayıt yapılıyor")
         sleepPreventer.prevent(reason: selectedRecordingSource == .audio ? String(localized: "Ses kaydı devam ediyor") : String(localized: "Video kaydı devam ediyor"))
         startMaxDurationTimer()
@@ -2228,6 +2324,10 @@ final class RecorderViewModel {
         // already started.
         guard !recordingLifecycle.isStopping else { return }
         lastCompletedRecordingDuration = currentRecordingDuration
+        if appAccessState.accessKind == .freeTier {
+            appAccessManager.consumeFreeTierUsage(seconds: currentRecordingDuration ?? 0)
+            Task { await refreshAppAccess() }
+        }
         elapsedTimeAnnouncer.stop()
         finishCurrentPauseRange()
         if selectedRecordingSource == .audio {
@@ -2266,21 +2366,85 @@ final class RecorderViewModel {
     }
 
     private func startElapsedAnnouncer() {
-        elapsedTimeAnnouncer.start { [weak self] in self?.currentRecordingDuration }
+        guard isElapsedTimeAnnouncementEnabled else { return }
+        elapsedTimeAnnouncer.start(
+            intervalSeconds: elapsedTimeAnnouncementInterval.rawValue,
+            elapsedProvider: { [weak self] in self?.currentRecordingDuration },
+            onTick: { [weak self] elapsed in self?.handleElapsedTimeAnnouncementTick(elapsed) }
+        )
+    }
+
+    private func handleElapsedTimeAnnouncementTick(_ elapsed: TimeInterval) {
+        switch elapsedTimeAnnouncementMode {
+        case .voiceOver:
+            let minutes = Int(elapsed) / 60
+            let seconds = Int(elapsed) % 60
+            let text = minutes > 0
+                ? String(localized: "Kayıt süresi: \(minutes) dakika \(seconds) saniye")
+                : String(localized: "Kayıt süresi: \(seconds) saniye")
+            NSAccessibility.post(
+                element: NSApp as Any,
+                notification: .announcementRequested,
+                userInfo: [
+                    NSAccessibility.NotificationUserInfoKey.announcement: text,
+                    NSAccessibility.NotificationUserInfoKey.priority:
+                        NSAccessibilityPriorityLevel.medium.rawValue
+                ]
+            )
+        case .soundEffect:
+            soundEffectPlayer.playElapsedTimeReminder()
+        }
     }
 
     private func startMaxDurationTimer() {
-        guard let limit = maxRecordingDuration.seconds else { return }
+        let configuredLimit: TimeInterval? = maxRecordingDuration == .custom
+            ? TimeInterval(max(1, customMaxRecordingDurationSeconds))
+            : maxRecordingDuration.seconds
+        let quotaLimit: TimeInterval? = appAccessState.accessKind == .freeTier
+            ? TimeInterval(appAccessState.freeTierSecondsRemaining)
+            : nil
+        let limit: TimeInterval?
+        switch (configuredLimit, quotaLimit) {
+        case let (configured?, quota?):
+            limit = min(configured, quota)
+        case let (configured?, nil):
+            limit = configured
+        case let (nil, quota?):
+            limit = quota
+        case (nil, nil):
+            limit = nil
+        }
+        guard let limit else { return }
+
+        let leadTime = TimeInterval(recordingEndWarningLeadTime.rawValue)
+
         recordingDurationTask = Task { [weak self] in
             do {
-                try await Task.sleep(for: .seconds(limit))
+                if leadTime > 0, limit > leadTime {
+                    try await Task.sleep(for: .seconds(limit - leadTime))
+                    var remaining = Int(leadTime)
+                    while remaining > 0 {
+                        await MainActor.run { [weak self] in
+                            guard let self, self.isRecording else { return }
+                            self.soundEffectPlayer.playCountdownTick(remaining: remaining, total: Int(leadTime))
+                            self.speechCuePlayer.speakIfNeeded(
+                                "\(remaining)",
+                                isEnabled: true,
+                                key: "max-duration-warning-\(remaining)"
+                            )
+                        }
+                        try await Task.sleep(for: .seconds(1))
+                        remaining -= 1
+                    }
+                } else {
+                    try await Task.sleep(for: .seconds(limit))
+                }
                 await MainActor.run { [weak self] in
                     guard let self, self.isRecording else { return }
-                    self.speechCuePlayer.speakIfNeeded(
-                        String(localized: "Maksimum kayıt süresine ulaşıldı, kayıt durduruluyor"),
-                        isEnabled: true,
-                        key: "max-duration-stop"
-                    )
+                    let message = self.appAccessState.accessKind == .freeTier
+                        ? String(localized: "Bu ayki ücretsiz kayıt süreniz doldu, kayıt durduruluyor")
+                        : String(localized: "Maksimum kayıt süresine ulaşıldı, kayıt durduruluyor")
+                    self.speechCuePlayer.speakIfNeeded(message, isEnabled: true, key: "max-duration-stop")
                     self.stopRecording()
                 }
             } catch {
@@ -2374,9 +2538,11 @@ final class RecorderViewModel {
 
     private func setRecordingFinishingStatus(_ text: String, key: String) {
         statusText = text
+        isFinalizingRecording = true
     }
 
     private func markRecordingFileReady() {
+        isFinalizingRecording = false
         playStopSoundIfEnabled()
         announceCompletedRecordingForVoiceOver()
     }
@@ -2404,6 +2570,9 @@ final class RecorderViewModel {
     private func beginRecordingPreparation() -> Bool {
         guard recordingLifecycle.beginPreparing() else { return false }
         isPreparingRecording = true
+        // A previous recording's export may still be finalizing (stale generation) —
+        // starting a new one makes that panel meaningless, so hide it now.
+        isFinalizingRecording = false
         // Phase 5: every start attempt gets a new generation, so a finalize/export task
         // from a previous recording — still running when this one begins, since finalize
         // is driven by async callbacks decoupled from the view model's live state — can
@@ -2434,6 +2603,7 @@ final class RecorderViewModel {
         _ = recordingLifecycle.beginStopping()
         isRecording = false
         isPaused = false
+        isPausedForMicrophoneReconnect = false
         updatePreviewAnalysisState()
         scheduleStopWatchdog()
     }
@@ -2442,6 +2612,7 @@ final class RecorderViewModel {
         recordingLifecycle.finish()
         isRecording = false
         isPaused = false
+        isPausedForMicrophoneReconnect = false
         isPreparingRecording = false
         speechCuePlayer.isOutputSuppressed = false
         recordingSafetyTask?.cancel()
@@ -3328,30 +3499,36 @@ final class RecorderViewModel {
 
     var accessStatusTitle: String {
         switch appAccessState.accessKind {
-        case .trial:
-            if appAccessState.trialDaysRemaining == 1 {
-                return String(localized: "Deneme: son 1 gün")
+        case .localTrial:
+            if appAccessState.localTrialDaysRemaining == 1 {
+                return String(localized: "Sınırsız Deneme: son 1 gün")
             }
-            return String(localized: "Deneme: \(appAccessState.trialDaysRemaining) gün kaldı")
+            return String(localized: "Sınırsız Deneme: \(appAccessState.localTrialDaysRemaining) gün kaldı")
+        case .freeTier:
+            return String(localized: "Ücretsiz Kademe")
+        case .freeTierExhausted:
+            return String(localized: "Bu Ayki Süre Doldu")
         case .yearly:
             return String(localized: "Pro: yıllık plan aktif")
         case .lifetime:
             return String(localized: "Pro: ömür boyu erişim aktif")
-        case .expired:
-            return String(localized: "Pro plan gerekli")
         }
     }
 
     var accessStatusDetail: String {
         switch appAccessState.accessKind {
-        case .trial:
-            return String(localized: "Şimdilik tüm kayıt özellikleri açık. Süre bitince plan seçebilirsin.")
+        case .localTrial:
+            return String(localized: "Şimdilik tüm kayıt özellikleri açık, hesap gerekmez. Deneme bitince her ay 7 dakika ücretsiz kaydın olacak.")
+        case .freeTier:
+            let minutes = appAccessState.freeTierSecondsRemaining / 60
+            let seconds = appAccessState.freeTierSecondsRemaining % 60
+            return String(localized: "Bu ay \(minutes) dk \(seconds) sn kaldı. Kota her ayın başında yenilenir.")
+        case .freeTierExhausted:
+            return String(localized: "Yeni kota bir sonraki ay yenilenecek. Sınırsız için Pro'ya geçebilirsin.")
         case .yearly:
-            return String(localized: "Yıllık plan veya Apple deneme süresiyle tüm Pro kayıt özellikleri açık.")
+            return String(localized: "Yıllık plan ile tüm Pro kayıt özellikleri açık.")
         case .lifetime:
             return String(localized: "Tek seferlik satın alımla tüm Pro kayıt özellikleri açık.")
-        case .expired:
-            return String(localized: "14 günlük ücretsiz deneme için yıllık planı veya kalıcı erişim için ömür boyu planı seç.")
         }
     }
 
@@ -3685,6 +3862,7 @@ final class RecorderViewModel {
         refreshPermissionStatus()
         errorText = error.localizedDescription
         statusText = "Hata: \(error.localizedDescription)"
+        isFinalizingRecording = false
         finishRecordingLifecycle()
         completedRecording = nil
         if error is CaptureRecorderError {
@@ -3738,15 +3916,41 @@ final class RecorderViewModel {
     private func handleCaptureDeviceDisconnect(_ device: AVCaptureDevice) {
         guard isRecording,
               device.uniqueID == selectedCameraID || device.uniqueID == selectedMicrophoneID else { return }
-        let message = device.hasMediaType(.audio)
-            ? String(localized: "Mikrofon bağlantısı kesildi. Kayıt güvenle durduruluyor.")
-            : String(localized: "Kamera bağlantısı kesildi. Kayıt güvenle durduruluyor.")
+
+        // Mikrofon kaybı, kamera/ekran görüntüsünü etkilemez — kayıt bileşenleri arka
+        // planda sessizce çalışmaya devam eder (bkz. MicrophoneAudioRecorder/CaptureRecorder:
+        // ikisi de kendi ses örneklerini ayrı bir AVCaptureAudioDataOutput'tan alır, video
+        // hattına bağımlı değildir). Bu yüzden çekimi tamamen bitirmek yerine mevcut
+        // duraklat/kes mekanizmasını (aynı zaman aralığı export'ta kırpılır) devreye sokup
+        // kullanıcıya mikrofonu yeniden takma şansı veriyoruz. Kamera koptuğunda ise asıl
+        // görüntü kaynağı kaybolduğu için güvenli durdurma davranışı korunuyor.
+        if device.hasMediaType(.audio), device.uniqueID == selectedMicrophoneID {
+            pauseRecordingForMicrophoneReconnect()
+            return
+        }
+
+        let message = String(localized: "Kamera bağlantısı kesildi. Kayıt güvenle durduruluyor.")
         runtimeDebugLog("HATA gösterildi (generation \(recordingGeneration)): \(message)")
         errorText = message
         statusText = message
         speechCuePlayer.reset()
         speechCuePlayer.speakIfNeeded(message, isEnabled: true, key: "capture-device-disconnected")
         stopRecording()
+    }
+
+    private func pauseRecordingForMicrophoneReconnect() {
+        guard isRecording, !isPaused else { return }
+        let message = String(localized: "Mikrofon bağlantısı kesildi. Kayıt duraklatıldı — mikrofonu yeniden takıp Devam Et'e basabilirsin.")
+        runtimeDebugLog("Mikrofon koptu (generation \(recordingGeneration)): kayıt duraklatıldı, durdurulmadı.")
+        beginCurrentPauseRange()
+        isPaused = true
+        isPausedForMicrophoneReconnect = true
+        statusText = message
+        sleepPreventer.allow()
+        recordingDurationTask?.cancel()
+        recordingDurationTask = nil
+        speechCuePlayer.reset()
+        speechCuePlayer.speakIfNeeded(message, isEnabled: true, key: "microphone-disconnected-paused")
     }
 
     deinit {

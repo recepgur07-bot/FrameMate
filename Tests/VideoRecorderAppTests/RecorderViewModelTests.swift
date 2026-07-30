@@ -38,8 +38,9 @@ final class RecorderViewModelTests: XCTestCase {
         let microphoneRecorder = MockMicrophoneAudioRecorder()
         let appAccessManager = MockAppAccessManager(
             state: AppAccessState(
-                accessKind: .expired,
-                trialDaysRemaining: 0,
+                accessKind: .freeTierExhausted,
+                localTrialDaysRemaining: 0,
+                freeTierSecondsRemaining: 0,
                 offers: []
             )
         )
@@ -67,8 +68,9 @@ final class RecorderViewModelTests: XCTestCase {
         let microphoneRecorder = MockMicrophoneAudioRecorder()
         let appAccessManager = MockAppAccessManager(
             state: AppAccessState(
-                accessKind: .trial,
-                trialDaysRemaining: 14,
+                accessKind: .localTrial,
+                localTrialDaysRemaining: 14,
+                freeTierSecondsRemaining: 420,
                 offers: []
             )
         )
@@ -2700,7 +2702,7 @@ final class RecorderViewModelTests: XCTestCase {
             soundEffectPlayer: MockSoundEffectPlayer(),
             permissionProvider: RecorderPermissionsStub(statuses: [.video: .authorized, .audio: .authorized]),
             appAccessManager: MockAppAccessManager(
-                state: AppAccessState(accessKind: .trial, trialDaysRemaining: 14, offers: [])
+                state: AppAccessState(accessKind: .localTrial, localTrialDaysRemaining: 14, freeTierSecondsRemaining: 420, offers: [])
             )
         )
         await viewModel.setup()

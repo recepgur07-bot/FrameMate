@@ -35,7 +35,7 @@ final class GlobalHotkeyMonitorTests: XCTestCase {
             NSEvent.keyEvent(
                 with: .keyDown,
                 location: .zero,
-                modifierFlags: [.command, .control],
+                modifierFlags: [.command, .option],
                 timestamp: 0,
                 windowNumber: 0,
                 context: nil,
@@ -54,7 +54,7 @@ final class GlobalHotkeyMonitorTests: XCTestCase {
             NSEvent.keyEvent(
                 with: .keyDown,
                 location: .zero,
-                modifierFlags: [.command, .control, .shift],
+                modifierFlags: [.command, .option, .shift],
                 timestamp: 0,
                 windowNumber: 0,
                 context: nil,
@@ -73,7 +73,7 @@ final class GlobalHotkeyMonitorTests: XCTestCase {
             NSEvent.keyEvent(
                 with: .keyDown,
                 location: .zero,
-                modifierFlags: [.command, .control],
+                modifierFlags: [.command, .option],
                 timestamp: 0,
                 windowNumber: 0,
                 context: nil,
@@ -84,7 +84,7 @@ final class GlobalHotkeyMonitorTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(GlobalHotkeyMonitor.audioRecordingToggleDisplay, "Cmd+Ctrl+5")
+        XCTAssertEqual(GlobalHotkeyMonitor.audioRecordingToggleDisplay, "Cmd+Option+5")
         XCTAssertTrue(GlobalHotkeyMonitor.matchesAudioRecordingToggle(for: event))
     }
 
@@ -93,7 +93,7 @@ final class GlobalHotkeyMonitorTests: XCTestCase {
             NSEvent.keyEvent(
                 with: .keyDown,
                 location: .zero,
-                modifierFlags: [.command, .control],
+                modifierFlags: [.command, .option],
                 timestamp: 0,
                 windowNumber: 0,
                 context: nil,
@@ -104,7 +104,7 @@ final class GlobalHotkeyMonitorTests: XCTestCase {
             )
         )
 
-        XCTAssertEqual(GlobalHotkeyMonitor.pauseResumeToggleDisplay, "Cmd+Ctrl+P")
+        XCTAssertEqual(GlobalHotkeyMonitor.pauseResumeToggleDisplay, "Cmd+Option+P")
         XCTAssertTrue(GlobalHotkeyMonitor.matchesPauseResumeToggle(for: event))
     }
 
@@ -113,7 +113,7 @@ final class GlobalHotkeyMonitorTests: XCTestCase {
             NSEvent.keyEvent(
                 with: .keyDown,
                 location: .zero,
-                modifierFlags: [.command, .control, .shift],
+                modifierFlags: [.command, .option, .shift],
                 timestamp: 0,
                 windowNumber: 0,
                 context: nil,

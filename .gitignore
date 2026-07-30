@@ -8,6 +8,7 @@ fastlane/keys/
 *.key
 build/
 *.xcarchive
+DerivedData/
 tmp/
 .DS_Store
 .claude/worktrees/

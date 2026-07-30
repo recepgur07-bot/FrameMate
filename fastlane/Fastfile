@@ -99,10 +99,9 @@ platform :mac do
     plist_path = File.expand_path("../Resources/Info.plist", __dir__)
     sh("/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion #{build_number}' '#{plist_path}'")
 
-    # Internal TestFlight builds must be usable without a sandbox purchase. Keep
-    # the source plist safe for App Store archives even if building or uploading
-    # fails midway.
-    sh("/usr/libexec/PlistBuddy -c 'Set :FrameMateDisablePurchasesForInternalTesting true' '#{plist_path}'")
+    # Internal TestFlight builds must mirror the exact experience a new App
+    # Store install gets, including the real StoreKit purchase flow.
+    sh("/usr/libexec/PlistBuddy -c 'Set :FrameMateDisablePurchasesForInternalTesting false' '#{plist_path}'")
 
     profile_name = ENV["PROFILE_NAME"] || "match AppStore #{required_env!("APP_IDENTIFIER")}"
 

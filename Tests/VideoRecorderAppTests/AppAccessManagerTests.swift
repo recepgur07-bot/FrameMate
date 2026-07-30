@@ -3,28 +3,32 @@ import XCTest
 
 @MainActor
 final class AppAccessManagerTests: XCTestCase {
-    func testRefreshLocksRecordingWhenNoPurchaseExists() async {
+    private func makeStore(
+        productsToReturn: [AppStoreProductInfo] = [
+            AppStoreProductInfo(
+                id: AppAccessProduct.yearly.rawValue,
+                displayName: "Yearly Pro",
+                displayPrice: "$19.99",
+                description: "Unlock yearly access"
+            ),
+            AppStoreProductInfo(
+                id: AppAccessProduct.lifetime.rawValue,
+                displayName: "Lifetime Pro",
+                displayPrice: "$59.99",
+                description: "Unlock lifetime access"
+            )
+        ],
+        entitlementProductIDs: Set<String> = []
+    ) -> MockAppStorePurchasing {
+        MockAppStorePurchasing(productsToReturn: productsToReturn, entitlementProductIDs: entitlementProductIDs)
+    }
+
+    func testRefreshGrantsLocalTrialOnFirstLaunchWithoutAnyPurchase() async {
         let now = Date(timeIntervalSince1970: 1_750_000_000)
-        let store = MockAppStorePurchasing(
-            productsToReturn: [
-                AppStoreProductInfo(
-                    id: AppAccessProduct.yearly.rawValue,
-                    displayName: "Yearly Pro",
-                    displayPrice: "$19.99",
-                    description: "Unlock yearly access"
-                ),
-                AppStoreProductInfo(
-                    id: AppAccessProduct.lifetime.rawValue,
-                    displayName: "Lifetime Pro",
-                    displayPrice: "$59.99",
-                    description: "Unlock lifetime access"
-                )
-            ]
-        )
-        let trialStore = MockTrialStartDateStore()
+        let usageStore = MockFreeTierUsageStore()
         let manager = AppAccessManager(
-            storeKit: store,
-            trialStore: trialStore,
+            storeKit: makeStore(),
+            usageStore: usageStore,
             clock: FixedDateProvider(now: now),
             calendar: Calendar(identifier: .gregorian),
             allowsUnitTestAccessFallback: false,
@@ -34,20 +38,20 @@ final class AppAccessManagerTests: XCTestCase {
 
         await manager.refresh()
 
-        XCTAssertEqual(manager.state.accessKind, .expired)
-        XCTAssertEqual(manager.state.trialDaysRemaining, 0)
-        XCTAssertFalse(manager.state.canStartRecording)
+        XCTAssertEqual(manager.state.accessKind, .localTrial)
+        XCTAssertEqual(manager.state.localTrialDaysRemaining, 3)
+        XCTAssertTrue(manager.state.canStartRecording)
         XCTAssertEqual(manager.state.offers.map(\.plan), [.yearly, .lifetime])
-        XCTAssertNil(trialStore.startDate)
+        XCTAssertEqual(usageStore.localTrialStartDate, now)
     }
 
-    func testRefreshKeepsRecordingLockedWhenLegacyLocalTrialExists() async {
+    func testRefreshMovesToFreeTierAfterLocalTrialExpires() async {
         let now = Date(timeIntervalSince1970: 1_750_000_000)
         let calendar = Calendar(identifier: .gregorian)
-        let legacyStart = calendar.date(byAdding: .day, value: -1, to: now)
+        let trialStart = calendar.date(byAdding: .day, value: -3, to: now)
         let manager = AppAccessManager(
-            storeKit: MockAppStorePurchasing(),
-            trialStore: MockTrialStartDateStore(startDate: legacyStart),
+            storeKit: makeStore(),
+            usageStore: MockFreeTierUsageStore(localTrialStartDate: trialStart),
             clock: FixedDateProvider(now: now),
             calendar: calendar,
             allowsUnitTestAccessFallback: false,
@@ -57,18 +61,92 @@ final class AppAccessManagerTests: XCTestCase {
 
         await manager.refresh()
 
-        XCTAssertEqual(manager.state.accessKind, .expired)
-        XCTAssertEqual(manager.state.trialDaysRemaining, 0)
+        XCTAssertEqual(manager.state.accessKind, .freeTier)
+        XCTAssertEqual(manager.state.freeTierSecondsRemaining, 420)
+        XCTAssertTrue(manager.state.canStartRecording)
+    }
+
+    func testConsumeFreeTierUsageReducesRemainingSeconds() async {
+        let now = Date(timeIntervalSince1970: 1_750_000_000)
+        let calendar = Calendar(identifier: .gregorian)
+        let trialStart = calendar.date(byAdding: .day, value: -3, to: now)
+        let usageStore = MockFreeTierUsageStore(localTrialStartDate: trialStart)
+        let manager = AppAccessManager(
+            storeKit: makeStore(),
+            usageStore: usageStore,
+            clock: FixedDateProvider(now: now),
+            calendar: calendar,
+            allowsUnitTestAccessFallback: false,
+            allowsDebugAccessFallback: false,
+            allowsInternalTestingAccessFallback: false
+        )
+
+        await manager.refresh()
+        manager.consumeFreeTierUsage(seconds: 90)
+        await manager.refresh()
+
+        XCTAssertEqual(manager.state.accessKind, .freeTier)
+        XCTAssertEqual(manager.state.freeTierSecondsRemaining, 330)
+    }
+
+    func testFreeTierBecomesExhaustedWhenQuotaFullyConsumed() async {
+        let now = Date(timeIntervalSince1970: 1_750_000_000)
+        let calendar = Calendar(identifier: .gregorian)
+        let trialStart = calendar.date(byAdding: .day, value: -3, to: now)
+        let periodStart = calendar.date(byAdding: .day, value: -1, to: now)
+        let usageStore = MockFreeTierUsageStore(
+            localTrialStartDate: trialStart,
+            currentPeriodStartDate: periodStart,
+            consumedSecondsThisPeriod: 420
+        )
+        let manager = AppAccessManager(
+            storeKit: makeStore(),
+            usageStore: usageStore,
+            clock: FixedDateProvider(now: now),
+            calendar: calendar,
+            allowsUnitTestAccessFallback: false,
+            allowsDebugAccessFallback: false,
+            allowsInternalTestingAccessFallback: false
+        )
+
+        await manager.refresh()
+
+        XCTAssertEqual(manager.state.accessKind, .freeTierExhausted)
+        XCTAssertEqual(manager.state.freeTierSecondsRemaining, 0)
         XCTAssertFalse(manager.state.canStartRecording)
     }
 
-    func testRefreshAllowsYearlyEntitlementFromSubscriptionOrAppleTrial() async {
-        let store = MockAppStorePurchasing(
-            entitlementProductIDs: [AppAccessProduct.yearly.rawValue]
+    func testFreeTierQuotaResetsWhenNewMonthlyPeriodBegins() async {
+        let now = Date(timeIntervalSince1970: 1_750_000_000)
+        let calendar = Calendar(identifier: .gregorian)
+        let trialStart = calendar.date(byAdding: .day, value: -40, to: now)
+        let periodStart = calendar.date(byAdding: .month, value: -1, to: now)
+        let usageStore = MockFreeTierUsageStore(
+            localTrialStartDate: trialStart,
+            currentPeriodStartDate: periodStart,
+            consumedSecondsThisPeriod: 420
         )
         let manager = AppAccessManager(
-            storeKit: store,
-            trialStore: MockTrialStartDateStore(),
+            storeKit: makeStore(),
+            usageStore: usageStore,
+            clock: FixedDateProvider(now: now),
+            calendar: calendar,
+            allowsUnitTestAccessFallback: false,
+            allowsDebugAccessFallback: false,
+            allowsInternalTestingAccessFallback: false
+        )
+
+        await manager.refresh()
+
+        XCTAssertEqual(manager.state.accessKind, .freeTier)
+        XCTAssertEqual(manager.state.freeTierSecondsRemaining, 420)
+        XCTAssertEqual(usageStore.consumedSecondsThisPeriod, 0)
+    }
+
+    func testRefreshAllowsYearlyEntitlementFromSubscription() async {
+        let manager = AppAccessManager(
+            storeKit: makeStore(entitlementProductIDs: [AppAccessProduct.yearly.rawValue]),
+            usageStore: MockFreeTierUsageStore(),
             allowsUnitTestAccessFallback: false,
             allowsDebugAccessFallback: false,
             allowsInternalTestingAccessFallback: false
@@ -80,16 +158,18 @@ final class AppAccessManagerTests: XCTestCase {
         XCTAssertTrue(manager.state.canStartRecording)
     }
 
-    func testRefreshPrefersLifetimeEntitlementOverExpiredTrial() async {
+    func testRefreshPrefersLifetimeEntitlementOverExhaustedFreeTier() async {
         let now = Date(timeIntervalSince1970: 1_750_000_000)
         let calendar = Calendar(identifier: .gregorian)
-        let expiredStart = calendar.date(byAdding: .day, value: -30, to: now)
-        let store = MockAppStorePurchasing(
-            entitlementProductIDs: [AppAccessProduct.lifetime.rawValue]
+        let trialStart = calendar.date(byAdding: .day, value: -30, to: now)
+        let usageStore = MockFreeTierUsageStore(
+            localTrialStartDate: trialStart,
+            currentPeriodStartDate: trialStart,
+            consumedSecondsThisPeriod: 420
         )
         let manager = AppAccessManager(
-            storeKit: store,
-            trialStore: MockTrialStartDateStore(startDate: expiredStart),
+            storeKit: makeStore(entitlementProductIDs: [AppAccessProduct.lifetime.rawValue]),
+            usageStore: usageStore,
             clock: FixedDateProvider(now: now),
             calendar: calendar,
             allowsUnitTestAccessFallback: false,
@@ -103,10 +183,20 @@ final class AppAccessManagerTests: XCTestCase {
         XCTAssertTrue(manager.state.canStartRecording)
     }
 
-    func testRefreshLocksRecordingForBetaBuildsWithoutPurchase() async {
+    func testRefreshLocksRecordingForBetaBuildsWithoutPurchaseOnceFreeTierExhausted() async {
+        let now = Date(timeIntervalSince1970: 1_750_000_000)
+        let calendar = Calendar(identifier: .gregorian)
+        let trialStart = calendar.date(byAdding: .day, value: -30, to: now)
+        let usageStore = MockFreeTierUsageStore(
+            localTrialStartDate: trialStart,
+            currentPeriodStartDate: trialStart,
+            consumedSecondsThisPeriod: 420
+        )
         let manager = AppAccessManager(
-            storeKit: MockAppStorePurchasing(),
-            trialStore: MockTrialStartDateStore(),
+            storeKit: makeStore(),
+            usageStore: usageStore,
+            clock: FixedDateProvider(now: now),
+            calendar: calendar,
             allowsUnitTestAccessFallback: false,
             allowsDebugAccessFallback: false,
             allowsInternalTestingAccessFallback: false
@@ -114,14 +204,14 @@ final class AppAccessManagerTests: XCTestCase {
 
         await manager.refresh()
 
-        XCTAssertEqual(manager.state.accessKind, .expired)
+        XCTAssertEqual(manager.state.accessKind, .freeTierExhausted)
         XCTAssertFalse(manager.state.canStartRecording)
     }
 
     func testRefreshAllowsInternalTestingBuildsWithoutPurchase() async {
         let manager = AppAccessManager(
-            storeKit: MockAppStorePurchasing(),
-            trialStore: MockTrialStartDateStore(),
+            storeKit: makeStore(),
+            usageStore: MockFreeTierUsageStore(),
             allowsUnitTestAccessFallback: false,
             allowsDebugAccessFallback: false,
             allowsInternalTestingAccessFallback: true

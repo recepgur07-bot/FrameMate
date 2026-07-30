@@ -13,6 +13,30 @@ private final class MockSoundEffectPlayer: SoundEffectPlaying {
     func playPauseResume() -> TimeInterval { 0 }
 }
 
+/// Instantly "exports" by writing a placeholder file — real AVFoundation export
+/// against the mock microphone recorder's placeholder URLs is slow and doesn't
+/// reliably succeed or fail within a short test timeout.
+private final class MockAudioRecordingExporter: AudioRecordingExporting {
+    var delayNanoseconds: UInt64 = 0
+
+    func export(
+        microphoneURL: URL?,
+        systemAudioURL: URL?,
+        to destinationURL: URL,
+        microphoneVolume: Float,
+        systemAudioVolume: Float,
+        pauseTimeline: RecordingPauseTimeline,
+        microphoneOffsetSeconds: TimeInterval,
+        systemAudioOffsetSeconds: TimeInterval
+    ) async throws -> URL {
+        if delayNanoseconds > 0 {
+            try await Task.sleep(nanoseconds: delayNanoseconds)
+        }
+        try? Data("audio".utf8).write(to: destinationURL)
+        return destinationURL
+    }
+}
+
 @MainActor
 final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
     private var tempDir: URL!
@@ -34,6 +58,8 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
     private func makeViewModel(
         recorder: MockCaptureRecorder = MockCaptureRecorder(),
         microphoneRecorder: MockMicrophoneAudioRecorder = MockMicrophoneAudioRecorder(),
+        audioRecordingExporter: any AudioRecordingExporting = MockAudioRecordingExporter(),
+        appAccessManager: MockAppAccessManager? = nil,
         stopWatchdogTimeout: Duration = .seconds(15)
     ) -> RecorderViewModel {
         RecorderViewModel(
@@ -43,6 +69,7 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
                 displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
             ),
             microphoneAudioRecorder: microphoneRecorder,
+            audioRecordingExporter: audioRecordingExporter,
             fileNamer: RecordingFileNamer(outputDirectory: tempDir),
             soundEffectPlayer: MockSoundEffectPlayer(),
             recordingOutputDirectoryStore: MockRecordingOutputDirectoryStore(),
@@ -50,8 +77,8 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
                 .video: .authorized,
                 .audio: .authorized
             ]),
-            appAccessManager: MockAppAccessManager(
-                state: AppAccessState(accessKind: .trial, trialDaysRemaining: 14, offers: [])
+            appAccessManager: appAccessManager ?? MockAppAccessManager(
+                state: AppAccessState(accessKind: .localTrial, localTrialDaysRemaining: 14, freeTierSecondsRemaining: 420, offers: [])
             ),
             stopWatchdogTimeout: stopWatchdogTimeout
         )
@@ -66,6 +93,118 @@ final class RecorderViewModelRecordingLifecycleTests: XCTestCase {
 
         XCTAssertFalse(vm.isRecording)
         XCTAssertFalse(vm.isPaused)
+    }
+
+    // stopRecording must charge the elapsed duration against the monthly free-tier
+    // quota only while the user is actually in the metered .freeTier state.
+    func testStopRecordingConsumesFreeTierQuotaWhenInFreeTier() async {
+        let mic = MockMicrophoneAudioRecorder()
+        let appAccessManager = MockAppAccessManager(
+            state: AppAccessState(accessKind: .freeTier, localTrialDaysRemaining: 0, freeTierSecondsRemaining: 420, offers: [])
+        )
+        let vm = makeViewModel(microphoneRecorder: mic, appAccessManager: appAccessManager)
+        await vm.setup()
+
+        vm.selectedPreset = .audioOnly
+        vm.selectedMicrophoneID = "mic-1"
+
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 80_000_000)
+        vm.stopRecording()
+        try? await Task.sleep(nanoseconds: 80_000_000)
+
+        XCTAssertEqual(appAccessManager.consumedFreeTierSeconds.count, 1)
+        XCTAssertGreaterThanOrEqual(appAccessManager.refreshCallCount, 2, "refresh() must run again after usage is consumed so the UI reflects the new remaining time")
+    }
+
+    // Paid/local-trial access is unmetered — stopping a recording there must not
+    // touch the free-tier usage counter at all.
+    func testStopRecordingDoesNotConsumeQuotaOutsideFreeTier() async {
+        let mic = MockMicrophoneAudioRecorder()
+        let appAccessManager = MockAppAccessManager(
+            state: AppAccessState(accessKind: .localTrial, localTrialDaysRemaining: 3, freeTierSecondsRemaining: 420, offers: [])
+        )
+        let vm = makeViewModel(microphoneRecorder: mic, appAccessManager: appAccessManager)
+        await vm.setup()
+
+        vm.selectedPreset = .audioOnly
+        vm.selectedMicrophoneID = "mic-1"
+
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 80_000_000)
+        vm.stopRecording()
+        try? await Task.sleep(nanoseconds: 80_000_000)
+
+        XCTAssertTrue(appAccessManager.consumedFreeTierSeconds.isEmpty)
+    }
+
+    // isFinalizingRecording drives the "Video hazırlanıyor" panel: it must flip on the
+    // instant stop is pressed (not after export finishes) and flip back off once the
+    // file is ready or export fails — the panel should never stay stuck open.
+    func testStopRecordingSetsIsFinalizingRecordingUntilExportSettles() async {
+        let mic = MockMicrophoneAudioRecorder()
+        let vm = makeViewModel(
+            recorder: MockCaptureRecorder(microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]),
+            microphoneRecorder: mic
+        )
+        await vm.setup()
+
+        vm.isSystemAudioEnabled = false
+        vm.recordingCountdown = .none
+        // selectPreset() runs refreshDeviceState(), which re-validates the microphone
+        // selection against the recorder's device list — select the mic afterwards, or
+        // refreshDeviceState() clears a selection that doesn't match any known device.
+        vm.selectPreset(.audioOnly)
+        vm.selectedMicrophoneID = "mic-1"
+
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 150_000_000)
+        XCTAssertTrue(vm.isRecording, "Precondition: recording must have started")
+        XCTAssertFalse(vm.isFinalizingRecording, "no finalizing panel should show while still recording")
+
+        vm.stopRecording()
+        XCTAssertTrue(vm.isFinalizingRecording, "the panel must appear the instant stop is pressed, before export finishes")
+
+        try? await Task.sleep(nanoseconds: 300_000_000)
+
+        XCTAssertFalse(vm.isFinalizingRecording, "the panel must close once export settles, whether it succeeds or fails")
+    }
+
+    // Starting a new recording must hide any stale finalizing panel left over from a
+    // previous recording whose export is still running in the background (the recording
+    // lifecycle itself goes idle as soon as every component reports in, independently of
+    // how long the actual export/mux takes — so a new recording can legitimately start
+    // while the old one's export is still in flight).
+    func testStartingNewRecordingClearsStaleFinalizingFlag() async {
+        let mic = MockMicrophoneAudioRecorder()
+        let exporter = MockAudioRecordingExporter()
+        exporter.delayNanoseconds = 2_000_000_000
+        let vm = makeViewModel(
+            recorder: MockCaptureRecorder(microphones: [InputDevice(id: "mic-1", name: "Built-in Mic")]),
+            microphoneRecorder: mic,
+            audioRecordingExporter: exporter
+        )
+        await vm.setup()
+
+        vm.isSystemAudioEnabled = false
+        vm.recordingCountdown = .none
+        vm.selectPreset(.audioOnly)
+        vm.selectedMicrophoneID = "mic-1"
+
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 150_000_000)
+        XCTAssertTrue(vm.isRecording, "Precondition: recording must have started")
+
+        vm.stopRecording()
+        try? await Task.sleep(nanoseconds: 150_000_000)
+
+        XCTAssertTrue(vm.isFinalizingRecording, "stopping leaves the panel open while the slow export is still pending")
+
+        vm.toggleAudioRecording()
+        try? await Task.sleep(nanoseconds: 150_000_000)
+
+        XCTAssertTrue(vm.isRecording, "the new recording must actually start; the old export must not block it")
+        XCTAssertFalse(vm.isFinalizingRecording, "starting a new recording must hide the previous, now-stale finalizing panel")
     }
 
     // setup() preserves temporary captures from a previous crash for recovery.

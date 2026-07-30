@@ -2,7 +2,7 @@
 
 Bu turdaki amaç, kayıt yaşam döngüsünün kullanıcı gözünden güven verdiğini doğrulamak:
 
-- `Cmd+Ctrl+R` ile uygulama dışından başlat.
+- `Cmd+Option+R` ile uygulama dışından başlat.
 - Aynı kısayolla durdur.
 - Başlangıç ve bitiş sesini doğrula.
 - Final çıktının tek `.mp4` olarak geldiğini doğrula.

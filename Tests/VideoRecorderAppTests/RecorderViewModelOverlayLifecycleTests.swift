@@ -42,7 +42,7 @@ final class RecorderViewModelOverlayLifecycleTests: XCTestCase {
                 .audio: .authorized
             ]),
             appAccessManager: MockAppAccessManager(
-                state: AppAccessState(accessKind: .trial, trialDaysRemaining: 14, offers: [])
+                state: AppAccessState(accessKind: .localTrial, localTrialDaysRemaining: 14, freeTierSecondsRemaining: 420, offers: [])
             )
         )
     }

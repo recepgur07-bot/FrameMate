@@ -104,6 +104,7 @@ final class XcodeProjectConfigurationTests: XCTestCase {
         XCTAssertTrue(projectContents.contains("baslama.wav in Resources"))
         XCTAssertTrue(projectContents.contains("bitis.wav in Resources"))
         XCTAssertTrue(projectContents.contains("yeni-ses.wav in Resources"))
+        XCTAssertTrue(projectContents.contains("sure-hatirlatma.wav in Resources"))
     }
 
     func testAppInfoPlistContainsMacAppStoreMetadata() throws {

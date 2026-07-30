@@ -29,6 +29,7 @@ struct ContentView: View {
 
     @State private var toastQueue = ToastQueue()
     @State private var isQuickHelpPresented = false
+    @State private var isFinalizingPanelDismissedByUser = false
     @State private var modeAnnouncementTask: Task<Void, Never>?
 
     var body: some View { makeBody() }
@@ -36,64 +37,72 @@ struct ContentView: View {
     @ViewBuilder
     private func makeBody() -> some View {
         VStack(spacing: 0) {
-            // ── HEADER ZONE ──────────────────────────────────────────────
-            headerZone
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 10)
+            if viewModel.isRecording {
+                // ── AKTİF KAYIT EKRANI ───────────────────────────────────
+                // Kayıt gerçekten başladığında dikkat dağıtmasın diye ekranda
+                // yalnızca geçen süre ile duraklat/durdur kontrolleri kalır;
+                // mod seçici, önizleme ve kurulum kartları gizlenir.
+                recordingActiveZone
+            } else {
+                // ── HEADER ZONE ──────────────────────────────────────────────
+                headerZone
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    .padding(.bottom, 10)
 
-            // ── TOAST ZONE ───────────────────────────────────────────────
-            // Header'ın hemen altında, mod seçicinin üstünde — hiçbir şeyi kapatmaz.
-            if !toastQueue.messages.isEmpty {
-                FMToastOverlay(queue: toastQueue)
-                    .padding(.bottom, 4)
-            }
-
-            Divider()
-
-            // ── MODE ZONE ────────────────────────────────────────────────
-            FMModeSelector(
-                selectedPreset: viewModel.selectedPreset,
-                isOverlayEnabled: viewModel.isScreenCameraOverlayEnabled,
-                onPresetSelected: { viewModel.selectPreset($0) },
-                onEnableOverlay: {
-                    if !viewModel.isScreenCameraOverlayEnabled {
-                        viewModel.setScreenCameraOverlayEnabled(true)
-                    }
+                // ── TOAST ZONE ───────────────────────────────────────────────
+                // Header'ın hemen altında, mod seçicinin üstünde — hiçbir şeyi kapatmaz.
+                if !toastQueue.messages.isEmpty {
+                    FMToastOverlay(queue: toastQueue)
+                        .padding(.bottom, 4)
                 }
-            )
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
 
-            Divider()
+                Divider()
 
-            // ── CONTENT ZONE ───────────────────────────────────────────────
-            ScrollView {
-                VStack(spacing: 12) {
-                    previewCard
-                    setupFlowCard
-                    if shouldShowPermissionHub {
-                        permissionHubCard
+                // ── MODE ZONE ────────────────────────────────────────────────
+                FMModeSelector(
+                    selectedPreset: viewModel.selectedPreset,
+                    isOverlayEnabled: viewModel.isScreenCameraOverlayEnabled,
+                    onPresetSelected: { viewModel.selectPreset($0) },
+                    onEnableOverlay: {
+                        if !viewModel.isScreenCameraOverlayEnabled {
+                            viewModel.setScreenCameraOverlayEnabled(true)
+                        }
                     }
-                    if !viewModel.recoveredTemporaryRecordingURLs.isEmpty {
-                        FMCard(icon: "lifepreserver.fill", title: String(localized: "Kurtarılabilir kayıtlar")) {
-                            Text(String(localized: "Önceki oturumdan kalan \(viewModel.recoveredTemporaryRecordingURLs.count) geçici kayıt dosyası silinmedi."))
-                                .font(.callout)
-                            Button(String(localized: "Finder’da Göster")) {
-                                viewModel.revealRecoveredTemporaryRecordings()
+                )
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+
+                Divider()
+
+                // ── CONTENT ZONE ───────────────────────────────────────────────
+                ScrollView {
+                    VStack(spacing: 12) {
+                        previewCard
+                        setupFlowCard
+                        if shouldShowPermissionHub {
+                            permissionHubCard
+                        }
+                        if !viewModel.recoveredTemporaryRecordingURLs.isEmpty {
+                            FMCard(icon: "lifepreserver.fill", title: String(localized: "Kurtarılabilir kayıtlar")) {
+                                Text(String(localized: "Önceki oturumdan kalan \(viewModel.recoveredTemporaryRecordingURLs.count) geçici kayıt dosyası silinmedi."))
+                                    .font(.callout)
+                                Button(String(localized: "Finder’da Göster")) {
+                                    viewModel.revealRecoveredTemporaryRecordings()
+                                }
                             }
                         }
                     }
+                    .padding(16)
                 }
-                .padding(16)
+
+                Divider()
+
+                // ── ACTION ZONE ───────────────────────────────────────────────
+                actionZone
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 16)
             }
-
-            Divider()
-
-            // ── ACTION ZONE ───────────────────────────────────────────────
-            actionZone
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
         }
         .background(Color.fmSurface)
         .frame(minWidth: 620, minHeight: 640)
@@ -127,6 +136,19 @@ struct ContentView: View {
         }
         .sheet(isPresented: $isQuickHelpPresented) {
             QuickHelpSheet()
+        }
+        .sheet(
+            isPresented: Binding(
+                get: { viewModel.isFinalizingRecording && !isFinalizingPanelDismissedByUser },
+                set: { isPresented in
+                    if !isPresented { isFinalizingPanelDismissedByUser = true }
+                }
+            )
+        ) {
+            RecordingFinalizingSheet(statusText: viewModel.statusText)
+        }
+        .onChange(of: viewModel.isFinalizingRecording) { _, isFinalizing in
+            if isFinalizing { isFinalizingPanelDismissedByUser = false }
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
@@ -169,6 +191,14 @@ struct ContentView: View {
         // VoiceOver: the button-disabling blocker banner ("Kayıt düğmesi pasif: …")
         // previously only appeared silently in the Action Zone; a user whose
         // VoiceOver cursor is elsewhere would never learn why the button won't respond.
+        // Toast: monthly free-tier quota just ran out
+        .onChange(of: viewModel.appAccessState) { oldState, newState in
+            guard oldState.accessKind == .freeTier, newState.accessKind == .freeTierExhausted else { return }
+            toastQueue.post(
+                message: String(localized: "Bu ayki ücretsiz kayıt süreniz bitti. Yeni kota bir sonraki ay başında yenilenecek."),
+                style: .info
+            )
+        }
         .onChange(of: viewModel.recordingStartBlocker) { _, newBlocker in
             guard let blocker = newBlocker else { return }
             postAccessibilityAnnouncement(String(localized: "Kayıt düğmesi pasif: \(blocker)"))
@@ -259,19 +289,6 @@ struct ContentView: View {
 
             Spacer()
 
-            if viewModel.isRecording {
-                TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    let duration = viewModel.currentRecordingDuration ?? 0
-                    let mins = Int(duration) / 60
-                    let secs = Int(duration) % 60
-                    Text(String(format: "%02d:%02d", mins, secs))
-                        .font(.system(.body, design: .monospaced).weight(.semibold))
-                        .foregroundStyle(viewModel.isPaused ? Color.secondary : Color.fmAccent)
-                        .accessibilityLabel(String(localized: "Geçen süre \(mins) dakika \(secs) saniye"))
-                }
-                .padding(.trailing, 8)
-            }
-
             Button {
                 NSApp.activate(ignoringOtherApps: true)
                 openSettings()
@@ -286,6 +303,9 @@ struct ContentView: View {
             .accessibilityLabel(String(localized: "Ayarlar"))
             .accessibilityHint(String(localized: "Uygulama ayarlarını açar."))
 
+            AccessPill(accessState: viewModel.appAccessState, onTap: viewModel.presentPaywall)
+                .padding(.trailing, 8)
+
             StatusPill(status: currentStatus)
         }
     }
@@ -295,6 +315,94 @@ struct ContentView: View {
         if viewModel.isRecording && viewModel.isPaused { return .paused }
         if viewModel.isRecording { return .recording }
         return .ready
+    }
+
+    // MARK: - Recording Active Zone
+
+    /// Kayıt sırasında gösterilen sade ekran: yalnızca geçen süre, duraklat/devam
+    /// ve durdur kontrolleri. Mod seçici, önizleme ve kurulum kartları dikkat
+    /// dağıtmaması için tamamen kaldırılır.
+    private var recordingActiveZone: some View {
+        VStack(spacing: 28) {
+            Spacer(minLength: 0)
+
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                let duration = viewModel.currentRecordingDuration ?? 0
+                let mins = Int(duration) / 60
+                let secs = Int(duration) % 60
+                Text(String(format: "%02d:%02d", mins, secs))
+                    .font(.system(size: 64, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(viewModel.isPaused ? Color.secondary : Color.fmAccent)
+                    .monospacedDigit()
+                    .accessibilityLabel(String(localized: "Geçen süre \(mins) dakika \(secs) saniye"))
+            }
+
+            Text(viewModel.isPaused ? String(localized: "Kayıt duraklatıldı") : String(localized: "Kayıt sürüyor"))
+                .font(.title3.weight(.medium))
+                .foregroundStyle(.secondary)
+
+            if viewModel.isPausedForMicrophoneReconnect {
+                HStack(spacing: 8) {
+                    Image(systemName: "mic.slash.fill")
+                        .foregroundStyle(.orange)
+                        .accessibilityHidden(true)
+                    Text(String(localized: "Mikrofon bağlantısı kesildi. Mikrofonu yeniden takıp “Devam Et”e bas."))
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.leading)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(Color.orange.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .accessibilityElement(children: .combine)
+            }
+
+            if let errorText = viewModel.errorText {
+                HStack(spacing: 8) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.red)
+                        .accessibilityHidden(true)
+                    Text(errorText)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                        .textSelection(.enabled)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(Color.red.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+
+            HStack(spacing: 20) {
+                Button {
+                    viewModel.togglePauseResume()
+                } label: {
+                    Image(systemName: viewModel.isPaused ? "play.fill" : "pause.fill")
+                        .font(.system(size: 22))
+                        .frame(width: 56, height: 56)
+                        .background(Color.fmCardBg)
+                        .clipShape(Circle())
+                        .overlay(Circle().stroke(Color.secondary.opacity(0.2), lineWidth: 1))
+                }
+                .buttonStyle(.plain)
+                .disabled(!viewModel.canPauseRecording)
+                .accessibilityLabel(viewModel.pauseResumeButtonTitle)
+                .accessibilityHint(String(localized: "\(GlobalHotkeyMonitor.pauseResumeToggleDisplay) aktif kaydı duraklatır veya devam ettirir."))
+
+                RecordButton(
+                    state: recordButtonState,
+                    countdownRemaining: viewModel.countdownRemaining,
+                    accessibilityLabel: recordingButtonTitle,
+                    accessibilityHint: recordingButtonAccessibilityHint,
+                    action: { viewModel.toggleRecording() }
+                )
+            }
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(24)
     }
 
     // MARK: - Preview Card
@@ -1306,6 +1414,25 @@ struct SettingsView: View {
                 }
                 .accessibilityHint(String(localized: "Bu süre dolunca kayıt otomatik olarak durur."))
 
+                if viewModel.maxRecordingDuration == .custom {
+                    Stepper(
+                        String(localized: "Özel süre: \(customMaxRecordingDurationLabel)"),
+                        value: $viewModel.customMaxRecordingDurationSeconds,
+                        in: 5...3600,
+                        step: 5
+                    )
+                    .accessibilityHint(String(localized: "Maksimum kayıt süresini saniye cinsinden kendin belirler. Bu süre dolunca kayıt otomatik olarak durur."))
+                }
+
+                if viewModel.maxRecordingDuration != .unlimited {
+                    Picker("Kayıt sonu uyarısı", selection: $viewModel.recordingEndWarningLeadTime) {
+                        ForEach(RecordingEndWarningLeadTime.allCases) { leadTime in
+                            Text(leadTime.label).tag(leadTime)
+                        }
+                    }
+                    .accessibilityHint(String(localized: "Maksimum kayıt süresi dolmadan önceki son saniyelerde geri sayım sesi ve seslendirmesiyle uyarır. Kaydı kesmez, yalnızca süre bitmeden haber verir."))
+                }
+
                 Picker("Mikrofon kanalı", selection: $viewModel.audioChannelMode) {
                     ForEach(AudioChannelMode.allCases) { mode in
                         Text(mode.label).tag(mode)
@@ -1324,6 +1451,25 @@ struct SettingsView: View {
 
                 Toggle("Duraklat ve devam sesini çal", isOn: $viewModel.isRecordingPauseResumeSoundEnabled)
                     .accessibilityHint(String(localized: "Kayıt duraklatıldığında veya devam ettirildiğinde geçiş sesi çalar."))
+
+                Toggle("Kayıt süresini düzenli olarak hatırlat", isOn: $viewModel.isElapsedTimeAnnouncementEnabled)
+                    .accessibilityHint(String(localized: "Kayıt sırasında ne kadar süre geçtiğini belirli aralıklarla hatırlatır. Dahili mikrofonla kayıt yaparken bu hatırlatma hoparlörden duyulup mikrofona karışabilir; kulaklık kullanman veya bunu kapatman bunu önler."))
+
+                if viewModel.isElapsedTimeAnnouncementEnabled {
+                    Picker("Hatırlatma şekli", selection: $viewModel.elapsedTimeAnnouncementMode) {
+                        ForEach(ElapsedTimeAnnouncementMode.allCases) { mode in
+                            Text(mode.label).tag(mode)
+                        }
+                    }
+                    .accessibilityHint(String(localized: "Sesli okuma, süreyi VoiceOver ile söyler. Ses efekti, yalnızca kısa bir tık sesi çalar; hoparlörden mikrofona karışması daha az fark edilir."))
+
+                    Picker("Hatırlatma sıklığı", selection: $viewModel.elapsedTimeAnnouncementInterval) {
+                        ForEach(ElapsedTimeAnnouncementInterval.allCases) { interval in
+                            Text(interval.label).tag(interval)
+                        }
+                    }
+                    .accessibilityHint(String(localized: "Kayıt süresi hatırlatmasının hangi sıklıkta yapılacağını belirler."))
+                }
 
                 Toggle("Kayıt başlarken pencereyi gizle", isOn: $hideWindowOnRecordingStart)
                     .accessibilityHint(String(localized: "Kayıt başladığında uygulama penceresi ekrandan kaybolur, böylece ekran kaydında uygulamanın arayüzü görünmez."))
@@ -1423,6 +1569,15 @@ struct SettingsView: View {
     private var settingsDescription: String {
         String(localized: "Otomatik modda VoiceOver açıksa yönlendirmeler erişilebilirlik anonsu olarak iletilir. Sessiz mod, sesi kapatır ama istersen ekrandaki metni bırakır.")
     }
+
+    private var customMaxRecordingDurationLabel: String {
+        let seconds = viewModel.customMaxRecordingDurationSeconds
+        let minutes = seconds / 60
+        let remainingSeconds = seconds % 60
+        return minutes > 0
+            ? String(localized: "\(minutes) dakika \(remainingSeconds) saniye")
+            : String(localized: "\(remainingSeconds) saniye")
+    }
 }
 
 struct QuickHelpSection: Identifiable, Equatable {
@@ -1498,7 +1653,7 @@ struct QuickHelpContent: Equatable {
                 items: [
                     "Cmd+1 selects camera recording, Cmd+2 selects screen recording, and Cmd+3 selects audio recording.",
                     "Cmd+D turns Frame Coach on or off, and Cmd+I announces the current settings.",
-                    "Cmd+Ctrl+R starts or stops the main recording, Cmd+Ctrl+5 toggles audio-only recording, and Cmd+Ctrl+P pauses or resumes."
+                    "Cmd+Option+R starts or stops the main recording, Cmd+Option+5 toggles audio-only recording, and Cmd+Option+P pauses or resumes."
                 ]
             ),
             .accessibility: QuickHelpSection(
@@ -1556,7 +1711,7 @@ struct QuickHelpContent: Equatable {
                 items: [
                     "Cmd+1 kamera kaydını, Cmd+2 ekran kaydını, Cmd+3 ses kaydını seçer.",
                     "Cmd+D Kadraj Koçu'nu açıp kapatır, Cmd+I mevcut ayarları duyurur.",
-                    "Cmd+Ctrl+R ana kaydı başlatır veya durdurur, Cmd+Ctrl+5 ses kaydını açıp kapatır, Cmd+Ctrl+P duraklatır veya devam ettirir."
+                    "Cmd+Option+R ana kaydı başlatır veya durdurur, Cmd+Option+5 ses kaydını açıp kapatır, Cmd+Option+P duraklatır veya devam ettirir."
                 ]
             ),
             .accessibility: QuickHelpSection(
@@ -1763,6 +1918,48 @@ private struct QuickHelpTopicView: View {
     }
 }
 
+/// Shown from the moment recording stops until the exported file is ready.
+/// Grabs VoiceOver focus immediately so a blind user knows processing has
+/// started without hunting for it, and closes itself — with a completion
+/// sound — the instant the file is actually ready. Dismissing it early via
+/// Escape only hides the panel; export keeps running in the background.
+private struct RecordingFinalizingSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let statusText: String
+    @AccessibilityFocusState private var isTitleFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .controlSize(.large)
+            Text(statusText)
+                .font(.title3.weight(.semibold))
+                .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityFocused($isTitleFocused)
+            Text(String(localized: "Kayıt dosyası hazırlanana kadar bu pencere açık kalır ve bitince otomatik kapanır. İşlem arka planda devam ettiği için istersen şimdi de kapatabilirsin."))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(28)
+        .frame(minWidth: 340, maxWidth: 420)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button(String(localized: "Kapat")) {
+                    dismiss()
+                }
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isTitleFocused = true
+            }
+        }
+    }
+}
+
 private struct CompletedRecordingSheet: View {
     let completedRecording: CompletedRecordingSummary
     let onOpen: () -> Void
@@ -1869,7 +2066,7 @@ private struct AppPaywallSheet: View {
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityFocused($isTitleFocused)
 
-            Text(String(localized: "Yıllık plan 14 gün ücretsiz deneme ile başlar. Bu deneme, App Store hesabın daha önce kullanmadıysa görünür. Ömür boyu planı istersen doğrudan tek seferde satın alabilirsin."))
+            Text(String(localized: "Zaten her ay 7 dakika ücretsiz kayıt hakkın var. Sınırsız kayıt, gelişmiş kadraj koçu ve tüm özellikler için:"))
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 

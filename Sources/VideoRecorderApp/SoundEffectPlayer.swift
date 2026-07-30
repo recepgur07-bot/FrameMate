@@ -7,12 +7,14 @@ protocol SoundEffectPlaying {
     @discardableResult func playStart() -> TimeInterval
     @discardableResult func playStop() -> TimeInterval
     @discardableResult func playPauseResume() -> TimeInterval
+    func playElapsedTimeReminder()
 }
 
 extension SoundEffectPlaying {
     @discardableResult func playCommandReceived() -> TimeInterval { 0 }
     func playCountdownTick(remaining: Int, total: Int) {}
     @discardableResult func playPauseResume() -> TimeInterval { 0 }
+    func playElapsedTimeReminder() {}
 }
 
 struct SoundEffectPlayer: SoundEffectPlaying {
@@ -34,6 +36,12 @@ struct SoundEffectPlayer: SoundEffectPlaying {
 
     @discardableResult func playPauseResume() -> TimeInterval {
         play(named: "ara")
+    }
+
+    /// A short, non-verbal tick used as an alternative to the spoken elapsed-time
+    /// announcement — it does not interrupt VoiceOver output the way speech would.
+    func playElapsedTimeReminder() {
+        play(named: "sure-hatirlatma")
     }
 
     private func play(named name: String) -> TimeInterval {

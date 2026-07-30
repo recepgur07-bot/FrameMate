@@ -1,45 +1,32 @@
 // Sources/VideoRecorderApp/RecordingElapsedTimeAnnouncer.swift
-import AppKit
 import Foundation
 
-/// Periodically announces elapsed recording time via VoiceOver so blind users
+/// Periodically notifies the caller of elapsed recording time so blind users
 /// always know how long a recording has been running without navigating to the UI.
+/// The announcer itself is agnostic to *how* the tick is surfaced (spoken via
+/// VoiceOver, a short sound effect, or disabled outright) — that choice belongs
+/// to the caller, since it depends on a user-configurable setting.
 final class RecordingElapsedTimeAnnouncer {
 
     private var task: Task<Void, Never>?
-    private let intervalSeconds: Int
 
-    init(intervalSeconds: Int = 30) {
-        self.intervalSeconds = intervalSeconds
-    }
-
-    /// Start announcing. `elapsedProvider` is called on each tick to get the
-    /// current elapsed recording duration (pauses excluded).
-    func start(elapsedProvider: @escaping () -> TimeInterval?) {
+    /// Start ticking every `intervalSeconds`. `elapsedProvider` is called on each
+    /// tick to get the current elapsed recording duration (pauses excluded);
+    /// `onTick` receives that duration and decides how to surface it.
+    func start(
+        intervalSeconds: Int,
+        elapsedProvider: @escaping () -> TimeInterval?,
+        onTick: @escaping (TimeInterval) -> Void
+    ) {
         stop()
-        task = Task { [intervalSeconds] in
+        guard intervalSeconds > 0 else { return }
+        task = Task {
             do {
                 while true {
                     try await Task.sleep(for: .seconds(intervalSeconds))
                     guard let elapsed = elapsedProvider(), elapsed > 0 else { continue }
-                    let minutes = Int(elapsed) / 60
-                    let seconds = Int(elapsed) % 60
-                    let text: String
-                    if minutes > 0 {
-                        text = String(localized: "Kayıt süresi: \(minutes) dakika \(seconds) saniye")
-                    } else {
-                        text = String(localized: "Kayıt süresi: \(seconds) saniye")
-                    }
                     await MainActor.run {
-                        NSAccessibility.post(
-                            element: NSApp as Any,
-                            notification: .announcementRequested,
-                            userInfo: [
-                                NSAccessibility.NotificationUserInfoKey.announcement: text,
-                                NSAccessibility.NotificationUserInfoKey.priority:
-                                    NSAccessibilityPriorityLevel.medium.rawValue
-                            ]
-                        )
+                        onTick(elapsed)
                     }
                 }
             } catch {

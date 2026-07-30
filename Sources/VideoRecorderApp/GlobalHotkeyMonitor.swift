@@ -4,19 +4,19 @@ import Carbon.HIToolbox
 /// Listens for recording hotkeys globally (even when app is in background).
 /// Carbon hotkeys are more reliable than NSEvent monitors and do not depend on Accessibility permission.
 final class GlobalHotkeyMonitor {
-    static let recordingToggleDisplay = "Cmd+Ctrl+R"
+    static let recordingToggleDisplay = "Cmd+Option+R"
     static let recordingToggleKeyCode: UInt32 = 15
-    static let recordingToggleModifiers: NSEvent.ModifierFlags = [.command, .control]
-    static let audioRecordingToggleDisplay = "Cmd+Ctrl+5"
+    static let recordingToggleModifiers: NSEvent.ModifierFlags = [.command, .option]
+    static let audioRecordingToggleDisplay = "Cmd+Option+5"
     static let audioRecordingToggleKeyCode: UInt32 = 23
-    static let pauseResumeToggleDisplay = "Cmd+Ctrl+P"
+    static let pauseResumeToggleDisplay = "Cmd+Option+P"
     static let pauseResumeToggleKeyCode: UInt32 = 35
 
     fileprivate static let hotKeySignature: OSType = 0x56445248 // 'VDRH'
     fileprivate static let hotKeyID: UInt32 = 1
     fileprivate static let audioHotKeyID: UInt32 = 2
     fileprivate static let pauseResumeHotKeyID: UInt32 = 3
-    private static let toggleCarbonModifiers: UInt32 = UInt32(cmdKey | controlKey)
+    private static let toggleCarbonModifiers: UInt32 = UInt32(cmdKey | optionKey)
 
     private let onToggle: () -> Void
     private let onAudioToggle: () -> Void
@@ -122,7 +122,7 @@ final class GlobalHotkeyMonitor {
         event.type == .keyDown
             && event.keyCode == recordingToggleKeyCode
             && event.modifierFlags.contains(recordingToggleModifiers)
-            && !event.modifierFlags.contains(.option)
+            && !event.modifierFlags.contains(.control)
             && !event.modifierFlags.contains(.shift)
     }
 
@@ -130,7 +130,7 @@ final class GlobalHotkeyMonitor {
         event.type == .keyDown
             && event.keyCode == audioRecordingToggleKeyCode
             && event.modifierFlags.contains(recordingToggleModifiers)
-            && !event.modifierFlags.contains(.option)
+            && !event.modifierFlags.contains(.control)
             && !event.modifierFlags.contains(.shift)
     }
 
@@ -138,7 +138,7 @@ final class GlobalHotkeyMonitor {
         event.type == .keyDown
             && event.keyCode == pauseResumeToggleKeyCode
             && event.modifierFlags.contains(recordingToggleModifiers)
-            && !event.modifierFlags.contains(.option)
+            && !event.modifierFlags.contains(.control)
             && !event.modifierFlags.contains(.shift)
     }
 

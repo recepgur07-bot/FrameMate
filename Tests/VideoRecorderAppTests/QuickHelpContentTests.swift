@@ -20,7 +20,7 @@ final class QuickHelpContentTests: XCTestCase {
         XCTAssertTrue(
             QuickHelpContent.english.topics.values
                 .flatMap(\.items)
-                .contains(where: { $0.contains("Cmd+Ctrl+R") })
+                .contains(where: { $0.contains("Cmd+Option+R") })
         )
     }
 

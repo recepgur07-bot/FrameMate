@@ -38,11 +38,15 @@ API anahtarı veya sertifika eklenmez.
 | 3 | Kısa kamera veya ekran kaydı başlatıp durdur | Aktif durum ve süre görünür; oynatılabilir yerel MP4 oluşur | `device-validation.md`, `ffprobe` çıktısı |
 | 4 | Kaydı kaydet veya Finder'da göster | Kullanıcı görünür klasör ve standart Save As akışı kullanılır | `docs/app-review-notes.md` |
 | 5 | Ayarlar'ı aç | Privacy/support, erişilebilirlik ve satın alma kontrolleri görünür | `docs/app-review-notes.md` |
-| 6 | Paywall'dan yıllık veya ömür boyu Pro'yu incele ve Restore Purchases'ı dene | Ürünler, trial/yenileme bilgisi ve restore akışı görünür | IAP cihaz kanıtı gerekli |
+| 6 | Paywall'dan yıllık veya ömür boyu Pro'yu incele ve Restore Purchases'ı dene | Ürünler, fiyat/yenileme bilgisi ve restore akışı görünür | IAP cihaz kanıtı gerekli |
 
 ## Gelir modeli
 
-- [x] IAP/abonelik var: yıllık Pro (uygunsa 14 günlük deneme) ve ömür boyu Pro.
+- [x] Hesap gerekmeden başlar: ilk 3 gün sınırsız yerel deneme, sonrasında her ay
+  otomatik yenilenen 7 dakikalık ücretsiz kayıt kotası (cihaz üzerinde, StoreKit'e
+  dokunmaz).
+- [x] IAP/abonelik var: yıllık Pro (App Store introductory offer/deneme yok — ücretsiz
+  deneyim yukarıdaki yerel modelle sağlanıyor) ve ömür boyu Pro.
 - [x] Paywall, kayıt başlatıldığında aktif entitlement yoksa ve Ayarlar'dan
   erişilebilir.
 - [x] Restore Purchases, privacy ve Apple standard EULA bağlantıları paywall'da

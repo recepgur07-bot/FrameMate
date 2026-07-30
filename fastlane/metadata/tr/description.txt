@@ -30,7 +30,7 @@ FrameMate, başından beri VoiceOver uyumu düşünülerek tasarlanmıştır.
 GİZLİLİK
 Tüm kayıtlarınız Mac'inizde yerel olarak işlenir ve saklanır. FrameMate bulut hesabı istemez ve takip kodu içermez.
 
-App Store hesabınız uygunsa yıllık planın 14 günlük ücretsiz denemesiyle başlayın veya tek seferlik ömür boyu erişimi seçin.
+Hesap gerekmeden hemen kaydetmeye başlayın. İlk 3 gün sınırsız yerel kayıt yapın; sonrasında her ay 7 dakika ücretsiz kayıt hakkınız otomatik yenilenir. Sınırsız kayıt için istediğiniz an yıllık veya ömür boyu Pro'ya geçin.
 
 KULLANIM KOŞULLARI
 Apple'ın standart Mac App Store EULA'sı geçerlidir: https://www.apple.com/legal/macapps/stdeula/

@@ -30,7 +30,7 @@ FrameMate is built from the ground up with VoiceOver support:
 PRIVACY
 Your recordings are processed and saved locally on your Mac. FrameMate does not require an account, does not upload videos, and includes no tracking SDKs.
 
-Start with the yearly plan's 14-day free trial if your App Store account is eligible, or choose lifetime access with a one-time purchase.
+Start recording instantly, with no account required. The first 3 days include unlimited local recording; after that, every user receives 7 free recording minutes each month. Upgrade to yearly or lifetime Pro anytime for unlimited recording.
 
 TERMS OF USE
 Apple's standard Mac App Store EULA applies: https://www.apple.com/legal/macapps/stdeula/

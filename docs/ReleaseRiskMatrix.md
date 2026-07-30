@@ -17,11 +17,11 @@ recording, permissions, shortcuts, settings, export, or accessibility.
 | Stuck preparation | Start fails while camera overlay, system audio, or microphone was partially started | Start-error tests, `isPreparingRecording` reset checks | Force start then deny/remove a device if possible |
 | Stuck stopping | Stop waits forever because one capture branch was not stopped | Screen/audio/system-audio stop tests, overlay stop tests | Start each recording type, stop immediately, confirm UI returns |
 | Mid-recording setting drift | User changes mode, source, camera box, or countdown while capture is active | Settings are locked while recording, preparing, or counting down | Try changing source/overlay while recording and during countdown |
-| Shortcut race | Global shortcut starts without permissions, double-starts, or cancels wrong flow | Shortcut, countdown, direct-start guard tests | Use Cmd+Ctrl+R, Cmd+Ctrl+5, Cmd+Ctrl+P repeatedly |
+| Shortcut race | Global shortcut starts without permissions, double-starts, or cancels wrong flow | Shortcut, countdown, direct-start guard tests | Use Cmd+Option+R, Cmd+Option+5, Cmd+Option+P repeatedly |
 | Export failure | Empty screen file, missing overlay/audio, collision on rename/save-as | Empty-file fallback, save/rename collision tests, export completion tests | Record short screen/camera/audio clips and open saved files |
 | Optional input absence | No camera, no mic, no windows, no displays, listing failure | Readiness and fallback tests | Launch with no external devices, switch all modes |
 | Accessibility conflict | App voice speaks over VoiceOver, status cannot be understood | VoiceOver announcement tests, accessibility summary tests | Turn VoiceOver on, use status and record shortcuts |
-| Trial/paywall lock | Expired trial allows capture, active trial blocks capture | App access and paywall preflight tests | Test trial, expired, and restored purchase states |
+| Trial/paywall lock | Exhausted free tier allows capture, or active local trial/quota blocks capture | App access and paywall preflight tests | Test local trial, free-tier remaining/exhausted, and restored purchase states |
 | App lifecycle | Window closes during recording, menu bar state gets stale | main-window and menu tests | Close main window while recording, stop from menu bar |
 
 ## Manual Smoke Matrix
@@ -30,16 +30,16 @@ Run each row once with countdown off and once with a 3-second countdown.
 
 | Mode | Options | Start path | Expected result |
 | --- | --- | --- | --- |
-| Camera | Mic on, system audio off | Main button and Cmd+Ctrl+R | Starts, stops, saves MP4 |
+| Camera | Mic on, system audio off | Main button and Cmd+Option+R | Starts, stops, saves MP4 |
 | Camera | System audio on | Main button | Shows clear guidance if unsupported or records expected audio |
-| Screen | Full screen, mic off, system audio off | Main button and Cmd+Ctrl+R | Starts, stops, saves MP4 |
+| Screen | Full screen, mic off, system audio off | Main button and Cmd+Option+R | Starts, stops, saves MP4 |
 | Screen | Full screen, mic on, system audio on | Main button | Starts, stops, saves MP4 with audio |
 | Screen | Camera box on | Main button | Overlay starts and stop returns UI to ready |
 | Screen | Camera box on, then try to disable while recording | Main button | Setting does not change until recording stops |
 | Window | Window selected, mic on | Main button | Starts target window and stops cleanly |
-| Audio only | Mic on | Cmd+Ctrl+5 | Countdown applies, starts, stops, saves M4A |
-| Audio only | Mic off, system audio on | Cmd+Ctrl+5 | Starts only if screen permission is valid |
-| Any active recording | Pause/resume | Cmd+Ctrl+P | Pause state changes without losing final export |
+| Audio only | Mic on | Cmd+Option+5 | Countdown applies, starts, stops, saves M4A |
+| Audio only | Mic off, system audio on | Cmd+Option+5 | Starts only if screen permission is valid |
+| Any active recording | Pause/resume | Cmd+Option+P | Pause state changes without losing final export |
 
 ## Red Flags
 

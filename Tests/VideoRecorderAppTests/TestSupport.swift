@@ -294,11 +294,19 @@ final class MockKeyboardShortcutRecorder: KeyboardShortcutRecordingProviding {
     }
 }
 
-final class MockTrialStartDateStore: TrialStartDateStoring {
-    var startDate: Date?
+final class MockFreeTierUsageStore: FreeTierUsageStoring {
+    var localTrialStartDate: Date?
+    var currentPeriodStartDate: Date?
+    var consumedSecondsThisPeriod: Int
 
-    init(startDate: Date? = nil) {
-        self.startDate = startDate
+    init(
+        localTrialStartDate: Date? = nil,
+        currentPeriodStartDate: Date? = nil,
+        consumedSecondsThisPeriod: Int = 0
+    ) {
+        self.localTrialStartDate = localTrialStartDate
+        self.currentPeriodStartDate = currentPeriodStartDate
+        self.consumedSecondsThisPeriod = consumedSecondsThisPeriod
     }
 }
 
@@ -345,6 +353,7 @@ final class MockAppAccessManager: AppAccessManaging {
     private(set) var refreshCallCount = 0
     private(set) var purchasedPlans: [AppAccessPlan] = []
     private(set) var restoreCallCount = 0
+    private(set) var consumedFreeTierSeconds: [TimeInterval] = []
     var purchaseResult: AppStorePurchaseResult = .success
 
     init(state: AppAccessState) {
@@ -362,5 +371,9 @@ final class MockAppAccessManager: AppAccessManaging {
 
     func restorePurchases() async {
         restoreCallCount += 1
+    }
+
+    func consumeFreeTierUsage(seconds: TimeInterval) {
+        consumedFreeTierSeconds.append(seconds)
     }
 }
