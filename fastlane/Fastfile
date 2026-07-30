@@ -161,6 +161,30 @@ platform :mac do
     UI.success("TestFlight yuku tamamlandi: v#{version} (#{build_number})")
   end
 
+  desc "Zaten yuklenmis bir TestFlight build'ine changelog ata (yeniden build/upload yapmaz)"
+  lane :set_beta_changelog do |options|
+    normalize_project_release_environment!
+    doctor
+
+    build_number = options[:build_number] || required_env!("BUILD_NUMBER")
+    changelog = options[:changelog] || required_env!("CHANGELOG")
+
+    upload_to_testflight(
+      api_key: get_api_key,
+      apple_id: CANONICAL_APP_STORE_APP_ID,
+      app_identifier: required_env!("APP_IDENTIFIER"),
+      app_platform: "osx",
+      distribute_only: true,
+      build_number: build_number,
+      distribute_external: false,
+      notify_external_testers: false,
+      uses_non_exempt_encryption: false,
+      changelog: changelog
+    )
+
+    UI.success("Changelog guncellendi")
+  end
+
   desc "Mac App Store metadata ve ekran goruntulerini yukle; review'a gondermez"
   lane :store_metadata do
     normalize_project_release_environment!
