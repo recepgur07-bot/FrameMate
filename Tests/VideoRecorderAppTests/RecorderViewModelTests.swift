@@ -1624,6 +1624,56 @@ final class RecorderViewModelTests: XCTestCase {
         XCTAssertFalse(viewModel.isPreparingRecording)
     }
 
+    // A camera still negotiating exposure/focus when recording starts must not abort the
+    // whole screen recording — it degrades to a screen-only recording with a warning
+    // instead of the previous silent "camera box never appears in the video" bug.
+    func testScreenOverlayReadinessTimeoutDoesNotAbortScreenRecording() async {
+        let permissions = RecorderPermissionsStub(
+            statuses: [.video: .authorized, .audio: .authorized]
+        )
+        let recorder = RecorderCaptureStub(
+            cameras: [InputDevice(id: "cam-1", name: "Front Camera")],
+            microphones: [InputDevice(id: "mic-1", name: "USB Mic")]
+        )
+        let screenProvider = MockScreenRecordingProvider(
+            status: .authorized,
+            displays: [ScreenDisplayOption(id: "display-1", name: "Built-in Display")]
+        )
+        let overlayRecorder = MockCameraOverlayRecorder()
+        overlayRecorder.startError = CaptureRecorderError.recordingStartTimedOut
+
+        let tempRoot = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let viewModel = RecorderViewModel(
+            recorder: recorder,
+            screenRecordingProvider: screenProvider,
+            cameraOverlayRecorder: overlayRecorder,
+            systemAudioRecorder: MockSystemAudioRecorder(),
+            microphoneAudioRecorder: MockMicrophoneAudioRecorder(),
+            fileNamer: RecordingFileNamer(homeDirectory: tempRoot),
+            soundEffectPlayer: MockSoundEffectPlayer(),
+            permissionProvider: permissions
+        )
+
+        await viewModel.setup()
+        viewModel.selectPreset(.horizontalScreen)
+        viewModel.isSystemAudioEnabled = false
+        viewModel.isScreenCameraOverlayEnabled = true
+        viewModel.refreshDeviceState()
+        await viewModel.refreshScreenRecordingOptions()
+
+        viewModel.startRecording()
+        for _ in 0..<40 where !viewModel.isRecording && viewModel.errorText == nil {
+            try? await Task.sleep(nanoseconds: 25_000_000)
+        }
+
+        XCTAssertNil(viewModel.errorText, "A camera warm-up timeout must not surface as a hard recording error")
+        XCTAssertTrue(viewModel.isRecording, "Screen recording must continue without the overlay")
+        XCTAssertTrue(overlayRecorder.stopSessionCalled, "The overlay camera session must be released after it fails to become ready")
+
+        viewModel.stopRecording()
+        try? await Task.sleep(nanoseconds: 50_000_000)
+    }
+
     func testScreenRecordingUsesSeparateMicrophoneRecorderInsteadOfEmbeddedScreenMicrophone() async {
         let permissions = RecorderPermissionsStub(
             statuses: [.video: .authorized, .audio: .authorized]

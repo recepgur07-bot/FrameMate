@@ -528,22 +528,6 @@ final class CaptureRecorder: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
     }
 }
 
-enum MovieOutputVideoEncoding {
-    static func applyHEVCSettings(to movieOutput: AVCaptureMovieFileOutput) {
-        guard let connection = movieOutput.connection(with: .video) else {
-            return
-        }
-
-        movieOutput.setOutputSettings([
-            AVVideoCodecKey: AVVideoCodecType.hevc,
-            AVVideoCompressionPropertiesKey: [
-                AVVideoAverageBitRateKey: 8_000_000,
-                AVVideoMaxKeyFrameIntervalKey: 60
-            ]
-        ], for: connection)
-    }
-}
-
 enum MovieOutputAudioEncoding {
     static func applyChannelMode(_ mode: AudioChannelMode, to movieOutput: AVCaptureMovieFileOutput) {
         guard let connection = movieOutput.connection(with: .audio) else {

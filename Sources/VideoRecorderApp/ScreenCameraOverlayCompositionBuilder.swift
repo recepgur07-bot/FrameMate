@@ -58,14 +58,22 @@ final class ScreenCameraOverlayCompositionBuilder {
         let visibleScreenDuration = pauseTimeline.outputDuration(for: screenDuration)
         try insertSegments(screenSegments, of: screenVideoTrack, into: screenCompositionTrack)
 
-        var visibleOverlayDuration: CMTime = .zero
+        // The screen capture is the primary component: the exported movie must end exactly
+        // when the (pause-trimmed) screen content ends. Every secondary track — camera
+        // overlay, microphone, system audio — is clamped to that end when inserted. The
+        // camera overlay in particular reliably outlives the screen file (it starts later
+        // because of its warm-up gate, positive offset, and stops later because of its
+        // writer drain), and an overlay video track extending past the last video
+        // composition instruction makes the whole composition invalid: AVAssetExportSession
+        // then fails with AVErrorInvalidVideoComposition (-11841, "video could not be
+        // composed") and the user loses the camera layer.
         if let overlayAsset, let overlayVideoTrack, let overlayCompositionTrack {
             let overlayDuration = try await overlayAsset.load(.duration)
-            visibleOverlayDuration = CMTimeMinimum(visibleScreenDuration, pauseTimeline.outputDuration(for: overlayDuration))
             try insertSegments(
                 pauseTimeline.segments(for: overlayDuration, offsetSeconds: overlayOffsetSeconds),
                 of: overlayVideoTrack,
-                into: overlayCompositionTrack
+                into: overlayCompositionTrack,
+                clampedTo: visibleScreenDuration
             )
         }
 
@@ -79,7 +87,8 @@ final class ScreenCameraOverlayCompositionBuilder {
                     try insertSegments(
                         pauseTimeline.segments(for: systemInsertDuration, offsetSeconds: systemAudioOffsetSeconds),
                         of: audioTrack,
-                        into: audioCompositionTrack
+                        into: audioCompositionTrack,
+                        clampedTo: visibleScreenDuration
                     )
                     systemTrackIDs.append(audioCompositionTrack.trackID)
                 }
@@ -97,7 +106,8 @@ final class ScreenCameraOverlayCompositionBuilder {
                         try insertSegments(
                             pauseTimeline.segments(for: insertDuration, offsetSeconds: microphoneOffsetSeconds),
                             of: audioTrack,
-                            into: audioCompositionTrack
+                            into: audioCompositionTrack,
+                            clampedTo: visibleScreenDuration
                         )
                         microphoneTrackIDs.append(audioCompositionTrack.trackID)
                     }
@@ -129,10 +139,54 @@ final class ScreenCameraOverlayCompositionBuilder {
         )
         screenInstruction.setTransform(screenTransform, at: .zero)
 
-        var layerInstructions: [AVVideoCompositionLayerInstruction] = [screenInstruction]
+        // A secondary component whose entire content was clamped away (it only started
+        // after the screen content already ended) leaves a segmentless track behind;
+        // drop it — and any audio-mix reference to it — rather than exporting an empty
+        // track.
+        for track in composition.tracks where track.segments.isEmpty {
+            composition.removeTrack(track)
+        }
+        let remainingTrackIDs = Set(composition.tracks.map(\.trackID))
+        systemTrackIDs = systemTrackIDs.filter(remainingTrackIDs.contains)
+        microphoneTrackIDs = microphoneTrackIDs.filter(remainingTrackIDs.contains)
+
+        // Instruction coverage is derived from the composition tracks' *actual* inserted
+        // ranges, not from the pre-computed second-based durations: `insertTimeRange` may
+        // land on media sample boundaries, and AVFoundation requires the instruction list
+        // to be gapless from zero through the very end of the composition (every track
+        // included). Any uncovered tail — even a few milliseconds of overlay video or
+        // audio past the last instruction — invalidates the whole video composition
+        // (AVErrorInvalidVideoComposition, -11841).
+        var compositionEnd = screenCompositionTrack.timeRange.end
+        for track in composition.tracks where track.timeRange.end.isNumeric {
+            compositionEnd = CMTimeMaximum(compositionEnd, track.timeRange.end)
+        }
+
+        // The overlay only participates where its track actually has media. Referencing
+        // it before its first frame (it starts later than the screen because of its
+        // warm-up gate) or after its last frame would be exactly the mismatch described
+        // above, so the timeline is split into screen-only head / overlay+screen middle /
+        // screen-only tail instructions as needed.
+        var overlayRenderRange: CMTimeRange?
+        if let overlayCompositionTrack {
+            // Actual media coverage, excluding the explicit empty head range that holds
+            // the overlay's start offset open — the overlay layer must only be
+            // referenced where real camera frames exist.
+            let mediaSegments = overlayCompositionTrack.segments.filter { !$0.isEmpty }
+            if let firstSegment = mediaSegments.first, let lastSegment = mediaSegments.last {
+                let start = CMTimeMaximum(.zero, firstSegment.timeMapping.target.start)
+                let end = CMTimeMinimum(lastSegment.timeMapping.target.end, compositionEnd)
+                if end > start {
+                    overlayRenderRange = CMTimeRange(start: start, end: end)
+                }
+            }
+        }
+
+        var instructions: [AVMutableVideoCompositionInstruction] = []
 
         if let overlayVideoTrack,
-           let overlayCompositionTrack {
+           let overlayCompositionTrack,
+           let overlayRenderRange {
             let overlayFrame = overlayFrame(
                 in: renderSize,
                 position: position,
@@ -152,21 +206,39 @@ final class ScreenCameraOverlayCompositionBuilder {
                 CGAffineTransform(translationX: overlayFrame.minX, y: overlayFrame.minY)
             )
             overlayInstruction.setTransform(overlayTransform, at: .zero)
-            overlayInstruction.setOpacity(0, at: visibleOverlayDuration)
-            layerInstructions.insert(overlayInstruction, at: 0)
+
+            if overlayRenderRange.start > .zero {
+                let screenOnlyHead = AVMutableVideoCompositionInstruction()
+                screenOnlyHead.timeRange = CMTimeRange(start: .zero, end: overlayRenderRange.start)
+                screenOnlyHead.layerInstructions = [screenInstruction]
+                instructions.append(screenOnlyHead)
+            }
+
+            let withOverlay = AVMutableVideoCompositionInstruction()
+            withOverlay.timeRange = overlayRenderRange
+            withOverlay.layerInstructions = [overlayInstruction, screenInstruction]
+            instructions.append(withOverlay)
+
+            if overlayRenderRange.end < compositionEnd {
+                let screenOnlyTail = AVMutableVideoCompositionInstruction()
+                screenOnlyTail.timeRange = CMTimeRange(start: overlayRenderRange.end, end: compositionEnd)
+                screenOnlyTail.layerInstructions = [screenInstruction]
+                instructions.append(screenOnlyTail)
+            }
+        } else {
+            let screenOnly = AVMutableVideoCompositionInstruction()
+            screenOnly.timeRange = CMTimeRange(start: .zero, end: compositionEnd)
+            screenOnly.layerInstructions = [screenInstruction]
+            instructions.append(screenOnly)
         }
 
-        let instruction = AVMutableVideoCompositionInstruction()
-        instruction.timeRange = CMTimeRange(start: .zero, duration: visibleScreenDuration)
-        instruction.layerInstructions = layerInstructions
-
         let videoComposition = AVMutableVideoComposition()
-        videoComposition.instructions = [instruction]
+        videoComposition.instructions = instructions
         videoComposition.renderSize = renderSize
         videoComposition.frameDuration = CMTime(value: 1, timescale: 30)
 
-        if overlayVideoTrack != nil || !cursorTimeline.isEmpty || !keyboardShortcutTimeline.isEmpty {
-            let overlayFrame = overlayVideoTrack == nil
+        if overlayRenderRange != nil || !cursorTimeline.isEmpty || !keyboardShortcutTimeline.isEmpty {
+            let overlayFrame = overlayRenderRange == nil
                 ? .zero
                 : overlayFrame(
                     in: renderSize,
@@ -200,10 +272,29 @@ final class ScreenCameraOverlayCompositionBuilder {
     private func insertSegments(
         _ segments: [RecordingSegment],
         of sourceTrack: AVAssetTrack,
-        into compositionTrack: AVMutableCompositionTrack
+        into compositionTrack: AVMutableCompositionTrack,
+        clampedTo outputLimit: CMTime? = nil
     ) throws {
+        var cursor = CMTime.zero
         for segment in segments {
-            try compositionTrack.insertTimeRange(segment.sourceRange, of: sourceTrack, at: segment.destinationStart)
+            var sourceRange = segment.sourceRange
+            if let outputLimit {
+                guard segment.destinationStart < outputLimit else { continue }
+                let available = outputLimit - segment.destinationStart
+                if sourceRange.duration > available {
+                    sourceRange = CMTimeRange(start: sourceRange.start, duration: available)
+                }
+            }
+            // `insertTimeRange(_:of:at:)` does NOT leave a gap when `at` is past the
+            // track's current end — it silently appends at the end instead, collapsing
+            // the head gap of a secondary component that started after session zero
+            // (e.g. the camera overlay's warm-up delay). The gap must be an explicit
+            // empty range for the destination position to be honored.
+            if segment.destinationStart > cursor {
+                compositionTrack.insertEmptyTimeRange(CMTimeRange(start: cursor, end: segment.destinationStart))
+            }
+            try compositionTrack.insertTimeRange(sourceRange, of: sourceTrack, at: segment.destinationStart)
+            cursor = segment.destinationStart + sourceRange.duration
         }
     }
 

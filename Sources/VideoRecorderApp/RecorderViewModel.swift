@@ -139,8 +139,17 @@ final class AudioRecordingExporter: AudioRecordingExporting {
                 continue
             }
 
+            var cursor = CMTime.zero
             for segment in segments {
+                // `insertTimeRange(_:of:at:)` silently appends at the track's current end
+                // instead of leaving a gap, which would collapse the start offset of a
+                // component that began after session zero and slide it out of alignment.
+                // The gap must be an explicit empty (silent) range.
+                if segment.destinationStart > cursor {
+                    compositionTrack.insertEmptyTimeRange(CMTimeRange(start: cursor, end: segment.destinationStart))
+                }
                 try compositionTrack.insertTimeRange(segment.sourceRange, of: audioTrack, at: segment.destinationStart)
+                cursor = segment.destinationStart + segment.sourceRange.duration
             }
             trackIDs.append(compositionTrack.trackID)
         }
@@ -2228,6 +2237,7 @@ final class RecorderViewModel {
 
     private func startRecordingAsync() async {
         guard ensureRecordingAccess() else { return }
+        await requestCameraPermissionIfNeededForOverlay()
         guard ensureSelectedRecordingCanStart() else { return }
         guard hasEnoughDiskSpaceToStartRecording() else { return }
         guard beginRecordingPreparation() else { return }
@@ -2668,15 +2678,21 @@ final class RecorderViewModel {
             }
             if pendingOverlayCaptureResult == nil {
                 runtimeDebugLog("Stop watchdog: forcing pendingOverlayCaptureResult after timeout")
-                pendingOverlayCaptureResult = .success(nil)
+                // Was .success(nil) — silently dropped the camera overlay with no
+                // warning shown anywhere. A genuinely-disabled overlay is already
+                // resolved to .success(nil) at recording start (see
+                // startScreenRecording), so reaching this branch always means the
+                // overlay was requested but its completion never arrived in time;
+                // that must surface as a warning, not a quiet success.
+                pendingOverlayCaptureResult = .failure(RecordingSafetyError.stopWatchdogTimedOut)
             }
             if pendingScreenMicrophoneCaptureResult == nil {
                 runtimeDebugLog("Stop watchdog: forcing pendingScreenMicrophoneCaptureResult after timeout")
-                pendingScreenMicrophoneCaptureResult = .success(nil)
+                pendingScreenMicrophoneCaptureResult = .failure(RecordingSafetyError.stopWatchdogTimedOut)
             }
             if pendingScreenSystemAudioCaptureResult == nil {
                 runtimeDebugLog("Stop watchdog: forcing pendingScreenSystemAudioCaptureResult after timeout")
-                pendingScreenSystemAudioCaptureResult = .success(nil)
+                pendingScreenSystemAudioCaptureResult = .failure(RecordingSafetyError.stopWatchdogTimedOut)
             }
             maybeFinalizeScreenRecordingExport()
         }
@@ -2803,13 +2819,23 @@ final class RecorderViewModel {
             if isScreenCameraOverlayEnabled {
                 cancelScreenOverlayPreview(stopSession: false)
                 try await cameraOverlayRecorder.configure(cameraDeviceID: selectedCameraID, mode: selectedMode)
-                try await cameraOverlayRecorder.startRecording(to: overlayCaptureURL) { [weak self] result in
-                    Task { @MainActor in
-                        self?.handleScreenOverlayCaptureCompletion(result)
+                do {
+                    try await cameraOverlayRecorder.startRecording(to: overlayCaptureURL) { [weak self] result in
+                        Task { @MainActor in
+                            self?.handleScreenOverlayCaptureCompletion(result)
+                        }
                     }
+                    pendingScreenOverlayCaptureURL = overlayCaptureURL
+                    runtimeDebugLog("Screen recording start: camera overlay started")
+                } catch let error as CaptureRecorderError where isCameraOverlayReadinessTimeout(error) {
+                    // The camera never delivered a frame in time (still negotiating
+                    // exposure/focus). Don't abort the whole screen recording for this —
+                    // fall back to a screen-only recording with a visible warning instead
+                    // of silently producing a video with no camera box in it at all.
+                    runtimeDebugLog("Screen recording start: camera overlay timed out waiting for its first frame; continuing without it")
+                    cameraOverlayRecorder.stopSession()
+                    pendingOverlayCaptureResult = .failure(error)
                 }
-                pendingScreenOverlayCaptureURL = overlayCaptureURL
-                runtimeDebugLog("Screen recording start: camera overlay started")
             }
 
             if !selectedMicrophoneID.isEmpty {
@@ -2853,6 +2879,11 @@ final class RecorderViewModel {
             statusText: String(localized: "Kayıt yapılıyor"),
             sleepReason: "Ekran kaydı devam ediyor"
         )
+    }
+
+    private func isCameraOverlayReadinessTimeout(_ error: CaptureRecorderError) -> Bool {
+        if case .recordingStartTimedOut = error { return true }
+        return false
     }
 
     private func cleanupFailedScreenRecordingStart() {
@@ -3172,13 +3203,12 @@ final class RecorderViewModel {
             )
             Task {
                 do {
-                    let exportResult = try await exportMP4(
-                        from: captureURL,
-                        to: finalURL,
-                        timeline: AutoReframeTimeline(),
-                        screenExportMode: recordingMode,
-                        screenMicrophoneURL: microphoneURL,
-                        screenSystemAudioURL: systemAudioURL,
+                    let (exportResult, finalWarnings) = try await exportScreenRecordingWithOverlayFallback(
+                        captureURL: captureURL,
+                        finalURL: finalURL,
+                        recordingMode: recordingMode,
+                        microphoneURL: microphoneURL,
+                        systemAudioURL: systemAudioURL,
                         overlayURL: overlayURL,
                         overlayPosition: overlayPosition,
                         overlaySize: overlaySize,
@@ -3187,7 +3217,8 @@ final class RecorderViewModel {
                         pauseTimeline: pauseTimeline,
                         overlayOffsetSeconds: overlayOffsetSeconds,
                         screenMicrophoneOffsetSeconds: screenMicrophoneOffsetSeconds,
-                        screenSystemAudioOffsetSeconds: screenSystemAudioOffsetSeconds
+                        screenSystemAudioOffsetSeconds: screenSystemAudioOffsetSeconds,
+                        warnings: warnings
                     )
                     try? FileManager.default.removeItem(at: captureURL)
                     if let overlayURL { try? FileManager.default.removeItem(at: overlayURL) }
@@ -3199,8 +3230,8 @@ final class RecorderViewModel {
                             return
                         }
                         lastSavedURL = exportResult.url
-                        completedRecording = makeCompletedRecordingSummary(for: exportResult.url, warnings: warnings)
-                        statusText = isPartialRecovery
+                        completedRecording = makeCompletedRecordingSummary(for: exportResult.url, warnings: finalWarnings)
+                        statusText = !finalWarnings.isEmpty
                             ? String(localized: "Kısmi kayıt kaydedildi: \(exportResult.url.path)")
                             : String(localized: "Kaydedildi: \(exportResult.url.path)")
                         markRecordingFileReady()
@@ -3216,6 +3247,110 @@ final class RecorderViewModel {
                 }
             }
         }
+    }
+
+    /// Exports the screen+camera composite, and — if that specific export fails — retries
+    /// once, then falls back to a screen-only export instead of losing the whole recording.
+    /// The field failures that motivated this (AVErrorInvalidVideoComposition, -11841) were
+    /// traced to the overlay track outliving the last video composition instruction and are
+    /// fixed structurally in ScreenCameraOverlayCompositionBuilder; this fallback remains as
+    /// defense in depth so an unforeseen composite-only failure degrades to a warning, not
+    /// the loss of the user's whole recording — mirrors how a failed microphone/system-audio
+    /// track already degrades to a warning elsewhere in this same flow.
+    private func exportScreenRecordingWithOverlayFallback(
+        captureURL: URL,
+        finalURL: URL,
+        recordingMode: RecordingMode,
+        microphoneURL: URL?,
+        systemAudioURL: URL?,
+        overlayURL: URL?,
+        overlayPosition: ScreenCameraOverlayPosition,
+        overlaySize: ScreenCameraOverlaySize,
+        cursorTimeline: CursorHighlightTimeline,
+        keyboardShortcutTimeline: KeyboardShortcutTimeline,
+        pauseTimeline: RecordingPauseTimeline,
+        overlayOffsetSeconds: TimeInterval,
+        screenMicrophoneOffsetSeconds: TimeInterval,
+        screenSystemAudioOffsetSeconds: TimeInterval,
+        warnings: [String]
+    ) async throws -> (result: (url: URL, keyframeCount: Int, usedVideoComposition: Bool, usedFallbackExport: Bool, strategy: String), warnings: [String]) {
+        func attemptCompositeExport() async throws -> (url: URL, keyframeCount: Int, usedVideoComposition: Bool, usedFallbackExport: Bool, strategy: String) {
+            try await exportMP4(
+                from: captureURL,
+                to: finalURL,
+                timeline: AutoReframeTimeline(),
+                screenExportMode: recordingMode,
+                screenMicrophoneURL: microphoneURL,
+                screenSystemAudioURL: systemAudioURL,
+                overlayURL: overlayURL,
+                overlayPosition: overlayPosition,
+                overlaySize: overlaySize,
+                cursorTimeline: cursorTimeline,
+                keyboardShortcutTimeline: keyboardShortcutTimeline,
+                pauseTimeline: pauseTimeline,
+                overlayOffsetSeconds: overlayOffsetSeconds,
+                screenMicrophoneOffsetSeconds: screenMicrophoneOffsetSeconds,
+                screenSystemAudioOffsetSeconds: screenSystemAudioOffsetSeconds
+            )
+        }
+
+        do {
+            let result = try await attemptCompositeExport()
+            return (result, warnings)
+        } catch {
+            guard overlayURL != nil else { throw error }
+            runtimeDebugLog("Screen+camera composite export failed, retrying once after a short delay: \(Self.richDebugDescription(for: error))")
+
+            // One retry after a brief delay, in case the failure was a transient
+            // resource issue (e.g. the overlay's own encoder session just closed);
+            // only fall back to a screen-only recording if it fails a second time too.
+            try? await Task.sleep(for: .seconds(1.5))
+            do {
+                let result = try await attemptCompositeExport()
+                return (result, warnings)
+            } catch {
+                runtimeDebugLog("Screen+camera composite export failed again after retry, falling back to screen-only: \(Self.richDebugDescription(for: error))")
+            }
+
+            var fallbackWarnings = warnings
+            fallbackWarnings.append(String(localized: "Kamera kutusu videoya eklenemedi, yalnız ekran kaydı kaydedildi."))
+            let result = try await exportMP4(
+                from: captureURL,
+                to: finalURL,
+                timeline: AutoReframeTimeline(),
+                screenExportMode: recordingMode,
+                screenMicrophoneURL: microphoneURL,
+                screenSystemAudioURL: systemAudioURL,
+                overlayURL: nil,
+                overlayPosition: overlayPosition,
+                overlaySize: overlaySize,
+                cursorTimeline: cursorTimeline,
+                keyboardShortcutTimeline: keyboardShortcutTimeline,
+                pauseTimeline: pauseTimeline,
+                overlayOffsetSeconds: overlayOffsetSeconds,
+                screenMicrophoneOffsetSeconds: screenMicrophoneOffsetSeconds,
+                screenSystemAudioOffsetSeconds: screenSystemAudioOffsetSeconds
+            )
+            if let overlayURL {
+                try? FileManager.default.removeItem(at: overlayURL)
+            }
+            return (result, fallbackWarnings)
+        }
+    }
+
+    /// Domain/code/userInfo detail beyond `localizedDescription` — critical for diagnosing
+    /// AVFoundation export failures, whose human-readable message (e.g. "İşlem Durduruldu")
+    /// is usually too generic to act on by itself.
+    private static func richDebugDescription(for error: Error) -> String {
+        let nsError = error as NSError
+        var parts = ["domain=\(nsError.domain)", "code=\(nsError.code)", "description=\(nsError.localizedDescription)"]
+        if let reason = nsError.localizedFailureReason {
+            parts.append("reason=\(reason)")
+        }
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
+            parts.append("underlying=(domain=\(underlying.domain) code=\(underlying.code) description=\(underlying.localizedDescription))")
+        }
+        return parts.joined(separator: ", ")
     }
 
     private func exportMP4(
@@ -3276,7 +3411,7 @@ final class RecorderViewModel {
             await exportSession.export()
 
             if let error = exportSession.error {
-                runtimeDebugLog("Screen export failed with error: \(error.localizedDescription)")
+                runtimeDebugLog("Screen export failed with error: \(Self.richDebugDescription(for: error))")
                 try? FileManager.default.removeItem(at: destinationURL)
                 throw error
             }
@@ -3403,10 +3538,28 @@ final class RecorderViewModel {
                       let compositionAudioTrack = composition.addMutableTrack(withMediaType: .audio, preferredTrackID: kCMPersistentTrackID_Invalid) else {
                     continue
                 }
-                try insertSegments(systemSegments, of: systemAudioTrack, into: compositionAudioTrack)
+                // The camera video is this mode's primary component: system audio that
+                // started later (positive offset) must not extend the movie past the
+                // video's own end.
+                try insertSegments(
+                    systemSegments,
+                    of: systemAudioTrack,
+                    into: compositionAudioTrack,
+                    clampedTo: pauseTimeline.outputDuration(for: duration)
+                )
                 systemTrackIDs.append(compositionAudioTrack.trackID)
             }
         }
+
+        // A track whose entire content was clamped away (e.g. system audio that only
+        // started after the camera video already ended) must not stay behind as an
+        // empty track or as a dangling audio-mix reference.
+        for track in composition.tracks where track.segments.isEmpty {
+            composition.removeTrack(track)
+        }
+        let remainingTrackIDs = Set(composition.tracks.map(\.trackID))
+        microphoneTrackIDs = microphoneTrackIDs.filter(remainingTrackIDs.contains)
+        systemTrackIDs = systemTrackIDs.filter(remainingTrackIDs.contains)
 
         let audioMix = recordingAudioMixBuilder.makeAudioMix(
             composition: composition,
@@ -3422,10 +3575,29 @@ final class RecorderViewModel {
     private func insertSegments(
         _ segments: [RecordingSegment],
         of sourceTrack: AVAssetTrack,
-        into compositionTrack: AVMutableCompositionTrack
+        into compositionTrack: AVMutableCompositionTrack,
+        clampedTo outputLimit: CMTime? = nil
     ) throws {
+        var cursor = CMTime.zero
         for segment in segments {
-            try compositionTrack.insertTimeRange(segment.sourceRange, of: sourceTrack, at: segment.destinationStart)
+            var sourceRange = segment.sourceRange
+            if let outputLimit {
+                guard segment.destinationStart < outputLimit else { continue }
+                let available = outputLimit - segment.destinationStart
+                if sourceRange.duration > available {
+                    sourceRange = CMTimeRange(start: sourceRange.start, duration: available)
+                }
+            }
+            // `insertTimeRange(_:of:at:)` does NOT leave a gap when `at` is past the
+            // track's current end — it silently appends at the end instead, collapsing
+            // the head gap of a secondary component that started after session zero.
+            // The gap must be an explicit empty range for the destination position
+            // (and therefore A/V alignment) to be honored.
+            if segment.destinationStart > cursor {
+                compositionTrack.insertEmptyTimeRange(CMTimeRange(start: cursor, end: segment.destinationStart))
+            }
+            try compositionTrack.insertTimeRange(sourceRange, of: sourceTrack, at: segment.destinationStart)
+            cursor = segment.destinationStart + sourceRange.duration
         }
     }
 
@@ -3647,6 +3819,22 @@ final class RecorderViewModel {
         }
 
         return true
+    }
+
+    /// `screenOverlayReadiness`/`canStartRecording` only *read* the current camera
+    /// authorization — on macOS that never surfaces the system permission dialog on
+    /// its own. Only the standalone camera preset's setup path actually calls
+    /// requestAccess. So a user who enables the screen+camera overlay without ever
+    /// having opened camera-only mode first sees the record button silently refuse
+    /// (or, before today's overlay fix, a misleading error) with no way to ever be
+    /// asked for camera permission. Requesting it here, once, when the status is
+    /// still undetermined closes that gap.
+    private func requestCameraPermissionIfNeededForOverlay() async {
+        guard isScreenCameraOverlayEnabled,
+              selectedRecordingSource == .screen || selectedRecordingSource == .window,
+              cameraPermissionStatus == .notDetermined else { return }
+        _ = await permissionProvider.requestAccess(for: .video)
+        refreshDeviceState()
     }
 
     private func ensureSelectedRecordingCanStart() -> Bool {
@@ -4004,21 +4192,21 @@ final class RecorderViewModel {
             switch makeCameraPermissionItem().primaryAction {
             case .request: requestCameraPermission()
             case .openSettings: openPrivacySettings(for: .video)
-            case .restartApp: NSApp.terminate(nil)
+            case .restartApp: relaunchApp()
             case .none: break
             }
         case .microphone:
             switch makeMicrophonePermissionItem().primaryAction {
             case .request: requestMicrophonePermission()
             case .openSettings: openPrivacySettings(for: .audio)
-            case .restartApp: NSApp.terminate(nil)
+            case .restartApp: relaunchApp()
             case .none: break
             }
         case .screenRecording:
             switch makeScreenRecordingPermissionItem().primaryAction {
             case .request: requestScreenRecordingPermission()
             case .openSettings: openScreenRecordingSettings()
-            case .restartApp: NSApp.terminate(nil)
+            case .restartApp: relaunchApp()
             case .none: break
             }
         }
@@ -4038,8 +4226,24 @@ final class RecorderViewModel {
         switch action {
         case .request: performPrimaryPermissionAction(for: kind)
         case .openSettings: kind == .screenRecording ? openScreenRecordingSettings() : openPrivacySettings(for: kind == .camera ? .video : .audio)
-        case .restartApp: NSApp.terminate(nil)
+        case .restartApp: relaunchApp()
         case .some(.none), nil: break
+        }
+    }
+
+    /// Relaunches the exact running bundle (not whatever copy Launch Services
+    /// would otherwise resolve "FrameMate" to — e.g. a stale /Applications
+    /// install can shadow an Xcode DerivedData debug build with the same
+    /// bundle ID) before quitting, so a permission-driven restart always
+    /// comes back up as the build that was actually running.
+    private func relaunchApp() {
+        let bundleURL = Bundle.main.bundleURL
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.createsNewApplicationInstance = true
+        NSWorkspace.shared.openApplication(at: bundleURL, configuration: configuration) { _, _ in
+            DispatchQueue.main.async {
+                NSApp.terminate(nil)
+            }
         }
     }
 

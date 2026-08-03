@@ -5,67 +5,67 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="00: Verifying fastlane version" time="0.000195">
+      <testcase classname="fastlane.lanes" name="00: Verifying fastlane version" time="0.000186">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="01: default_platform" time="0.000123">
+      <testcase classname="fastlane.lanes" name="01: default_platform" time="6.4e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="02: Switch to mac doctor lane" time="4.2e-05">
+      <testcase classname="fastlane.lanes" name="02: Switch to mac doctor lane" time="4.6e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="03: Switch to mac certificates lane" time="3.8e-05">
+      <testcase classname="fastlane.lanes" name="03: Switch to mac certificates lane" time="4.8e-05">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="04: app_store_connect_api_key" time="0.002701">
+      <testcase classname="fastlane.lanes" name="04: app_store_connect_api_key" time="0.002532">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="05: match" time="3.337006">
+      <testcase classname="fastlane.lanes" name="05: match" time="2.941556">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="06: app_store_connect_api_key" time="0.001247">
+      <testcase classname="fastlane.lanes" name="06: app_store_connect_api_key" time="0.001095">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="07: get_info_plist_value" time="0.001064">
+      <testcase classname="fastlane.lanes" name="07: get_info_plist_value" time="0.000334">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="08: /usr/libexec/PlistBuddy -c &apos;Set :CFBundleVersion 202607300802&apos; &apos;/Users/recepgur/Desktop/projelerim/video recorder/Resources/Info.plist&apos;" time="0.008982">
+      <testcase classname="fastlane.lanes" name="08: /usr/libexec/PlistBuddy -c &apos;Set :CFBundleVersion 202608031748&apos; &apos;/Users/recepgur/Desktop/projelerim/video recorder/Resources/Info.plist&apos;" time="0.007973">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="09: /usr/libexec/PlistBuddy -c &apos;Set :FrameMateDisablePurchasesForInternalTesting true&apos; &apos;/Users/recepgur/Desktop/projelerim/video recorder/Resources/Info.plist&apos;" time="0.007606">
+      <testcase classname="fastlane.lanes" name="09: /usr/libexec/PlistBuddy -c &apos;Set :FrameMateDisablePurchasesForInternalTesting false&apos; &apos;/Users/recepgur/Desktop/projelerim/video recorder/Resources/Info.plist&apos;" time="0.005888">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="10: build_mac_app" time="38.239852">
+      <testcase classname="fastlane.lanes" name="10: build_mac_app" time="44.376016">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="11: upload_to_testflight" time="220.993686">
+      <testcase classname="fastlane.lanes" name="11: upload_to_testflight" time="205.140745">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="12: /usr/libexec/PlistBuddy -c &apos;Set :FrameMateDisablePurchasesForInternalTesting false&apos; &apos;/Users/recepgur/Desktop/projelerim/video recorder/Resources/Info.plist&apos;" time="0.025429">
+      <testcase classname="fastlane.lanes" name="12: /usr/libexec/PlistBuddy -c &apos;Set :FrameMateDisablePurchasesForInternalTesting false&apos; &apos;/Users/recepgur/Desktop/projelerim/video recorder/Resources/Info.plist&apos;" time="0.018367">
         
       </testcase>
     

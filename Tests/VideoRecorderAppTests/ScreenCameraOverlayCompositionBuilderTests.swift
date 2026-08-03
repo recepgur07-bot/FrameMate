@@ -1,3 +1,4 @@
+import AVFoundation
 import CoreMedia
 import XCTest
 @testable import FrameMate
@@ -217,6 +218,182 @@ final class ScreenCameraOverlayCompositionBuilderTests: XCTestCase {
             resumedSegment.destinationStart.seconds, 20, accuracy: 0.01,
             "must land at the same shared output position as the primary's own post-pause content (20s), not at a position relative only to this component's own offset"
         )
+    }
+
+    // Regression: the camera overlay's own file reliably starts later (warm-up gate,
+    // positive offset) and ends later (writer drain) than the screen capture. Before the
+    // clamping fix, the overlay composition track extended past the last video
+    // composition instruction, which invalidates the whole composition —
+    // AVAssetExportSession then fails with AVErrorInvalidVideoComposition (-11841,
+    // "Video oluşturulamadı") and the user gets a screen-only video with no camera box.
+    func testOverlayLongerThanScreenYieldsGaplessInstructionsCoveringWholeComposition() async throws {
+        let builder = ScreenCameraOverlayCompositionBuilder()
+        let screenAsset = try await makeSolidColorVideoAsset(durationSeconds: 1.0)
+        let overlayAsset = try await makeSolidColorVideoAsset(durationSeconds: 2.0)
+
+        let result = try await builder.makeComposition(
+            screenAsset: screenAsset,
+            mode: .horizontal1080p,
+            overlayAsset: overlayAsset,
+            overlayOffsetSeconds: 0.4
+        )
+
+        let compositionDuration = try await result.composition.load(.duration)
+        let instructions = result.videoComposition.instructions.compactMap {
+            $0 as? AVVideoCompositionInstruction
+        }
+        XCTAssertEqual(instructions.count, result.videoComposition.instructions.count)
+        XCTAssertFalse(instructions.isEmpty)
+
+        // Instructions must be gapless and overlap-free from zero...
+        var cursor = CMTime.zero
+        for instruction in instructions {
+            XCTAssertEqual(
+                instruction.timeRange.start, cursor,
+                "instructions must be contiguous — a gap or overlap invalidates the composition"
+            )
+            cursor = instruction.timeRange.end
+        }
+        // ...through the very end of the composition; any uncovered tail is -11841.
+        XCTAssertGreaterThanOrEqual(cursor, compositionDuration)
+
+        // No video track may outlive the covered range either — the overlay (2s, offset
+        // 0.4s) must have been clamped to the screen's visible end (1s).
+        for track in try await result.composition.loadTracks(withMediaType: .video) {
+            let range = try await track.load(.timeRange)
+            XCTAssertLessThanOrEqual(range.end, cursor)
+        }
+        XCTAssertEqual(compositionDuration.seconds, 1.0, accuracy: 0.15, "the export must end when the screen content ends")
+
+        // The overlay must actually be composited (an instruction with both layers), and
+        // the head before its first frame (~0.4s) must be screen-only rather than
+        // referencing an overlay track that has no media yet.
+        XCTAssertTrue(instructions.contains { $0.layerInstructions.count == 2 })
+        XCTAssertEqual(instructions.first?.layerInstructions.count, 1, "overlay starts later than the screen; the head must be screen-only")
+    }
+
+    // The same guarantee when the overlay is *shorter* than the screen: overlay+screen
+    // middle, then a screen-only tail out to the screen's end — still gapless.
+    func testOverlayShorterThanScreenStillCoversWholeCompositionWithScreenOnlyTail() async throws {
+        let builder = ScreenCameraOverlayCompositionBuilder()
+        let screenAsset = try await makeSolidColorVideoAsset(durationSeconds: 2.0)
+        let overlayAsset = try await makeSolidColorVideoAsset(durationSeconds: 1.0)
+
+        let result = try await builder.makeComposition(
+            screenAsset: screenAsset,
+            mode: .horizontal1080p,
+            overlayAsset: overlayAsset,
+            overlayOffsetSeconds: 0.3
+        )
+
+        let compositionDuration = try await result.composition.load(.duration)
+        let instructions = result.videoComposition.instructions.compactMap {
+            $0 as? AVVideoCompositionInstruction
+        }
+
+        var cursor = CMTime.zero
+        for instruction in instructions {
+            XCTAssertEqual(instruction.timeRange.start, cursor)
+            cursor = instruction.timeRange.end
+        }
+        XCTAssertGreaterThanOrEqual(cursor, compositionDuration)
+        XCTAssertEqual(compositionDuration.seconds, 2.0, accuracy: 0.15)
+        XCTAssertTrue(instructions.contains { $0.layerInstructions.count == 2 })
+        XCTAssertEqual(
+            instructions.last?.layerInstructions.count, 1,
+            "after the overlay's last frame the tail must be screen-only"
+        )
+    }
+
+    // Pathological but possible: the overlay's first frame arrived only after the screen
+    // content already ended. Its whole track is clamped away and must be dropped, leaving
+    // a plain, valid screen-only composition instead of an empty video track.
+    func testOverlayStartingAfterScreenEndIsDroppedEntirely() async throws {
+        let builder = ScreenCameraOverlayCompositionBuilder()
+        let screenAsset = try await makeSolidColorVideoAsset(durationSeconds: 1.0)
+        let overlayAsset = try await makeSolidColorVideoAsset(durationSeconds: 1.0)
+
+        let result = try await builder.makeComposition(
+            screenAsset: screenAsset,
+            mode: .horizontal1080p,
+            overlayAsset: overlayAsset,
+            overlayOffsetSeconds: 2.0
+        )
+
+        let videoTracks = try await result.composition.loadTracks(withMediaType: .video)
+        XCTAssertEqual(videoTracks.count, 1, "the fully clamped-away overlay track must be removed")
+
+        let compositionDuration = try await result.composition.load(.duration)
+        let instructions = result.videoComposition.instructions.compactMap {
+            $0 as? AVVideoCompositionInstruction
+        }
+        var cursor = CMTime.zero
+        for instruction in instructions {
+            XCTAssertEqual(instruction.timeRange.start, cursor)
+            XCTAssertEqual(instruction.layerInstructions.count, 1)
+            cursor = instruction.timeRange.end
+        }
+        XCTAssertGreaterThanOrEqual(cursor, compositionDuration)
+        XCTAssertEqual(compositionDuration.seconds, 1.0, accuracy: 0.15)
+    }
+
+    /// Writes a real, tiny H.264 movie file so `makeComposition` exercises the same
+    /// AVAsset track/duration loading it does in production. Solid-color frames keep it
+    /// fast (~a second of encoding for both fixtures combined).
+    private func makeSolidColorVideoAsset(
+        durationSeconds: Double,
+        size: CGSize = CGSize(width: 320, height: 240),
+        fps: Int32 = 30
+    ) async throws -> AVURLAsset {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("composition-coverage-\(UUID().uuidString).mov")
+        addTeardownBlock {
+            try? FileManager.default.removeItem(at: url)
+        }
+
+        let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
+        let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
+            AVVideoCodecKey: AVVideoCodecType.h264,
+            AVVideoWidthKey: Int(size.width),
+            AVVideoHeightKey: Int(size.height)
+        ])
+        input.expectsMediaDataInRealTime = false
+        let adaptor = AVAssetWriterInputPixelBufferAdaptor(
+            assetWriterInput: input,
+            sourcePixelBufferAttributes: [
+                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+                kCVPixelBufferWidthKey as String: Int(size.width),
+                kCVPixelBufferHeightKey as String: Int(size.height)
+            ]
+        )
+        writer.add(input)
+        guard writer.startWriting() else {
+            throw writer.error ?? CaptureRecorderError.cannotExportMP4
+        }
+        writer.startSession(atSourceTime: .zero)
+
+        var createdBuffer: CVPixelBuffer?
+        CVPixelBufferCreate(nil, Int(size.width), Int(size.height), kCVPixelFormatType_32BGRA, nil, &createdBuffer)
+        let buffer = try XCTUnwrap(createdBuffer)
+        CVPixelBufferLockBaseAddress(buffer, [])
+        if let baseAddress = CVPixelBufferGetBaseAddress(buffer) {
+            memset(baseAddress, 0x80, CVPixelBufferGetBytesPerRow(buffer) * CVPixelBufferGetHeight(buffer))
+        }
+        CVPixelBufferUnlockBaseAddress(buffer, [])
+
+        let frameCount = Int(durationSeconds * Double(fps))
+        for frame in 0..<frameCount {
+            while !input.isReadyForMoreMediaData {
+                try await Task.sleep(nanoseconds: 2_000_000)
+            }
+            adaptor.append(buffer, withPresentationTime: CMTime(value: CMTimeValue(frame), timescale: fps))
+        }
+        input.markAsFinished()
+        await writer.finishWriting()
+        guard writer.status == .completed else {
+            throw writer.error ?? CaptureRecorderError.cannotExportMP4
+        }
+        return AVURLAsset(url: url)
     }
 
     func testSecondaryTrackAlignmentTrimsContentThatPredatesSessionZero() {

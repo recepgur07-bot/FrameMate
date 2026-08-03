@@ -47,6 +47,14 @@ Ilk kurulum: yeni appstore certificate/profile olustur
 
 Mac icin internal TestFlight build yukle
 
+### mac set_beta_changelog
+
+```sh
+[bundle exec] fastlane mac set_beta_changelog
+```
+
+Zaten yuklenmis bir TestFlight build'ine changelog ata (yeniden build/upload yapmaz)
+
 ### mac store_metadata
 
 ```sh

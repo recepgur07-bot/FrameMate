@@ -1,9 +1,11 @@
-Şu an: Build 1.0 (202607301534) TestFlight iç test kullanıcılarına dağıtıldı — satın alma akışı ve ekran kaydı izin algılama düzeltmesi dahil, yeni kullanıcı deneyimiyle birebir aynı. Kayıt sırasında sadeleştirilmiş ekran ve mikrofon-kopma senaryosu için otomatik duraklatma özellikleri kod incelemesi/build/test ile doğrulandı; gerçek cihazda (kulaklık takıp çıkararak) kullanıcı testi bekleniyor.
+Şu an: Ekran + kamera kutusu birleştirme hatasının (-11841 AVErrorInvalidVideoComposition) kök nedeni kod düzeyinde bulundu ve düzeltildi: kamera izi kompozisyona ekran süresinden uzun yerleşiyor ve video talimatları kompozisyonun tamamını kapsamıyordu; ayrıca insertTimeRange'in baştaki boşluğu sessizce yutması yüzünden pozitif offset'li tüm ikincil izler (kamera/mikrofon/sistem sesi) hizadan kayıyordu. Her iki hata da tüm kayıt modlarında (ekran, kamera, ses) giderildi; 3 yeni regresyon testiyle birlikte tüm test paketi geçti. Düzeltmeler Build 1.0 (202608031748) olarak TestFlight iç testine yüklendi ve kullanıcı gerçek cihazda doğruladı: kamera görüntüsü artık ekran kaydı videosunda görünüyor. Günlerdir süren sorun kapandı; değişiklikler git'e commit edildi.
 
-- [x] Kayıt başladığında ekranda yalnız süre + duraklat/durdur kalması
-- [x] Mikrofon (örn. kulaklık) koptuğunda kaydı sert durdurmak yerine otomatik duraklat + "yeniden tak" istemi
-- [x] İç test build'inde satın alma akışının gerçek kullanıcı deneyimiyle aynı görünmesi (FrameMateDisablePurchasesForInternalTesting artık build sırasında true yapılmıyor)
-- [x] Ekran kaydı izni Ayarlar'dan sonradan açıldığında uygulamanın bunu görmemesi sorunu: öne dönüşte SCShareableContent ile zorla yeniden kontrol eklendi
-- [ ] Gerçek cihazda kulaklık takıp çıkararak kullanıcı doğrulaması
-- [ ] Kamera kopma senaryosu ayrıca ele alınmadı (kasıtlı: hâlâ sert durdurur, video kaynağı kaybolduğu için kurtarılamaz)
-- [ ] TestFlight'ta gerçek cihazda ekran kaydı izni önbellek düzeltmesinin doğrulanması (izin ver → kapat/aç → izin görünür mü)
+- [x] Ekran+kamera birleşik export'un -11841 hatası: talimat kapsaması + iz kırpma düzeltmesi (2026-08-03 17:50 kaydı)
+- [x] insertTimeRange boşluk-yutma hatası: ekran/kamera/ses modlarındaki tüm ikincil iz yerleşimleri düzeltildi
+- [x] Duraklat/devam-et ve başlat/durdur akışları gözden geçirildi — ek hata bulunmadı
+- [x] Yeni TestFlight build'i çıkarıldı ve iç teste yüklendi: Build 1.0 (202608031748)
+- [x] Kullanıcı gerçek cihazda doğruladı: ekran + kamera kutusu kaydında kamera görüntüsü nihai videoda görünüyor (Build 202608031748)
+- [ ] Gerçek cihazda kulaklık takıp çıkararak kullanıcı doğrulaması (önceki açık madde)
+- [ ] TestFlight'ta ekran kaydı izni önbellek düzeltmesinin doğrulanması (önceki açık madde)
+- [ ] Kamera kopma senaryosu ayrıca ele alınmadı (kasıtlı: hâlâ sert durdurur)
+- [x] Değişiklikler git'e commit edildi (birikmiş önceki düzeltmelerle birlikte)
