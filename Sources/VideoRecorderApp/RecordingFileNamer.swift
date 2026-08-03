@@ -7,7 +7,10 @@ struct RecordingFileNamer {
         self.outputDirectory = outputDirectory
     }
 
-    init(moviesDirectory: URL = FileManager.default.urls(for: .moviesDirectory, in: .userDomainMask)[0]) {
+    init(
+        moviesDirectory: URL = FileManager.default.urls(for: .moviesDirectory, in: .userDomainMask).first
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Movies", isDirectory: true)
+    ) {
         outputDirectory = moviesDirectory.appendingPathComponent("Video Recorder", isDirectory: true)
     }
 

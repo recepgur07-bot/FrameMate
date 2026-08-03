@@ -9185,6 +9185,13 @@
         "tr": { "stringUnit": { "state": "translated", "value": "Yıllık abonelik. Sınırsız kayıt ve tüm Pro özellikleri açar." } }
       }
     },
+    "Yıllık plan otomatik yenilenen bir aboneliktir; dönem bitmeden en az 24 saat önce App Store hesap ayarlarından iptal edilmezse yenilenir. Ömür boyu plan tek seferlik satın almadır.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": { "stringUnit": { "state": "translated", "value": "The yearly plan is an auto-renewing subscription; it renews unless cancelled in your App Store account settings at least 24 hours before the period ends. The lifetime plan is a one-time purchase." } },
+        "tr": { "stringUnit": { "state": "translated", "value": "Yıllık plan otomatik yenilenen bir aboneliktir; dönem bitmeden en az 24 saat önce App Store hesap ayarlarından iptal edilmezse yenilenir. Ömür boyu plan tek seferlik satın almadır." } }
+      }
+    },
     "Bu ayki ücretsiz kayıt süreniz bitti. Yeni kota bir sonraki ay başında yenilenecek.": {
       "extractionState": "manual",
       "localizations": {

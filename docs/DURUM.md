@@ -9,3 +9,6 @@
 - [ ] TestFlight'ta ekran kaydı izni önbellek düzeltmesinin doğrulanması (önceki açık madde)
 - [ ] Kamera kopma senaryosu ayrıca ele alınmadı (kasıtlı: hâlâ sert durdurur)
 - [x] Değişiklikler git'e commit edildi (birikmiş önceki düzeltmelerle birlikte)
+- [x] App Store hazırlık denetimi: ayarlar, dosya sistemi, kısayollar, kota — sağlam; 5 sağlamlaştırma yapıldı (StoreKit Transaction.updates dinleyicisi, öne-gelişte erişim tazeleme, fatalError kaldırma, güvenli indeks, dosya adı nokta temizliği) — commit bekliyor
+- [x] Dil bütünlüğü doğrulandı: TR+EN 577 anahtar %100 çevrili; tek yerelleştirmesiz metin ("Hata: ...") düzeltildi
+- [x] App Store editör denetimi: izin metinleri örnekli ve amaca özel, gizlilik manifestosu/entitlements/2.4.5(i) uyumlu, paywall'a 3.1.2 otomatik yenileme açıklaması eklendi — commit bekliyor

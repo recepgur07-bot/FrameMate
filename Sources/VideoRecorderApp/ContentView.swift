@@ -2081,6 +2081,14 @@ private struct AppPaywallSheet: View {
                 paywallButton(for: .lifetime)
             }
 
+            // App Review Guideline 3.1.2: auto-renewable subscription terms must be
+            // clearly disclosed inside the purchase flow, next to the price and the
+            // privacy/EULA links.
+            Text(String(localized: "Yıllık plan otomatik yenilenen bir aboneliktir; dönem bitmeden en az 24 saat önce App Store hesap ayarlarından iptal edilmezse yenilenir. Ömür boyu plan tek seferlik satın almadır."))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
             HStack(spacing: 16) {
                 Link(
                     String(localized: "Gizlilik Politikası"),

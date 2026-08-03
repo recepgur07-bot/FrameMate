@@ -3791,7 +3791,11 @@ final class RecorderViewModel {
 
         let invalidCharacters = CharacterSet(charactersIn: "/:\\?%*|\"<>")
         let components = trimmed.components(separatedBy: invalidCharacters)
-        let sanitized = components.joined(separator: "-").trimmingCharacters(in: .whitespacesAndNewlines)
+        var sanitized = components.joined(separator: "-").trimmingCharacters(in: .whitespacesAndNewlines)
+        // A leading dot would make the recording an invisible file in Finder.
+        while sanitized.hasPrefix(".") {
+            sanitized.removeFirst()
+        }
         return sanitized.isEmpty ? "recording" : sanitized
     }
 
@@ -4049,7 +4053,7 @@ final class RecorderViewModel {
         runtimeDebugLog("HATA gösterildi (generation \(recordingGeneration)): \(error.localizedDescription)")
         refreshPermissionStatus()
         errorText = error.localizedDescription
-        statusText = "Hata: \(error.localizedDescription)"
+        statusText = String(localized: "Hata: \(error.localizedDescription)")
         isFinalizingRecording = false
         finishRecordingLifecycle()
         completedRecording = nil
@@ -4090,7 +4094,18 @@ final class RecorderViewModel {
             guard let device = notification.object as? AVCaptureDevice else { return }
             Task { @MainActor in self?.handleCaptureDeviceDisconnect(device) }
         }
-        workspaceObserverTokens = [sleepToken, disconnectToken]
+        // An entitlement can change while the app is in the background (an Ask to Buy
+        // approval, a purchase on another device, a free-tier month rolling over);
+        // re-resolve access whenever the app comes back to the foreground so the
+        // paywall state never lags reality until the next explicit purchase action.
+        let activationToken = NotificationCenter.default.addObserver(
+            forName: NSApplication.didBecomeActiveNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in await self?.refreshAppAccess() }
+        }
+        workspaceObserverTokens = [sleepToken, disconnectToken, activationToken]
     }
 
     private func handleSystemInterruption(_ message: String) {

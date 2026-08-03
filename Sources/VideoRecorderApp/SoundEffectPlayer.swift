@@ -82,20 +82,18 @@ private final class CountdownTonePlayer {
 
     private let engine = AVAudioEngine()
     private let player = AVAudioPlayerNode()
-    private let format: AVAudioFormat = {
-        guard let format = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1) else {
-            fatalError("Countdown tone audio format could not be created.")
-        }
-        return format
-    }()
+    // A missing audio format must degrade to a silent countdown, never crash the
+    // whole app over a nonessential cue.
+    private let format: AVAudioFormat? = AVAudioFormat(standardFormatWithSampleRate: 44_100, channels: 1)
 
     private init() {
+        guard let format else { return }
         engine.attach(player)
         engine.connect(player, to: engine.mainMixerNode, format: format)
     }
 
     func play(remaining: Int, total: Int) {
-        guard total > 0 else { return }
+        guard total > 0, let format else { return }
         if !engine.isRunning {
             do {
                 try engine.start()

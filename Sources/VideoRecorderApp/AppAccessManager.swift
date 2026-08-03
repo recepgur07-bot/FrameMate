@@ -136,10 +136,38 @@ protocol AppStorePurchasing: AnyObject {
     func currentEntitlementProductIDs() async -> Set<String>
     func purchase(productID: String) async throws -> AppStorePurchaseResult
     func syncPurchases() async throws
+    func startTransactionUpdatesListener(onEntitlementChange: @escaping @Sendable () async -> Void)
+}
+
+extension AppStorePurchasing {
+    // Only the real StoreKit controller has an out-of-band transaction stream to
+    // observe; mocks and tests need no listener.
+    func startTransactionUpdatesListener(onEntitlementChange: @escaping @Sendable () async -> Void) {}
 }
 
 private final class StoreKitPurchaseController: AppStorePurchasing {
     private var cachedProducts: [String: Product] = [:]
+    private var transactionUpdatesTask: Task<Void, Never>?
+
+    deinit {
+        transactionUpdatesTask?.cancel()
+    }
+
+    /// Transactions can complete outside the in-app purchase flow: an Ask to Buy
+    /// approval landing later, a purchase made on another device, a renewal, or a
+    /// refund. StoreKit requires observing `Transaction.updates` for these — without
+    /// it a `.pending` purchase never unlocks Pro until a full app restart, and
+    /// unfinished transactions are redelivered forever.
+    func startTransactionUpdatesListener(onEntitlementChange: @escaping @Sendable () async -> Void) {
+        guard transactionUpdatesTask == nil else { return }
+        transactionUpdatesTask = Task.detached {
+            for await result in Transaction.updates {
+                guard case .verified(let transaction) = result else { continue }
+                await transaction.finish()
+                await onEntitlementChange()
+            }
+        }
+    }
 
     func products(for productIDs: [String]) async throws -> [AppStoreProductInfo] {
         let products = try await Product.products(for: productIDs)
@@ -253,6 +281,9 @@ final class AppAccessManager: AppAccessManaging {
     }
 
     func refresh() async {
+        storeKit.startTransactionUpdatesListener { [weak self] in
+            await self?.refresh()
+        }
         let offers = await loadOffers()
         let entitlements = await storeKit.currentEntitlementProductIDs()
         let local = resolveLocalAccessState(now: clock.now)
