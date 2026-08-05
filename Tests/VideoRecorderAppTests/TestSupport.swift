@@ -248,6 +248,12 @@ final class MockMicrophoneAudioRecorder: MicrophoneAudioRecordingProviding {
         startedURL = url
         startedDeviceID = deviceID
         self.completion = completion
+        // Simulate a device that starts delivering audio immediately, matching the
+        // common case. Tests exercising a mic that never produces a signal should
+        // set `firstSamplePresentationTime` back to nil after calling this.
+        if firstSamplePresentationTime == nil {
+            firstSamplePresentationTime = .zero
+        }
     }
 
     func stopRecording() {

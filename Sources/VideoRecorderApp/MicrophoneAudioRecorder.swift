@@ -24,6 +24,7 @@ enum MicrophoneAudioRecorderError: LocalizedError, Equatable {
     case cannotAddMicrophone
     case cannotCreateWriter
     case emptyRecording
+    case noSignalAtStart
 
     var errorDescription: String? {
         switch self {
@@ -35,6 +36,8 @@ enum MicrophoneAudioRecorderError: LocalizedError, Equatable {
             return String(localized: "Mikrofon ses dosyası oluşturulamadı.")
         case .emptyRecording:
             return String(localized: "Mikrofon kaydında ses alınamadı.")
+        case .noSignalAtStart:
+            return String(localized: "Seçilen mikrofondan ses sinyali gelmiyor. Cihazın bağlı ve seçili giriş cihazı olduğundan emin olup tekrar deneyin.")
         }
     }
 }

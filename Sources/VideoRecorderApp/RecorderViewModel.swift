@@ -2729,6 +2729,17 @@ final class RecorderViewModel {
                     }
                 }
                 pendingAudioMicrophoneCaptureURL = microphoneCaptureURL
+
+                // The mic is this mode's only planned audio source (no system audio),
+                // so the whole recording is worthless without it. External/USB
+                // microphones can take a couple of seconds to actually start
+                // delivering samples after the session reports "running" (driver
+                // enumeration, sample-rate negotiation). Waiting here catches that
+                // failure immediately instead of only discovering "ses alınmadı"
+                // after the user has already recorded and stopped.
+                if !isSystemAudioEnabled {
+                    try await waitForFirstMicrophoneSample()
+                }
             }
 
             if isSystemAudioEnabled {
@@ -2754,6 +2765,24 @@ final class RecorderViewModel {
             statusText: String(localized: "Ses kaydı yapılıyor"),
             sleepReason: "Ses kaydı devam ediyor"
         )
+    }
+
+    private static let microphoneFirstSampleTimeout: TimeInterval = 5
+    private static let microphoneFirstSamplePollInterval: TimeInterval = 0.1
+
+    /// Polls the microphone recorder for its first captured sample and throws
+    /// `noSignalAtStart` if none arrives within the timeout. Only meant for call
+    /// sites where the microphone is the sole audio source, so a silent input
+    /// device would otherwise produce an unusable recording.
+    private func waitForFirstMicrophoneSample() async throws {
+        var elapsed: TimeInterval = 0
+        while microphoneAudioRecorder.firstSamplePresentationTime == nil {
+            guard elapsed < Self.microphoneFirstSampleTimeout else {
+                throw MicrophoneAudioRecorderError.noSignalAtStart
+            }
+            try await Task.sleep(nanoseconds: UInt64(Self.microphoneFirstSamplePollInterval * 1_000_000_000))
+            elapsed += Self.microphoneFirstSamplePollInterval
+        }
     }
 
     private func startScreenRecording() async throws {
