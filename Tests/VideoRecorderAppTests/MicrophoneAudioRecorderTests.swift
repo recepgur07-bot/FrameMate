@@ -1,7 +1,42 @@
+import AVFoundation
 import XCTest
 @testable import FrameMate
 
 final class MicrophoneAudioRecorderTests: XCTestCase {
+    func testAutomaticWriterSettingsPreserveCaptureOutputRecommendation() {
+        let recommended: [String: Any] = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: 44_100,
+            AVEncoderBitRateKey: 96_000,
+            AVNumberOfChannelsKey: 2
+        ]
+
+        let settings = MicrophoneAudioRecorder.writerAudioSettings(
+            recommendedSettings: recommended,
+            channelMode: .automatic
+        )
+
+        XCTAssertEqual(settings[AVSampleRateKey] as? Int, 44_100)
+        XCTAssertEqual(settings[AVNumberOfChannelsKey] as? Int, 2)
+    }
+
+    func testWriterSettingsApplyExplicitChannelModeWithoutDiscardingRecommendation() {
+        let recommended: [String: Any] = [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: 44_100,
+            AVEncoderBitRateKey: 96_000,
+            AVNumberOfChannelsKey: 2
+        ]
+
+        let settings = MicrophoneAudioRecorder.writerAudioSettings(
+            recommendedSettings: recommended,
+            channelMode: .mono
+        )
+
+        XCTAssertEqual(settings[AVSampleRateKey] as? Int, 44_100)
+        XCTAssertEqual(settings[AVNumberOfChannelsKey] as? Int, 1)
+    }
+
     func testSampleTrackerOnlyCountsAppendedSamplesAsRecorded() {
         let tracker = RecordingSampleTracker()
 

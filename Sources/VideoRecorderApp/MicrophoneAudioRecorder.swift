@@ -82,35 +82,6 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
         }
 
         let input = try AVCaptureDeviceInput(device: device)
-        let nativeChannelCount = input.ports.first?.formatDescription
-            .flatMap { CMAudioFormatDescriptionGetStreamBasicDescription($0)?.pointee.mChannelsPerFrame }
-            .map(Int.init) ?? 1
-        let channelCount: Int
-        switch audioChannelMode {
-        case .automatic, .stereo:
-            channelCount = min(max(nativeChannelCount, 1), 2)
-        case .mono:
-            channelCount = 1
-        }
-
-        let writer = try AVAssetWriter(outputURL: url, fileType: .m4a)
-        let writerInput = AVAssetWriterInput(
-            mediaType: .audio,
-            outputSettings: [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVSampleRateKey: 48_000,
-                AVEncoderBitRateKey: 128_000,
-                AVNumberOfChannelsKey: channelCount
-            ]
-        )
-        writerInput.expectsMediaDataInRealTime = true
-
-        guard writer.canAdd(writerInput) else {
-            throw MicrophoneAudioRecorderError.cannotCreateWriter
-        }
-        writer.add(writerInput)
-        let writerBox = UnsafeSendableBox(value: writer)
-        let writerInputBox = UnsafeSendableBox(value: writerInput)
 
         try await withCheckedThrowingContinuation { continuation in
             sessionQueue.async {
@@ -132,20 +103,42 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                             throw MicrophoneAudioRecorderError.cannotAddMicrophone
                         }
                         self.session.addInput(input)
-
-                        self.audioInput = input
-                        self.writer = writerBox.value
-                        self.writerInput = writerInputBox.value
-                        self.completion = completion
-                        self.outputURL = url
-                        self.hasStartedWriting = false
-                        self.sampleTracker.reset()
-                        self.isStopping = false
-                        self.capturedFirstSampleTime = nil
                     }
+
+                    // Use the active output's format recommendation, just as the
+                    // camera recorder does. External/USB microphones often expose a
+                    // different sample rate or channel layout than the built-in
+                    // microphone; hard-coding AAC settings before the output has
+                    // started can make the standalone audio-only writer reject or
+                    // silently fail to encode those samples.
+                    let audioSettings = Self.writerAudioSettings(
+                        recommendedSettings: self.audioOutput.recommendedAudioSettingsForAssetWriter(writingTo: .m4a),
+                        channelMode: audioChannelMode
+                    )
+                    let writer = try AVAssetWriter(outputURL: url, fileType: .m4a)
+                    let writerInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
+                    writerInput.expectsMediaDataInRealTime = true
+
+                    guard writer.canAdd(writerInput) else {
+                        throw MicrophoneAudioRecorderError.cannotCreateWriter
+                    }
+                    writer.add(writerInput)
+
+                    self.audioInput = input
+                    self.writer = writer
+                    self.writerInput = writerInput
+                    self.completion = completion
+                    self.outputURL = url
+                    self.hasStartedWriting = false
+                    self.sampleTracker.reset()
+                    self.isStopping = false
+                    self.capturedFirstSampleTime = nil
 
                     continuation.resume()
                 } catch {
+                    if self.session.isRunning {
+                        self.session.stopRunning()
+                    }
                     self.resetState()
                     continuation.resume(throwing: error)
                 }
@@ -208,7 +201,10 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
 
         writerQueue.async {
             if !self.hasStartedWriting {
-                writerBox.value.startWriting()
+                guard writerBox.value.startWriting() else {
+                    self.complete(.failure(writerBox.value.error ?? MicrophoneAudioRecorderError.cannotCreateWriter))
+                    return
+                }
                 writerBox.value.startSession(atSourceTime: CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value))
                 self.hasStartedWriting = true
             }
@@ -221,6 +217,31 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                 self.sampleTracker.markAppendedSample()
             }
         }
+    }
+
+    /// Keeps the audio-only recorder on the same encoder-negotiation path as camera
+    /// recording while retaining the user's explicit mono/stereo preference.
+    static func writerAudioSettings(
+        recommendedSettings: [String: Any]?,
+        channelMode: AudioChannelMode
+    ) -> [String: Any] {
+        var settings = recommendedSettings ?? [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: 48_000,
+            AVEncoderBitRateKey: 128_000,
+            AVNumberOfChannelsKey: 1
+        ]
+
+        switch channelMode {
+        case .automatic:
+            break
+        case .mono:
+            settings[AVNumberOfChannelsKey] = 1
+        case .stereo:
+            settings[AVNumberOfChannelsKey] = 2
+        }
+
+        return settings
     }
 
     private func complete(_ result: Result<URL, Error>) {
