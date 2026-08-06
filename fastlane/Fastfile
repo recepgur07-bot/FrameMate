@@ -94,16 +94,8 @@ platform :mac do
       key: "CFBundleShortVersionString"
     )
 
-    # set_info_plist_value, proje klasör adındaki boşluk nedeniyle PlistBuddy'ye
-    # hatalı path geçiriyor. Direkt shell çağrısı ile çözülüyor.
-    plist_path = File.expand_path("../Resources/Info.plist", __dir__)
-    sh("/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion #{build_number}' '#{plist_path}'")
-
-    # Internal TestFlight builds must mirror the exact experience a new App
-    # Store install gets, including the real StoreKit purchase flow.
-    sh("/usr/libexec/PlistBuddy -c 'Set :FrameMateDisablePurchasesForInternalTesting false' '#{plist_path}'")
-
     profile_name = ENV["PROFILE_NAME"] || "match AppStore #{required_env!("APP_IDENTIFIER")}"
+    build_number_arg = "CURRENT_PROJECT_VERSION='#{build_number}'"
 
     # suppress_xcode_output: gym'in Türkçe karakter içeren xcodebuild çıktısını
     # US-ASCII ile parse etmesinden kaynaklanan encoding bug'ını önler.
@@ -122,7 +114,7 @@ platform :mac do
     }
 
     if options[:skip_certificates]
-      build_options[:xcargs] = "-allowProvisioningUpdates CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY='Apple Development' PROVISIONING_PROFILE_SPECIFIER=''"
+      build_options[:xcargs] = "#{build_number_arg} -allowProvisioningUpdates CODE_SIGN_STYLE=Automatic CODE_SIGN_IDENTITY='Apple Development' PROVISIONING_PROFILE_SPECIFIER=''"
       build_options[:export_options] = {
         signingStyle: "automatic"
       }
@@ -130,9 +122,10 @@ platform :mac do
       # Two Apple Distribution identities with the same display name may exist
       # in the login keychain. This fingerprint is the identity embedded in the
       # Match App Store provisioning profile, so Xcode must not pick the other.
-      build_options[:xcargs] = "PROVISIONING_PROFILE_SPECIFIER='#{profile_name}' CODE_SIGN_IDENTITY='38B6B27BEAAE1EF769F3E52FF79895196AD14849'"
+      build_options[:xcargs] = "#{build_number_arg} PROVISIONING_PROFILE_SPECIFIER='#{profile_name}' CODE_SIGN_IDENTITY='38B6B27BEAAE1EF769F3E52FF79895196AD14849'"
       build_options[:export_options] = {
         signingCertificate: "38B6B27BEAAE1EF769F3E52FF79895196AD14849",
+        installerSigningCertificate: "3rd Party Mac Developer Installer: RECEP GUR (9MA297YYN2)",
         signingStyle: "manual",
         provisioningProfiles: {
           required_env!("APP_IDENTIFIER") => profile_name
@@ -140,23 +133,19 @@ platform :mac do
       }
     end
 
-    begin
-      build_mac_app(**build_options)
+    build_mac_app(**build_options)
 
-      upload_to_testflight(
-        api_key: api_key,
-        apple_id: CANONICAL_APP_STORE_APP_ID,
-        app_identifier: required_env!("APP_IDENTIFIER"),
-        pkg: Actions.lane_context[SharedValues::PKG_OUTPUT_PATH],
-        skip_waiting_for_build_processing: options[:skip_waiting] != false,
-        distribute_external: false,
-        notify_external_testers: false,
-        uses_non_exempt_encryption: false,
-        changelog: options[:changelog] || "Internal macOS beta build"
-      )
-    ensure
-      sh("/usr/libexec/PlistBuddy -c 'Set :FrameMateDisablePurchasesForInternalTesting false' '#{plist_path}'")
-    end
+    upload_to_testflight(
+      api_key: api_key,
+      apple_id: CANONICAL_APP_STORE_APP_ID,
+      app_identifier: required_env!("APP_IDENTIFIER"),
+      pkg: Actions.lane_context[SharedValues::PKG_OUTPUT_PATH],
+      skip_waiting_for_build_processing: options[:skip_waiting] != false,
+      distribute_external: false,
+      notify_external_testers: false,
+      uses_non_exempt_encryption: false,
+      changelog: options[:changelog] || "Internal macOS beta build"
+    )
 
     UI.success("TestFlight yuku tamamlandi: v#{version} (#{build_number})")
   end
@@ -186,7 +175,7 @@ platform :mac do
   end
 
   desc "Mac App Store metadata ve ekran goruntulerini yukle; review'a gondermez"
-  lane :store_metadata do
+  lane :store_metadata do |options|
     normalize_project_release_environment!
     doctor
 
@@ -198,13 +187,20 @@ platform :mac do
       screenshots_path: "fastlane/screenshots",
       skip_binary_upload: true,
       skip_metadata: false,
-      skip_screenshots: false,
+      # Metadata can be published independently while the screenshot set is
+      # still being reviewed. The default keeps the existing full-store lane;
+      # pass skip_screenshots:true for a metadata-only iteration.
+      skip_screenshots: options[:skip_screenshots] || false,
       submit_for_review: false,
       force: true,
       overwrite_screenshots: true,
       precheck_include_in_app_purchases: false
     )
 
-    UI.success("Mac App Store metadata ve ekran goruntuleri yuklendi")
+    if options[:skip_screenshots]
+      UI.success("Mac App Store metadata yuklendi; ekran goruntuleri degistirilmedi")
+    else
+      UI.success("Mac App Store metadata ve ekran goruntuleri yuklendi")
+    end
   end
 end

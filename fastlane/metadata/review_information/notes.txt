@@ -1,27 +1,33 @@
-FrameMate is a native macOS screen, camera, and audio recorder. It is designed for local recording workflows, with extra accessibility support for blind and low-vision creators.
+FrameMate is a native macOS screen, camera, and audio recorder for local recording workflows, with concrete accessibility support for blind and low-vision creators.
 
-No account is required. The app does not upload recordings, does not include advertising SDKs, and does not include analytics or tracking SDKs. Recordings are saved locally on the user's Mac.
+No account is required. Recordings are processed and saved on the user's Mac. The app does not upload recordings and includes no advertising, analytics, or tracking SDKs.
 
 Permissions used by the app:
 
-- Camera: used for camera recording, camera overlay, and Frame Coach guidance.
-- Microphone: used for microphone audio recording.
-- Screen Recording: used for full screen and window recording, and for system audio capture where available. If Screen Recording is granted while FrameMate is already running, macOS may briefly need the app to return to the foreground (or, rarely, a relaunch) before capture becomes available — this is a macOS TCC caching behavior, not app-specific.
-- Accessibility (AX): requested only if the user turns on the optional "Keyboard Shortcuts" overlay in Settings, so the app can install a system-wide recording shortcut. This is off by default and not required to use the app. VoiceOver support itself uses only the standard macOS accessibility APIs and needs no extra permission.
-- Speech: used for spoken Frame Coach guidance.
+- Camera: camera-only recording, screen + camera overlay, and Frame Coach guidance.
+- Microphone: microphone narration in video recordings and audio-only recording.
+- Screen Recording: full-display and single-window capture, plus system audio where available. If permission is granted while FrameMate is already open, macOS may briefly require the app to return to the foreground or be relaunched because of TCC caching.
+- Accessibility (AX): requested only when the optional global Keyboard Shortcuts feature is enabled. It is off by default and is not required for the core recording workflow. VoiceOver support itself uses standard macOS accessibility APIs and needs no additional permission.
+- Speech: spoken Frame Coach guidance.
 
-During recording, FrameMate shows an active recording state in the main window and a menu bar status item. The menu bar item uses a red recording symbol while recording and exposes recording status and duration in its menu.
+Modes and settings:
 
-Recording storage (Guideline 2.4.5(i)): recordings are saved to the user-visible ~/Movies/Video Recorder folder by default (via the com.apple.security.assets.movies.read-write entitlement), never to a hidden app container. Users can change the default folder from Settings with a standard folder picker, and every completed recording offers a standard Save dialog ("Save As"), rename, and "Show in Finder" actions. Custom folders are persisted with security-scoped bookmarks. Note: the default folder is named "Video Recorder" (the app's bundle name), while the marketing name of the app is FrameMate.
+- The main workflow offers horizontal camera, horizontal screen, and audio-only modes. Screen recording can target a full display or one window, and can include microphone audio, system audio, cursor highlights, and a camera overlay with selectable camera, position, and size.
+- Camera mode supports automatic reframing. Frame Coach offers automatic, VoiceOver, app-voice, or silent guidance, directional tones, center confirmation, on-screen text, feedback frequency, and repeat interval.
+- Recording settings include countdown, unlimited or capped duration, custom 5-second-to-60-minute duration, end warning, automatic/mono/stereo microphone channels, event sounds, and elapsed-time announcements.
+- Workflow settings can hide/show the window around recording, run in the Dock or only the menu bar, launch at login, choose the output folder, and use keyboard shortcuts for modes, settings announcements, start/stop, and pause/resume.
+- Settings also contains Quick Help, Help & Support, Privacy Policy, Apple's standard EULA, purchase controls, and Restore Purchases.
 
-Access model: no account or purchase is required to start recording. New users receive 3 days of unlimited local recording, followed by a device-only quota of 7 free recording minutes per calendar month that renews automatically. This free access is managed entirely in the app; the yearly subscription has no App Store introductory offer or free trial. FrameMate Pro is offered as a yearly auto-renewable subscription and a lifetime one-time purchase ($49.99), both providing unlimited recording. Both can be bought from the paywall and from Settings. The paywall includes Restore Purchases, the privacy policy link, and the Terms of Use (Apple standard EULA) link. TestFlight and App Store review builds require an active local-access period, remaining free quota, or purchase for recording access -- there is no hidden tester unlock.
+Recording storage (Guideline 2.4.5(i)): recordings are saved to the user-visible ~/Movies/Video Recorder folder by default using the com.apple.security.assets.movies.read-write entitlement, never to a hidden app container. Users can change the folder with a standard picker, and each completed recording offers Open, rename, Save As, and Show in Finder. Custom folders use security-scoped bookmarks. The default folder is named Video Recorder because it follows the bundle name; the marketing name is FrameMate.
+
+Access model: no account or purchase is required to start recording. New users get 3 days of unlimited local recording, then a device-only quota of 7 free recording minutes per calendar month. This access is tracked on-device and is not a StoreKit trial. FrameMate Pro offers a yearly auto-renewable subscription and a lifetime one-time purchase for unlimited recording, from the paywall or Settings. The paywall includes Restore Purchases, the Privacy Policy, and Apple's standard EULA. There is no hidden tester unlock; TestFlight and review builds require active local access, remaining free quota, or a purchase.
 
 Support: https://recepgur07-bot.github.io/oneday-support/framemate-support
 Privacy Policy: https://recepgur07-bot.github.io/oneday-support/framemate-privacy
 
 Suggested reviewer flow:
-1. Launch FrameMate.
-2. Complete onboarding.
-3. Grant the permissions needed for the recording mode being tested.
-4. Test one short camera or screen recording.
-5. Open Settings to review purchase controls, restore purchases, accessibility guidance, and privacy/support links.
+1. Launch FrameMate and complete onboarding.
+2. Grant only the permissions needed for the mode being tested.
+3. Test a short camera, screen, or audio recording and open the resulting file.
+4. Open Settings to review recording, Frame Coach, accessibility, output-folder, purchase, restore, and privacy/support controls.
+5. Open Quick Help and try the keyboard shortcuts if the optional Accessibility permission is enabled.

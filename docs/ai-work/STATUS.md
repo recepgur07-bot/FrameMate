@@ -15,20 +15,21 @@ yeşil doğrulandı:
   + gerçek ilk kare PTS farkının loglanması)
 - `0de5661` Faz 5 + Faz 6 (recordingGeneration koruması, tam enstrümantasyon)
 
-Son durum: build yeşil, `-only-testing:FrameMateTests` 368 test/0 hata (bu
-ortamda gerçek cihaz izinleri olmadığı için tam `test` hedefi —
-`FrameMateProjectTests` dahil — bir kez daha ayrıca doğrulanmaya çalışıldı;
-sonucu bu dosyanın en altına eklenecek). **Gerçek cihazda doğrulanmadı**: Faz
+Son durum: canonical `xcodebuild test` yeşil — `FrameMateTests` 379 test / 2
+skip / 0 hata ve `FrameMateProjectTests` 23 test / 0 hata;
+`tools/mobile-quality-gate.sh` de yeşil. **Gerçek cihazda doğrulanmadı**: Faz
 2/3/4'ün zamanlama matematiği (özellikle ekran+kamera overlay ve kamera+sistem
-sesi modlarındaki A/V senkronu) ve Faz 4'ün macOS 15+ gözlem stream'i yalnız
-birim testleriyle (sentetik zaman çizelgeleri) doğrulandı, gerçek bir kayıtla
-değil. Ayrıntı ve kanıt: `tasks/kayit-zamanlama-duzeltmesi/seyir-defteri.md`.
-Sonraki adım: kullanıcı gerçek cihazda screen/camera/audio-only kayıt + duraklama
-+ `runtimeDebugLog` çıktısını doğrulamalı (bkz. görev dosyasındaki final rapor).
+sesi modlarındaki A/V senkronu) ve Faz 4'ün macOS 15+ gözlem stream'i gerçek
+kayıtla ayrıca doğrulanmalı. Kamera overlay görüntüsünün önceki Build 1.0
+(202608031748) üzerinde göründüğü kullanıcı tarafından doğrulandı. Ayrıntı ve
+kanıt: `tasks/kayit-zamanlama-duzeltmesi/seyir-defteri.md`,
+`../app-store/device-validation.md`. Sonraki adım: kullanıcı aday build'de
+screen/camera/audio-only kayıt + duraklama + satın alma/restore +
+`runtimeDebugLog` çıktısını doğrulamalı.
 
 Görev: `tasks/kadraj-seslendirme-incelemesi` — aşama: implementation tamamlandı,
-gerçek cihaz doğrulaması açık. Koordinatör/uygulayıcı: claude. Kullanıcı onayı
-("hepsini hallet") ile synthesis.md'nin 8 kabul edilen bulgusu uygulandı;
-355 Swift testi + 22 proje testi + Ruby lokalizasyon testleri geçiyor. Kod
-değişikliği commit edilmedi (kullanıcı henüz commit istemedi). Sonraki adım:
-kullanıcı isterse commit/gerçek cihaz doğrulaması; aksi halde açık iş yok.
+commit edildi, gerçek cihaz doğrulaması açık. Koordinatör/uygulayıcı: claude.
+Kullanıcı onayı ("hepsini hallet") ile synthesis.md'nin 8 kabul edilen bulgusu
+uygulandı; güncel canonical kapıda 379 Swift testi + 23 proje testi + Ruby
+kontrolleri geçiyor. Değişiklikler 660eaf3 commit'ine dahil. Sonraki adım:
+aday build'de gerçek cihaz/VoiceOver doğrulaması.

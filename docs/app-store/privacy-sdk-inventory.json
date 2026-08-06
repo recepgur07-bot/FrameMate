@@ -3,11 +3,11 @@
   "candidate": {
     "bundle_id": "com.recepgur.VideoRecorder",
     "marketing_version": "1.0",
-    "build_number": "DOĞRULANAMADI",
-    "archive_info_plist_sha256": "DOĞRULANAMADI"
+    "build_number": "202608041156",
+    "archive_info_plist_sha256": "98223799e0f57e35cfb9a89bf6485503ce21dea25a5925eb601064ae678aef4b"
   },
-  "reviewed_at": "2026-07-29",
-  "reviewer": "release-owner-pending",
+  "reviewed_at": "2026-08-04",
+  "reviewer": "Codex — static local preflight",
   "app_privacy_declaration_reviewed": false,
   "privacy_policy_reviewed": false,
   "sdk_inventory": [

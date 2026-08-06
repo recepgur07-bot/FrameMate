@@ -1,10 +1,9 @@
 First public release of FrameMate for Mac.
 
 Includes:
-- Screen and window recording
-- Screen + Camera overlay
-- Camera-only and audio-only modes
-- Optional system audio
-- Cursor highlight overlays
-- VoiceOver-friendly controls and live announcements
-- Frame Coach spoken guidance
+- Full-display and single-window recording
+- Camera, screen + camera, and audio-only modes
+- Microphone, optional system audio, cursor highlights, and pause/resume
+- Countdown, duration, end-warning, audio, window, and output-folder settings
+- Frame Coach, automatic reframing, and spoken guidance
+- VoiceOver-friendly controls, keyboard shortcuts, and live announcements

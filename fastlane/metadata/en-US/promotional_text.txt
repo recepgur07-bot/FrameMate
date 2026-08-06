@@ -1,1 +1,1 @@
-Record Mac tutorials, demos, and presentations with camera overlay, system audio, cursor highlights, and spoken Frame Coach guidance.
+Record screen, window, camera, and audio with system sound, cursor highlights, pause/resume, and spoken Frame Coach guidance for clear tutorials and demos.

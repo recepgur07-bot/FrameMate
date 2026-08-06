@@ -1,1 +1,1 @@
-kamera,mikrofon,sistem sesi,pencere,sunum,demo,eğitim,voiceover,kadraj,imleç,anlatım
+webcam,pencere,screencast,sunum,demo,eğitim,voiceover,kadraj,imleç,anlatım,podcast,sistem sesi

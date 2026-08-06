@@ -368,8 +368,14 @@ final class CaptureRecorder: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
         writerQueue.async { [self] in
             // Audio is the timeline anchor. This deliberately preserves the first
             // spoken sound even if the camera delivers its first encoded frame later.
+            // `stopRecording()` stops the AVCaptureSession before this serial writer
+            // queue has necessarily processed every sample the output queues already
+            // delivered. Do not discard those queued frames just because teardown has
+            // begun: doing so can leave a movie whose audio writer started but whose
+            // video track has no samples, which AVFoundation cannot finalize. The
+            // finish block is enqueued after the session has stopped; a late sample
+            // racing it simply fails to append after the input is marked finished.
             guard hasStartedWriting,
-                  !isStopping,
                   let videoWriterInput,
                   videoWriterInput.isReadyForMoreMediaData else { return }
             _ = videoWriterInput.append(sampleBufferBox.value)
@@ -380,7 +386,10 @@ final class CaptureRecorder: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
         guard CMSampleBufferIsValid(sampleBuffer) else { return }
         let sampleBufferBox = CaptureUnsafeSendableBox(value: sampleBuffer)
         writerQueue.async { [self] in
-            guard isRecording, !isStopping,
+            // See appendVideoSample(_:). Samples queued before stop must remain
+            // eligible to drain into the writer, otherwise external microphones can
+            // make the stop race reproduce as an unfinalizable movie.
+            guard isRecording,
                   let writer,
                   let audioWriterInput else { return }
 
@@ -489,6 +498,7 @@ final class CaptureRecorder: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
         audioWriterInput?.markAsFinished()
         writer.finishWriting { [weak self] in
             if let error = writer.error {
+                runtimeDebugLog("Camera recording finalization failed: \(Self.richDebugDescription(for: error))")
                 self?.completeRecording(.failure(error))
             } else {
                 self?.completeRecording(.success(outputURL))
@@ -525,6 +535,18 @@ final class CaptureRecorder: NSObject, AVCaptureVideoDataOutputSampleBufferDeleg
         hasStartedWriting = false
         hasAppendedAudioSample = false
         isAwaitingFirstSample = false
+    }
+
+    private static func richDebugDescription(for error: Error) -> String {
+        let nsError = error as NSError
+        var parts = ["domain=\(nsError.domain)", "code=\(nsError.code)", "description=\(nsError.localizedDescription)"]
+        if let reason = nsError.localizedFailureReason {
+            parts.append("reason=\(reason)")
+        }
+        if let underlying = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
+            parts.append("underlying=(domain=\(underlying.domain) code=\(underlying.code) description=\(underlying.localizedDescription))")
+        }
+        return parts.joined(separator: ", ")
     }
 }
 

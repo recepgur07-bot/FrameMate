@@ -21,7 +21,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
-	<string>202608031748</string>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>FrameMateDisablePurchasesForInternalTesting</key>
 	<false/>
 	<key>ITSAppUsesNonExemptEncryption</key>

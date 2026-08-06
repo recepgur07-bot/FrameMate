@@ -1,36 +1,47 @@
-Record polished tutorials, demos, lessons, and presentations on your Mac without a complicated setup.
-
-FrameMate is a native Mac recorder designed for creators, teachers, and teams who need clean recordings with clear narration and accessibility support.
+Record tutorials, product demos, lessons, presentations, and clear narrated explanations on your Mac. FrameMate is an accessibility-first local Mac recorder that brings screen, camera, and audio into one focused workflow.
 
 WHAT YOU CAN RECORD
 
 • SCREEN AND WINDOW RECORDING
-Capture your full screen or a single window as an MP4. Great for product walkthroughs, lessons, onboarding, and tutorials.
+Capture your full display or a single window as a 1080p MP4. Use it for lessons, onboarding, product walkthroughs, and presentations.
 
 • SCREEN + CAMERA
-Add your camera as an overlay to make your presentation more engaging.
+Place your camera over the screen. Choose the camera, then set the overlay position and size to make your explanation more personal.
 
-• CAMERA OR AUDIO ONLY
-Record standalone camera videos for quick updates, or capture microphone audio for voice notes and podcast drafts.
+• CAMERA OR AUDIO
+Record standalone camera videos, microphone audio, system audio, or both. Choose automatic, mono, or stereo microphone channels.
 
 TOOLS FOR CLEAR EXPLANATIONS
-• Optional system audio for screen recordings
-• Cursor highlight overlays to make clicks visible
-• Simple pause and resume controls
+
+• Add microphone and optional system audio to screen recordings, with separate volume controls.
+• Highlight the cursor and clicks so viewers can follow every step.
+• Pause and resume without losing the recording timeline.
+• Open the finished file, rename it, reveal it in Finder, or copy it elsewhere with Save As.
 
 FRAME COACH
-Frame Coach gives live spoken guidance to keep your face centered. It is especially useful for creators who want consistent camera framing without checking the screen constantly.
 
-ACCESSIBILITY FOR BLIND AND LOW-VISION CREATORS
-FrameMate is built from the ground up with VoiceOver support:
-• Keyboard-friendly controls
-• Live status announcements for recordings and errors
-• Frame Coach guidance makes it possible to set up your shot independently without visual feedback
+Frame Coach gives spoken guidance to help keep your face in frame. Adjust automatic reframing, directional tones, center confirmation, on-screen text, feedback frequency, and repeat interval. It is designed for consistent camera setup without constantly checking the preview.
+
+SETTINGS FOR YOUR WORKFLOW
+
+• Choose a countdown, unlimited recording, a maximum duration, a custom 5-second-to-60-minute limit, and an end-of-recording warning.
+• Choose recording start, stop, pause, and resume sounds, plus elapsed-time announcements and their frequency.
+• Hide the app window when recording starts, bring it back when recording stops, run in the Dock or menu bar, and launch at login.
+• Choose the default recording folder. Your latest recording setup is remembered for the next session.
+• Use optional keyboard shortcuts, Quick Help, and direct Help, Privacy, and Terms links from Settings.
+
+ACCESSIBILITY
+
+FrameMate is designed with VoiceOver and keyboard use in mind. Recording start, pause, error, and completion states are announced live. Frame Coach provides spoken framing feedback for blind and low-vision creators. The optional global-shortcut feature requests macOS Accessibility permission only when enabled; the core recording workflow does not require it.
 
 PRIVACY
-Your recordings are processed and saved locally on your Mac. FrameMate does not require an account, does not upload videos, and includes no tracking SDKs.
 
-Start recording instantly, with no account required. The first 3 days include unlimited local recording; after that, every user receives 7 free recording minutes each month. Upgrade to yearly or lifetime Pro anytime for unlimited recording.
+Recordings are processed and saved locally on your Mac. FrameMate requires no account, cloud upload, advertising, analytics, or tracking SDKs.
+
+ACCESS AND PRO
+
+Start without an account. The first 3 days include unlimited local recording; after that, every user receives 7 free recording minutes each month. Choose a yearly auto-renewable subscription or a one-time lifetime Pro purchase whenever you need unlimited recording. Restore Purchases is included.
 
 TERMS OF USE
+
 Apple's standard Mac App Store EULA applies: https://www.apple.com/legal/macapps/stdeula/

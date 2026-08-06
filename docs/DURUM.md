@@ -1,4 +1,4 @@
-Şu an: Ekran + kamera kutusu birleştirme hatasının (-11841 AVErrorInvalidVideoComposition) kök nedeni kod düzeyinde bulundu ve düzeltildi: kamera izi kompozisyona ekran süresinden uzun yerleşiyor ve video talimatları kompozisyonun tamamını kapsamıyordu; ayrıca insertTimeRange'in baştaki boşluğu sessizce yutması yüzünden pozitif offset'li tüm ikincil izler (kamera/mikrofon/sistem sesi) hizadan kayıyordu. Her iki hata da tüm kayıt modlarında (ekran, kamera, ses) giderildi; 3 yeni regresyon testiyle birlikte tüm test paketi geçti. Düzeltmeler Build 1.0 (202608031748) olarak TestFlight iç testine yüklendi ve kullanıcı gerçek cihazda doğruladı: kamera görüntüsü artık ekran kaydı videosunda görünüyor. Günlerdir süren sorun kapandı; değişiklikler git'e commit edildi.
+Şu an: Harici mikrofonla video kaydını durdurma düzeltmesi iç TestFlight build `1.0 (202608051620)` olarak işlendi. Gerçek cihazda sesli kayıtla doğrulama bekleniyor; App Review gönderilmedi.
 
 - [x] Ekran+kamera birleşik export'un -11841 hatası: talimat kapsaması + iz kırpma düzeltmesi (2026-08-03 17:50 kaydı)
 - [x] insertTimeRange boşluk-yutma hatası: ekran/kamera/ses modlarındaki tüm ikincil iz yerleşimleri düzeltildi
@@ -9,6 +9,16 @@
 - [ ] TestFlight'ta ekran kaydı izni önbellek düzeltmesinin doğrulanması (önceki açık madde)
 - [ ] Kamera kopma senaryosu ayrıca ele alınmadı (kasıtlı: hâlâ sert durdurur)
 - [x] Değişiklikler git'e commit edildi (birikmiş önceki düzeltmelerle birlikte)
-- [x] App Store hazırlık denetimi: ayarlar, dosya sistemi, kısayollar, kota — sağlam; 5 sağlamlaştırma yapıldı (StoreKit Transaction.updates dinleyicisi, öne-gelişte erişim tazeleme, fatalError kaldırma, güvenli indeks, dosya adı nokta temizliği) — commit bekliyor
-- [x] Dil bütünlüğü doğrulandı: TR+EN 577 anahtar %100 çevrili; tek yerelleştirmesiz metin ("Hata: ...") düzeltildi
-- [x] App Store editör denetimi: izin metinleri örnekli ve amaca özel, gizlilik manifestosu/entitlements/2.4.5(i) uyumlu, paywall'a 3.1.2 otomatik yenileme açıklaması eklendi — commit bekliyor
+- [x] App Store hazırlık denetimi: ayarlar, dosya sistemi, kısayollar, kota — sağlam; 5 sağlamlaştırma yapıldı (StoreKit Transaction.updates dinleyicisi, öne-gelişte erişim tazeleme, fatalError kaldırma, güvenli indeks, dosya adı nokta temizliği) — 660eaf3 içinde
+- [x] Dil bütünlüğü doğrulandı: TR+EN 579 anahtar %100 çevrili; tek yerelleştirmesiz metin ("Hata: ...") düzeltildi
+- [x] App Store editör denetimi: izin metinleri örnekli ve amaca özel, gizlilik manifestosu/entitlements/2.4.5(i) uyumlu, paywall'a 3.1.2 otomatik yenileme açıklaması eklendi
+- [x] Tüm sağlamlaştırma + dil + App Store hazırlık değişiklikleri commit edildi (660eaf3) ve iç teste yüklendi: Build 1.0 (202608031903) — App Store gönderimi öncesi aday sürüm
+- [ ] Kullanıcının aday build'de satın alma akışı dahil son genel kontrolü
+- [x] 2026-08-04 yerel kalite kapısı tamamlandı: canonical build, 379 uygulama testi (2 skip), 23 proje testi, gitleaks, SwiftFormat, SwiftLint, lokalizasyon (6/6), screenshot (3/3) ve English-only (2/2) kontrolleri geçti
+- [x] Release signing düzeltildi: `match AppStore com.recepgur.VideoRecorder macos` profili ve Apple Distribution sertifikası eşleşti; archive `1.0 (202608041156)` üretildi, `.pkg` export edildi ve hash kanıtı `docs/app-store/device-validation.md` içine yazıldı
+- [x] Archive sonrası doğrulama: `FrameMateTests` 379 test / 2 skip / 0 failure; archive değişikliğini kapsayan 17 `FrameMateProjectTests` yapılandırma testi / 0 failure geçti
+- [x] App Store Connect salt-okunur envanteri ve yükleme kontrolü: App ID `6762084840` altında yeni build `1.0 (202608041156)` `VALID` olarak görüldü; önceki build'ler silinmedi
+- [x] TR/EN ASO metadata güncellendi ve App Store Connect'e yalnız metadata olarak yüklendi: açıklama, subtitle, keywords, promotional text, release notes, destek/gizlilik URL'leri ve review notes; ekran görüntüleri değiştirilmedi, App Review gönderilmedi
+- [ ] Repo kök dosyalarını okuyan 6 proje workflow testi macOS sandbox test hostunda kilitleniyor; kaynak kod değiştirilmeden izole edilerek ayrıca ele alınacak
+- [ ] Gerçek cihazda temiz kurulum/izin/VoiceOver ve aday build satın alma-restore akışı; App Store Connect metadata, App Privacy ve hukuki son onay
+- [ ] Harici kablosuz mikrofonla kamera video kaydını başlat/durdur: TestFlight build `1.0 (202608051620)` içinde sesli geçerli MP4 doğrulaması

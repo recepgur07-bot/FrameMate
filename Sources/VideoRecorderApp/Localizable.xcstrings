@@ -2650,6 +2650,23 @@
         }
       }
     },
+    "Kayıt sonu uyarısı": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recording end warning"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kayıt sonu uyarısı"
+          }
+        }
+      }
+    },
     "Kayıt durduruluyor": {
       "extractionState": "manual",
       "localizations": {

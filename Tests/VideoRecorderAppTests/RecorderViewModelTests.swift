@@ -2744,12 +2744,14 @@ final class RecorderViewModelTests: XCTestCase {
             isDirectory: true
         )
         let expectedFallbackDirectory = RecordingFileNamer().outputDirectory
+        let outputDirectoryStore = MockRecordingOutputDirectoryStore()
 
         let viewModel = RecorderViewModel(
             recorder: recorder,
             screenRecordingProvider: MockScreenRecordingProvider(),
             fileNamer: RecordingFileNamer(outputDirectory: forbiddenDirectory),
             soundEffectPlayer: MockSoundEffectPlayer(),
+            recordingOutputDirectoryStore: outputDirectoryStore,
             permissionProvider: RecorderPermissionsStub(statuses: [.video: .authorized, .audio: .authorized]),
             appAccessManager: MockAppAccessManager(
                 state: AppAccessState(accessKind: .localTrial, localTrialDaysRemaining: 14, freeTierSecondsRemaining: 420, offers: [])

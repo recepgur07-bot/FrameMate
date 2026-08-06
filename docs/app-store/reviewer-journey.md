@@ -6,9 +6,13 @@ API anahtarı veya sertifika eklenmez.
 ## Aday kimliği
 
 - Uygulama / bundle ID: FrameMate / `com.recepgur.VideoRecorder`
-- Version / build: `DOĞRULANAMADI` — immutable archive seçildiğinde doldurulur.
-- Archive Info.plist SHA-256: `DOĞRULANAMADI`
-- Hazırlayan / tarih: Release sorumlusu tarafından adayla birlikte doldurulur.
+- Version / build: `1.0 (202608041156)` — App Store Connect'e yüklendi ve `VALID`; iç TestFlight/gerçek cihaz doğrulaması açık.
+- Archive Info.plist SHA-256: `98223799e0f57e35cfb9a89bf6485503ce21dea25a5925eb601064ae678aef4b`
+- Package: `build/release/FrameMate-1.0-202608041156.pkg` — SHA-256 `50bc8f6c9fba59ca92f0a70f42769a252aed133b259239b6cdfabe1c8bc4fc3b`
+- Hazırlayan / tarih: `Codex / 2026-08-04` — archive/export doğrulaması ve ASC yükleme sonucu kaydedildi; release sahibi doğrulaması bekliyor.
+
+Archive `Apple Distribution: RECEP GUR (9MA297YYN2)` ve package installer sertifikasıyla
+başarıyla üretildi. Kullanılan profile UUID `23fe9adf-478d-4477-84b4-e5323bf9ebbe`.
 
 ## Bir dakikalık özet
 

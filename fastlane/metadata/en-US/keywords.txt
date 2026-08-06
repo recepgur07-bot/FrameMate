@@ -1,1 +1,1 @@
-webcam,window capture,screencast,tutorial,demo,mic recorder,system audio,voiceover,cursor,framing
+webcam,window,screencast,tutorial,demo,podcast,voiceover,cursor,framing,microphone,system audio

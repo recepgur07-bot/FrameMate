@@ -1,10 +1,9 @@
-FrameMate'in ilk herkese açık sürümü.
+FrameMate'in Mac için ilk herkese açık sürümü.
 
 Bu sürümde:
-- Ekran ve pencere kaydı
-- Ekran + Kamera kaydı
-- Yalnızca kamera veya ses kaydı
-- Sistem sesi desteği
-- İmleç vurgusu katmanı
-- VoiceOver dostu kontroller ve canlı durum anonsları
-- Kadraj Koçu sesli yönlendirmeleri
+- Tam ekran ve tek pencere kaydı
+- Kamera, ekran + kamera ve yalnızca ses modları
+- Mikrofon, isteğe bağlı sistem sesi, imleç vurgusu ve duraklatma
+- Geri sayım, süre, kayıt sonu uyarısı, ses, pencere ve kayıt klasörü ayarları
+- Kadraj Koçu, otomatik yeniden kadraj ve sesli yönlendirme
+- VoiceOver dostu kontroller, klavye kısayolları ve canlı anonslar
