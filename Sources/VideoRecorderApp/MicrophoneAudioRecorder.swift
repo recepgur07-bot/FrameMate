@@ -74,6 +74,35 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
     private var isStopping = false
     private var capturedFirstSampleTime: CMTime?
 
+    // Sample-flow instrumentation. An external/USB microphone that stops delivering
+    // mid-take (capture-session runtime error, device format renegotiation, the box
+    // going to sleep) used to be invisible: the writer simply stopped receiving
+    // samples, the file ended early, and the user only heard "sound at the start,
+    // then nothing". These counters, the periodic flow log and the stall watchdog
+    // make that failure observable and recoverable instead of silent.
+    private var receivedSampleCount = 0
+    private var appendedSampleCount = 0
+    private var droppedNotReadyCount = 0
+    private var failedAppendCount = 0
+    private var lastSampleHostTime: CFAbsoluteTime?
+    private var lastFlowLogHostTime: CFAbsoluteTime?
+    private var didLogSourceFormat = false
+    private var sessionObserverTokens: [NSObjectProtocol] = []
+    private var stallWatchdog: DispatchSourceTimer?
+    private var recordingDeviceID: String?
+    private var hasReportedStall = false
+    private var sessionRestartCount = 0
+
+    /// How long the microphone may deliver nothing before the recorder treats the
+    /// capture session as stalled and tries to restart it. Audio arrives in ~10ms
+    /// buffers, so a second of total silence from the device is already pathological.
+    private static let stallThreshold: CFTimeInterval = 1.5
+    private static let stallCheckInterval: DispatchTimeInterval = .milliseconds(500)
+    private static let flowLogInterval: CFTimeInterval = 5
+    /// Restarting is a recovery attempt, not a retry loop: a device that keeps dying
+    /// should surface as a stalled recording rather than spin forever.
+    private static let maximumSessionRestarts = 5
+
     var firstSamplePresentationTime: CMTime? { capturedFirstSampleTime }
 
     func startRecording(deviceID: String, to url: URL, audioChannelMode: AudioChannelMode, completion: @escaping (Result<URL, Error>) -> Void) async throws {
@@ -133,6 +162,11 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                     self.sampleTracker.reset()
                     self.isStopping = false
                     self.capturedFirstSampleTime = nil
+                    self.recordingDeviceID = deviceID
+                    self.resetFlowInstrumentation()
+                    self.installSessionObservers()
+                    self.startStallWatchdog()
+                    runtimeDebugLog("Microphone capture started: device=\(device.localizedName) settings=\(audioSettings)")
 
                     continuation.resume()
                 } catch {
@@ -149,6 +183,12 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
     func stopRecording() {
         guard !isStopping else { return }
         isStopping = true
+        stopStallWatchdog()
+        removeSessionObservers()
+        runtimeDebugLog(
+            "Microphone capture finished: received=\(receivedSampleCount) appended=\(appendedSampleCount) "
+            + "droppedNotReady=\(droppedNotReadyCount) failedAppend=\(failedAppendCount) restarts=\(sessionRestartCount)"
+        )
 
         let currentWriter = writer
         let currentWriterInput = writerInput
@@ -200,6 +240,8 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
         let sampleBufferBox = UnsafeSendableBox(value: sampleBuffer)
 
         writerQueue.async {
+            self.noteSampleArrived(sampleBufferBox.value)
+
             if !self.hasStartedWriting {
                 guard writerBox.value.startWriting() else {
                     self.complete(.failure(writerBox.value.error ?? MicrophoneAudioRecorderError.cannotCreateWriter))
@@ -212,10 +254,243 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
                 self.capturedFirstSampleTime = CMSampleBufferGetPresentationTimeStamp(sampleBufferBox.value)
             }
 
-            guard writerInputBox.value.isReadyForMoreMediaData else { return }
+            guard writerInputBox.value.isReadyForMoreMediaData else {
+                // Silently discarding audio here is what makes a stalled encoder look
+                // like a dead microphone; count it so the runtime log can tell the two
+                // apart.
+                self.droppedNotReadyCount += 1
+                return
+            }
             if writerInputBox.value.append(sampleBufferBox.value) {
                 self.sampleTracker.markAppendedSample()
+                self.appendedSampleCount += 1
+            } else {
+                self.failedAppendCount += 1
+                if self.failedAppendCount == 1 {
+                    runtimeDebugLog(
+                        "Microphone capture: first writer append failure at sample \(self.receivedSampleCount), "
+                        + "writer status=\(writerBox.value.status.rawValue) error=\(writerBox.value.error?.localizedDescription ?? "none")"
+                    )
+                }
             }
+        }
+    }
+
+    // MARK: - Sample-flow instrumentation
+
+    private func resetFlowInstrumentation() {
+        receivedSampleCount = 0
+        appendedSampleCount = 0
+        droppedNotReadyCount = 0
+        failedAppendCount = 0
+        lastSampleHostTime = nil
+        lastFlowLogHostTime = nil
+        didLogSourceFormat = false
+        hasReportedStall = false
+        sessionRestartCount = 0
+    }
+
+    /// Called on the writer queue for every buffer the device delivers. Records arrival
+    /// time (for the stall watchdog) and periodically logs throughput plus the actual
+    /// signal level, so a device that keeps delivering *silence* is distinguishable from
+    /// one that stops delivering at all.
+    private func noteSampleArrived(_ sampleBuffer: CMSampleBuffer) {
+        let now = CFAbsoluteTimeGetCurrent()
+        receivedSampleCount += 1
+        lastSampleHostTime = now
+        hasReportedStall = false
+
+        if !didLogSourceFormat {
+            didLogSourceFormat = true
+            if let format = CMSampleBufferGetFormatDescription(sampleBuffer),
+               let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(format)?.pointee {
+                runtimeDebugLog(
+                    "Microphone capture source format: \(asbd.mChannelsPerFrame) ch, \(asbd.mSampleRate) Hz, "
+                    + "formatID=\(asbd.mFormatID), flags=\(asbd.mFormatFlags)"
+                )
+            }
+        }
+
+        guard let lastFlowLogHostTime else {
+            self.lastFlowLogHostTime = now
+            return
+        }
+        guard now - lastFlowLogHostTime >= Self.flowLogInterval else { return }
+        self.lastFlowLogHostTime = now
+        runtimeDebugLog(
+            "Microphone capture flow: received=\(receivedSampleCount) appended=\(appendedSampleCount) "
+            + "droppedNotReady=\(droppedNotReadyCount) failedAppend=\(failedAppendCount) "
+            + "level=\(String(format: "%.4f", Self.peakLevel(of: sampleBuffer)))"
+        )
+    }
+
+    /// Peak absolute sample value of a buffer, normalized to 0...1. Only used for the
+    /// diagnostic log line, so a cheap best-effort read of the first channel is enough.
+    static func peakLevel(of sampleBuffer: CMSampleBuffer) -> Float {
+        guard let format = CMSampleBufferGetFormatDescription(sampleBuffer),
+              let asbd = CMAudioFormatDescriptionGetStreamBasicDescription(format)?.pointee,
+              let blockBuffer = CMSampleBufferGetDataBuffer(sampleBuffer) else {
+            return -1
+        }
+
+        var length = 0
+        var pointer: UnsafeMutablePointer<Int8>?
+        guard CMBlockBufferGetDataPointer(blockBuffer, atOffset: 0, lengthAtOffsetOut: nil, totalLengthOut: &length, dataPointerOut: &pointer) == noErr,
+              let pointer, length > 0 else {
+            return -1
+        }
+
+        let isFloat = asbd.mFormatFlags & kAudioFormatFlagIsFloat != 0
+        var peak: Float = 0
+        if isFloat, asbd.mBitsPerChannel == 32 {
+            pointer.withMemoryRebound(to: Float.self, capacity: length / MemoryLayout<Float>.size) { samples in
+                for index in 0..<(length / MemoryLayout<Float>.size) {
+                    peak = max(peak, abs(samples[index]))
+                }
+            }
+        } else if asbd.mBitsPerChannel == 16 {
+            pointer.withMemoryRebound(to: Int16.self, capacity: length / MemoryLayout<Int16>.size) { samples in
+                for index in 0..<(length / MemoryLayout<Int16>.size) {
+                    peak = max(peak, abs(Float(samples[index])) / 32_768)
+                }
+            }
+        } else {
+            return -1
+        }
+        return peak
+    }
+
+    // MARK: - Capture-session health
+
+    /// AVCaptureSession reports a mid-session failure (a USB microphone renegotiating
+    /// its format, the audio HAL resetting, the device briefly dropping off the bus)
+    /// through `runtimeErrorNotification`, and a session that hits one stays stopped
+    /// until it is explicitly restarted. Nothing observed these notifications before,
+    /// which is precisely how a take could keep "recording" while the microphone had
+    /// already stopped feeding it.
+    private func installSessionObservers() {
+        removeSessionObservers()
+        let center = NotificationCenter.default
+
+        let runtimeErrorToken = center.addObserver(
+            forName: AVCaptureSession.runtimeErrorNotification,
+            object: session,
+            queue: nil
+        ) { [weak self] notification in
+            let error = notification.userInfo?[AVCaptureSessionErrorKey] as? NSError
+            runtimeDebugLog("Microphone capture session runtime error: \(error?.localizedDescription ?? "unknown") (code \(error?.code ?? 0))")
+            self?.restartSessionAfterFailure(reason: "runtime error")
+        }
+
+        let interruptedToken = center.addObserver(
+            forName: AVCaptureSession.wasInterruptedNotification,
+            object: session,
+            queue: nil
+        ) { _ in
+            runtimeDebugLog("Microphone capture session was interrupted")
+        }
+
+        let interruptionEndedToken = center.addObserver(
+            forName: AVCaptureSession.interruptionEndedNotification,
+            object: session,
+            queue: nil
+        ) { [weak self] _ in
+            runtimeDebugLog("Microphone capture session interruption ended")
+            self?.restartSessionAfterFailure(reason: "interruption ended")
+        }
+
+        let stoppedToken = center.addObserver(
+            forName: AVCaptureSession.didStopRunningNotification,
+            object: session,
+            queue: nil
+        ) { [weak self] _ in
+            guard let self, !self.isStopping else { return }
+            runtimeDebugLog("Microphone capture session stopped running mid-recording")
+            self.restartSessionAfterFailure(reason: "session stopped")
+        }
+
+        sessionObserverTokens = [runtimeErrorToken, interruptedToken, interruptionEndedToken, stoppedToken]
+    }
+
+    private func removeSessionObservers() {
+        for token in sessionObserverTokens {
+            NotificationCenter.default.removeObserver(token)
+        }
+        sessionObserverTokens = []
+    }
+
+    /// Watches for the microphone going quiet at the *delivery* level (no buffers at
+    /// all, as opposed to buffers full of silence) and restarts the capture session
+    /// when that happens, so the rest of the take is still recorded instead of the
+    /// file simply ending where the device died.
+    private func startStallWatchdog() {
+        stallWatchdog?.cancel()
+        let timer = DispatchSource.makeTimerSource(queue: sessionQueue)
+        timer.schedule(deadline: .now() + Self.stallCheckInterval, repeating: Self.stallCheckInterval)
+        timer.setEventHandler { [weak self] in
+            self?.checkForStall()
+        }
+        stallWatchdog = timer
+        timer.resume()
+    }
+
+    private func stopStallWatchdog() {
+        stallWatchdog?.cancel()
+        stallWatchdog = nil
+    }
+
+    private func checkForStall() {
+        guard !isStopping else { return }
+        // Nothing has arrived yet: startup latency, not a stall. The view model's own
+        // first-sample wait already covers a microphone that never starts at all.
+        guard let lastSampleHostTime else { return }
+        let silentFor = CFAbsoluteTimeGetCurrent() - lastSampleHostTime
+        guard silentFor >= Self.stallThreshold, !hasReportedStall else { return }
+
+        hasReportedStall = true
+        runtimeDebugLog(
+            "Microphone capture stalled: no samples for \(String(format: "%.1f", silentFor))s "
+            + "after \(receivedSampleCount) samples; attempting session restart"
+        )
+        restartSessionAfterFailure(reason: "sample delivery stalled")
+    }
+
+    /// Rebuilds and restarts the capture session in place. The asset writer is left
+    /// untouched: it keeps its already-written samples and simply resumes receiving new
+    /// ones, so a recovered take is continuous rather than split into two files.
+    private func restartSessionAfterFailure(reason: String) {
+        sessionQueue.async { [weak self] in
+            guard let self, !self.isStopping else { return }
+            guard self.sessionRestartCount < Self.maximumSessionRestarts else {
+                runtimeDebugLog("Microphone capture: restart limit reached, not restarting again (\(reason))")
+                return
+            }
+            self.sessionRestartCount += 1
+
+            // Re-adding the device input matters: after a runtime error the existing
+            // input can be bound to a connection the HAL has already torn down, and
+            // simply calling startRunning() then yields a running session that never
+            // delivers a sample.
+            if let deviceID = self.recordingDeviceID,
+               let device = AVCaptureDevice(uniqueID: deviceID) {
+                self.session.beginConfiguration()
+                for existingInput in self.session.inputs {
+                    self.session.removeInput(existingInput)
+                }
+                if let refreshedInput = try? AVCaptureDeviceInput(device: device), self.session.canAddInput(refreshedInput) {
+                    self.session.addInput(refreshedInput)
+                    self.audioInput = refreshedInput
+                }
+                self.session.commitConfiguration()
+            }
+
+            if !self.session.isRunning {
+                self.session.startRunning()
+            }
+            runtimeDebugLog(
+                "Microphone capture session restarted (\(reason), attempt \(self.sessionRestartCount)); "
+                + "running=\(self.session.isRunning)"
+            )
         }
     }
 
@@ -251,6 +526,8 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
     }
 
     private func resetState() {
+        stopStallWatchdog()
+        removeSessionObservers()
         session.beginConfiguration()
         for input in session.inputs {
             session.removeInput(input)
@@ -265,5 +542,9 @@ final class MicrophoneAudioRecorder: NSObject, AVCaptureAudioDataOutputSampleBuf
         hasStartedWriting = false
         sampleTracker.reset()
         isStopping = false
+        recordingDeviceID = nil
+        // `capturedFirstSampleTime` deliberately survives teardown: the export path
+        // reads it *after* this recording has completed, to align this component
+        // against the session clock. It is cleared at the start of the next take.
     }
 }

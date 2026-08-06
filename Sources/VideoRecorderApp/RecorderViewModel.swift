@@ -81,7 +81,8 @@ final class AudioRecordingExporter: AudioRecordingExporting {
                 from: AVURLAsset(url: microphoneURL),
                 to: composition,
                 pauseTimeline: pauseTimeline,
-                offsetSeconds: microphoneOffsetSeconds
+                offsetSeconds: microphoneOffsetSeconds,
+                label: "microphone"
             )
         }
         if let systemAudioURL {
@@ -89,9 +90,16 @@ final class AudioRecordingExporter: AudioRecordingExporting {
                 from: AVURLAsset(url: systemAudioURL),
                 to: composition,
                 pauseTimeline: pauseTimeline,
-                offsetSeconds: systemAudioOffsetSeconds
+                offsetSeconds: systemAudioOffsetSeconds,
+                label: "system audio"
             )
         }
+
+        runtimeDebugLog(
+            "Audio export: composition duration = \(composition.duration.seconds)s, "
+            + "microphone tracks = \(microphoneTrackIDs.count), system tracks = \(systemTrackIDs.count), "
+            + "microphone volume = \(microphoneVolume), system volume = \(systemAudioVolume)"
+        )
 
         guard let exportSession = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetAppleM4A) else {
             throw CaptureRecorderError.cannotExportMP4
@@ -126,9 +134,11 @@ final class AudioRecordingExporter: AudioRecordingExporting {
         from asset: AVAsset,
         to composition: AVMutableComposition,
         pauseTimeline: RecordingPauseTimeline,
-        offsetSeconds: TimeInterval = 0
+        offsetSeconds: TimeInterval = 0,
+        label: String = "audio"
     ) async throws -> [CMPersistentTrackID] {
         let duration = try await asset.load(.duration)
+        runtimeDebugLog("Audio export: \(label) source duration = \(duration.seconds)s, offset = \(offsetSeconds)s")
         guard duration > .zero else { return [] }
         let segments = pauseTimeline.segments(for: duration, offsetSeconds: offsetSeconds)
         guard !segments.isEmpty else { return [] }
